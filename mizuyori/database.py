@@ -31,6 +31,23 @@ from pathlib import Path
         изменено TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
     );
     """,
+    # 2: списки задач, срок у задач
+    """
+    CREATE TABLE списки (
+        id       INTEGER PRIMARY KEY,
+        название TEXT NOT NULL,
+        цвет     TEXT NOT NULL,
+        значок   TEXT NOT NULL,
+        порядок  INTEGER NOT NULL DEFAULT 0
+    );
+    INSERT INTO списки (название, цвет, значок, порядок) VALUES
+        ('Дом', 'зелёный', '🏠', 1),
+        ('Работа', 'синий', '💼', 2),
+        ('Покупки', 'оранжевый', '🛒', 3);
+    ALTER TABLE задачи ADD COLUMN срок TEXT;
+    ALTER TABLE задачи ADD COLUMN список_id INTEGER REFERENCES списки(id) ON DELETE SET NULL;
+    CREATE INDEX задачи_срок ON задачи(срок);
+    """,
 ]
 
 
@@ -87,6 +104,8 @@ class База:
 
     # ---- Задачи ---------------------------------------------------------
 
+    _ПОЛЯ_ЗАДАЧИ = "id, текст, готово, срок, список_id, создано"
+
     @staticmethod
     def _задача(строка) -> dict:
         задача = dict(строка)
@@ -94,32 +113,71 @@ class База:
         return задача
 
     def задачи(self) -> list[dict]:
-        """Сначала невыполненные (новые сверху), потом выполненные."""
         with self.соединение() as связь:
             строки = связь.execute(
-                "SELECT id, текст, готово, создано FROM задачи ORDER BY готово, id DESC").fetchall()
+                f"SELECT {self._ПОЛЯ_ЗАДАЧИ} FROM задачи ORDER BY готово, id DESC").fetchall()
         return [self._задача(с) for с in строки]
 
-    def добавить_задачу(self, текст: str) -> dict:
+    def задача(self, номер: int) -> dict | None:
         with self.соединение() as связь:
-            курсор = связь.execute("INSERT INTO задачи (текст) VALUES (?)", (текст,))
-            строка = связь.execute("SELECT id, текст, готово, создано FROM задачи WHERE id = ?",
-                                   (курсор.lastrowid,)).fetchone()
-        return self._задача(строка)
-
-    def изменить_задачу(self, номер: int, текст: str | None = None, готово: bool | None = None) -> dict | None:
-        with self.соединение() as связь:
-            if текст is not None:
-                связь.execute("UPDATE задачи SET текст = ? WHERE id = ?", (текст, номер))
-            if готово is not None:
-                связь.execute("UPDATE задачи SET готово = ? WHERE id = ?", (int(готово), номер))
-            строка = связь.execute("SELECT id, текст, готово, создано FROM задачи WHERE id = ?",
-                                   (номер,)).fetchone()
+            строка = связь.execute(f"SELECT {self._ПОЛЯ_ЗАДАЧИ} FROM задачи WHERE id = ?", (номер,)).fetchone()
         return self._задача(строка) if строка else None
+
+    def добавить_задачу(self, текст: str, срок: str | None = None, список_id: int | None = None) -> dict:
+        with self.соединение() as связь:
+            курсор = связь.execute("INSERT INTO задачи (текст, срок, список_id) VALUES (?, ?, ?)",
+                                   (текст, срок, список_id))
+            номер = курсор.lastrowid
+        return self.задача(номер)
+
+    def изменить_задачу(self, номер: int, поля: dict) -> dict | None:
+        """поля — что менять: текст, готово, срок, список_id (None у срока и списка — убрать)."""
+        разрешённые = {"текст", "готово", "срок", "список_id"}
+        поля = {к: (int(з) if к == "готово" else з) for к, з in поля.items() if к in разрешённые}
+        if поля:
+            набор = ", ".join(f"{к} = ?" for к in поля)
+            with self.соединение() as связь:
+                связь.execute(f"UPDATE задачи SET {набор} WHERE id = ?", (*поля.values(), номер))
+        return self.задача(номер)
 
     def удалить_задачу(self, номер: int) -> bool:
         with self.соединение() as связь:
             return связь.execute("DELETE FROM задачи WHERE id = ?", (номер,)).rowcount > 0
+
+    # ---- Списки задач ---------------------------------------------------
+
+    def списки(self) -> list[dict]:
+        with self.соединение() as связь:
+            строки = связь.execute(
+                "SELECT id, название, цвет, значок, порядок FROM списки ORDER BY порядок, id").fetchall()
+        return [dict(с) for с in строки]
+
+    def список(self, номер: int) -> dict | None:
+        with self.соединение() as связь:
+            строка = связь.execute("SELECT id, название, цвет, значок, порядок FROM списки WHERE id = ?",
+                                   (номер,)).fetchone()
+        return dict(строка) if строка else None
+
+    def добавить_список(self, название: str, цвет: str, значок: str) -> dict:
+        with self.соединение() as связь:
+            порядок = связь.execute("SELECT COALESCE(MAX(порядок), 0) + 1 FROM списки").fetchone()[0]
+            курсор = связь.execute("INSERT INTO списки (название, цвет, значок, порядок) VALUES (?, ?, ?, ?)",
+                                   (название, цвет, значок, порядок))
+            номер = курсор.lastrowid
+        return self.список(номер)
+
+    def изменить_список(self, номер: int, поля: dict) -> dict | None:
+        поля = {к: з for к, з in поля.items() if к in {"название", "цвет", "значок"}}
+        if поля:
+            набор = ", ".join(f"{к} = ?" for к in поля)
+            with self.соединение() as связь:
+                связь.execute(f"UPDATE списки SET {набор} WHERE id = ?", (*поля.values(), номер))
+        return self.список(номер)
+
+    def удалить_список(self, номер: int) -> bool:
+        """Задачи из списка остаются, просто без списка."""
+        with self.соединение() as связь:
+            return связь.execute("DELETE FROM списки WHERE id = ?", (номер,)).rowcount > 0
 
     # ---- Заметки --------------------------------------------------------
 

@@ -75,12 +75,33 @@
     </div>
 
     <div class="дела-раздел" id="дела-задачи" role="tabpanel" aria-labelledby="вкладка-задачи">
-      <form class="строка-ввода" id="задача-форма">
-        <input id="задача-поле" type="text" maxlength="2000" placeholder="Новая задача…" autocomplete="off" aria-label="Новая задача">
-        <button class="кнопка главная" type="submit">Добавить</button>
+      <div class="фильтры">
+        <div class="фишки" id="фильтры-списков" role="radiogroup" aria-label="Список задач"></div>
+        <button class="кнопка-значок малая" id="открыть-списки" type="button" aria-label="Настроить списки" title="Настроить списки">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10M4 12h7M4 18h10M17 15l2 2 3-4"/><circle cx="18" cy="6" r="2"/></svg>
+        </button>
+      </div>
+
+      <div class="выбран-день" id="выбран-день" hidden>
+        <span id="выбран-день-текст"></span>
+        <button class="кнопка-значок малая" id="сбросить-день" type="button" aria-label="Показать все дни" title="Показать все дни">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+
+      <form class="добавление" id="задача-форма">
+        <div class="строка-ввода">
+          <input id="задача-поле" type="text" maxlength="2000" placeholder="Новая задача…" autocomplete="off" aria-label="Новая задача">
+          <button class="кнопка главная" type="submit">Добавить</button>
+        </div>
+        <div class="строка-опций">
+          <input id="задача-срок" type="date" aria-label="Срок">
+          <select id="задача-список" aria-label="Список"></select>
+        </div>
       </form>
-      <ul class="список задачи" id="список-задач"></ul>
-      <p class="пустой-список" id="задач-нет" hidden>Задач нет</p>
+
+      <div class="группы" id="группы-задач"></div>
+      <p class="пустой-список" id="задач-нет" hidden></p>
       <div class="дела-низ" id="задачи-низ" hidden>
         <span id="задач-осталось"></span>
         <button class="ссылка" id="убрать-выполненные" type="button">Убрать выполненные</button>
@@ -131,6 +152,22 @@
       <button class="кнопка главная" id="сохранить" type="button" disabled>Сохранить</button>
     </div>
     <p class="статус" id="статус-настроек" aria-live="polite"></p>
+  </div>
+</div>
+
+<!-- Окно списков задач -->
+<div class="затемнение" id="окно-списков" hidden>
+  <div class="окно узкое" role="dialog" aria-modal="true" aria-labelledby="заголовок-списков">
+    <div class="окно-шапка">
+      <h2 id="заголовок-списков">Списки задач</h2>
+      <button class="кнопка-значок" id="закрыть-списки" type="button" aria-label="Закрыть">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="окно-тело" id="списки-тело"></div>
+    <div class="окно-низ">
+      <button class="кнопка второстепенная во-всю" id="новый-список" type="button">+ Новый список</button>
+    </div>
   </div>
 </div>
 

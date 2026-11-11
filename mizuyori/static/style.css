@@ -227,6 +227,12 @@ main.главная {
 .дни-недели span { padding: .3rem 0; font-size: .75rem; color: var(--тихий); }
 .дни-недели span:nth-child(n+6) { color: color-mix(in srgb, var(--акцент) 70%, var(--тихий)); }
 .день {
+  position: relative;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-family: inherit;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -238,7 +244,24 @@ main.главная {
 }
 .день.выходной { color: color-mix(in srgb, var(--акцент) 70%, var(--текст)); }
 .день.чужой { opacity: .35; }
+.день:hover { background: var(--рамка); }
 .день.сегодня { background: var(--акцент); color: var(--на-акценте); font-weight: 700; opacity: 1; }
+.день.выбран { box-shadow: inset 0 0 0 2px var(--акцент); font-weight: 700; opacity: 1; }
+.день.сегодня.выбран { box-shadow: inset 0 0 0 2px var(--акцент), inset 0 0 0 4px var(--на-акценте); }
+/* Точка — на этот день есть задачи */
+.день.есть-задачи::after, .день.всё-сделано::after {
+  content: "";
+  position: absolute;
+  bottom: 12%;
+  left: 50%;
+  width: .3rem;
+  height: .3rem;
+  margin-left: -.15rem;
+  border-radius: 50%;
+  background: var(--акцент);
+}
+.день.всё-сделано::after { background: var(--тихий); opacity: .6; }
+.день.сегодня::after { background: var(--на-акценте); }
 
 /* ---- Чат -------------------------------------------------------------- */
 .чат { display: flex; flex-direction: column; min-height: 0; }
@@ -367,14 +390,124 @@ input[type=text]:focus, textarea:focus { outline: none; border-color: var(--ак
 .список { list-style: none; margin: 0; padding: 0; flex: 1; min-height: 0; overflow-y: auto; }
 .пустой-список { margin: 1.5rem 0; text-align: center; color: var(--тихий); }
 
-.задачи li {
+/* ---- Фильтр по спискам ----------------------------------------------- */
+.фильтры { display: flex; align-items: center; gap: .3rem; }
+.фишки {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  gap: .35rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: .1rem 0;
+}
+.фишки::-webkit-scrollbar { display: none; }
+.фишка {
+  --цвет-списка: var(--акцент);
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  padding: calc(.25rem * var(--п) + .05rem) .7rem;
+  border: 1px solid var(--рамка);
+  border-radius: 1rem;
+  background: transparent;
+  color: var(--тихий);
+  font: inherit;
+  font-size: .85rem;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color .15s, color .15s, background-color .15s;
+}
+.фишка:hover { color: var(--текст); border-color: var(--цвет-списка); }
+.фишка[aria-checked="true"] {
+  color: var(--текст);
+  border-color: var(--цвет-списка);
+  background: color-mix(in srgb, var(--цвет-списка) 18%, transparent);
+}
+.значок-списка { font-size: .95em; line-height: 1; }
+
+.выбран-день {
   display: flex;
   align-items: center;
-  gap: .6rem;
-  padding: calc(.45rem * var(--п)) .25rem;
-  border-bottom: 1px solid var(--рамка);
+  gap: .4rem;
+  padding: .2rem .2rem .2rem .75rem;
+  border-radius: calc(var(--радиус) * .7);
+  background: color-mix(in srgb, var(--акцент) 14%, transparent);
+  color: var(--текст);
+  font-size: .9rem;
 }
-.задачи li:last-child { border-bottom: 0; }
+.выбран-день[hidden] { display: none; }
+.выбран-день span { flex: 1; }
+.выбран-день span::first-letter { text-transform: uppercase; }
+
+/* ---- Добавление задачи ------------------------------------------------ */
+.добавление { display: flex; flex-direction: column; gap: .4rem; }
+.строка-опций { display: flex; gap: .4rem; }
+.строка-опций > * { flex: 1; min-width: 0; }
+input[type=date], select {
+  padding: calc(.35rem * var(--п) + .05rem) .55rem;
+  border: 1px solid var(--рамка);
+  border-radius: calc(var(--радиус) * .6);
+  background: var(--фон-итог);
+  color: var(--текст);
+  font: inherit;
+  font-size: .85rem;
+  color-scheme: dark;
+}
+[data-variant="светлый"] input[type=date], [data-variant="светлый"] select { color-scheme: light; }
+input[type=date]:focus, select:focus { outline: none; border-color: var(--акцент); }
+input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий); }
+
+/* ---- Группы задач ----------------------------------------------------- */
+.группы { flex: 1; min-height: 0; overflow-y: auto; margin: 0 -.25rem; padding: 0 .25rem; }
+.группа + .группа { margin-top: calc(.75rem * var(--п)); }
+.шапка-группы {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  margin: 0 0 .2rem;
+  padding: .2rem 0;
+  border: 0;
+  background: none;
+  color: var(--тихий);
+  font: inherit;
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.группа[data-группа="день"] .шапка-группы { text-transform: none; letter-spacing: 0; font-size: .85rem; }
+.шапка-группы .счёт { font-weight: 600; letter-spacing: 0; }
+.группа[data-группа="просрочено"] .шапка-группы { color: #e5534b; }
+.группа[data-группа="сегодня"] .шапка-группы { color: var(--акцент); }
+.раскрывашка { cursor: pointer; }
+.раскрывашка:hover { color: var(--текст); }
+.раскрывашка svg { width: .9rem; height: .9rem; transition: transform .2s; }
+.раскрывашка[aria-expanded="true"] svg { transform: rotate(90deg); }
+
+/* ---- Строка задачи ---------------------------------------------------- */
+.задача {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: .6rem;
+  padding: calc(.5rem * var(--п)) .2rem calc(.5rem * var(--п)) .7rem;
+  border-bottom: 1px solid var(--рамка);
+  overflow: hidden;
+}
+.задача:last-child { border-bottom: 0; }
+/* Цветная полоска списка слева */
+.задача::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: calc(.5rem * var(--п));
+  bottom: calc(.5rem * var(--п));
+  width: 3px;
+  border-radius: 2px;
+  background: var(--цвет-списка, transparent);
+}
 .флажок-задачи {
   flex: none;
   display: inline-flex;
@@ -382,23 +515,63 @@ input[type=text]:focus, textarea:focus { outline: none; border-color: var(--ак
   justify-content: center;
   width: 1.3rem;
   height: 1.3rem;
+  margin-top: .12rem;
   padding: 0;
   border: 2px solid var(--тихий);
   border-radius: calc(var(--радиус) * .35);
   background: transparent;
-  color: transparent;
+  color: var(--на-акценте);
   cursor: pointer;
-  transition: background-color .15s, border-color .15s;
+  transition: background-color .2s, border-color .2s, transform .2s;
 }
 .флажок-задачи svg { width: .9rem; height: .9rem; stroke-width: 3; }
+/* Галочка прорисовывается линией */
+.флажок-задачи path { stroke-dasharray: 24; stroke-dashoffset: 24; transition: stroke-dashoffset .3s ease-out .05s; }
 .флажок-задачи:hover { border-color: var(--акцент); }
-.флажок-задачи[aria-checked="true"] { background: var(--акцент); border-color: var(--акцент); color: var(--на-акценте); }
-.текст-задачи { flex: 1; min-width: 0; overflow-wrap: anywhere; cursor: default; }
-.задачи li.готово .текст-задачи { text-decoration: line-through; color: var(--тихий); }
-.задачи .правка { flex: 1; min-width: 0; padding: .25rem .5rem; }
-.задачи .удалить { opacity: 0; transition: opacity .15s; }
-.задачи li:hover .удалить, .задачи .удалить:focus-visible { opacity: 1; }
-@media (hover: none) { .задачи .удалить { opacity: 1; } }
+.флажок-задачи[aria-checked="true"] { background: var(--акцент); border-color: var(--акцент); }
+.флажок-задачи[aria-checked="true"] path { stroke-dashoffset: 0; }
+.выполняется .флажок-задачи { animation: щелчок .35s ease-out; }
+@keyframes щелчок { 40% { transform: scale(1.25); } }
+
+.тело-задачи {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--текст);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+/* Зачёркивание растёт слева направо, по каждой строке текста */
+.строка-текста { overflow-wrap: anywhere; }
+.текст-задачи {
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  background: linear-gradient(currentColor, currentColor) no-repeat 0 55% / 0 1.5px;
+  transition: background-size .35s ease-out, color .3s;
+}
+.готово .текст-задачи { background-size: 100% 1.5px; color: var(--тихий); }
+.мета { display: flex; flex-wrap: wrap; gap: .25rem .7rem; font-size: .78rem; color: var(--тихий); }
+.срок { display: inline-flex; align-items: center; gap: .25rem; }
+.срок svg { width: .8rem; height: .8rem; }
+.срок.просрочен { color: #e5534b; font-weight: 600; }
+.метка-списка { white-space: nowrap; }
+.задача .удалить { opacity: 0; transition: opacity .15s; margin-top: -.2rem; }
+.задача:hover .удалить, .задача .удалить:focus-visible { opacity: 1; }
+@media (hover: none) { .задача .удалить { opacity: .7; } }
+
+/* Правка задачи */
+.задача.правится { display: block; padding-right: .5rem; overflow: visible; }
+.редактор-задачи { display: flex; flex-direction: column; gap: .4rem; }
+.редактор-задачи .правка-текст { width: 100%; }
+.редактор-задачи .редактор-кнопки { flex-wrap: nowrap; }
+.редактор-задачи .кнопка { padding: calc(.45rem * var(--п)) .7rem; font-size: .85rem; }
+
 .дела-низ { display: flex; justify-content: space-between; align-items: center; font-size: .85rem; color: var(--тихий); }
 .дела-низ[hidden] { display: none; }
 .ссылка { border: 0; background: none; padding: 0; color: var(--акцент); font: inherit; cursor: pointer; }
@@ -634,6 +807,61 @@ input[type=text]:focus, textarea:focus { outline: none; border-color: var(--ак
 .тумблер[aria-checked="true"] { background: var(--акцент); border-color: var(--акцент); }
 .тумблер[aria-checked="true"]::after { transform: translateX(1.15rem); background: var(--на-акценте); }
 
+/* ---- Окно «Списки задач» --------------------------------------------- */
+.окно.узкое { max-width: 28rem; }
+.список-списков { list-style: none; margin: 0; padding: 0; }
+.строка-списка {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: calc(.5rem * var(--п)) 0;
+  border-bottom: 1px solid var(--рамка);
+}
+.строка-списка:last-child { border-bottom: 0; }
+.строка-списка.правится { display: block; }
+.кружок-списка {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--цвет-списка) 25%, transparent);
+  box-shadow: inset 0 0 0 2px var(--цвет-списка);
+  font-size: 1rem;
+}
+.кружок-списка.большой { width: 2.6rem; height: 2.6rem; font-size: 1.3rem; }
+.название-списка { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.сколько { color: var(--тихий); font-size: .85rem; }
+.удалить-список:hover { color: #e5534b; }
+.редактор-списка { display: flex; flex-direction: column; gap: .5rem; padding: .25rem 0; }
+.редактор-списка .строка-ввода { align-items: center; }
+.редактор-списка .поле-название { margin: .3rem 0 0; }
+.сетка-значков { display: grid; grid-template-columns: repeat(8, 1fr); gap: .3rem; }
+.сетка-значков button {
+  aspect-ratio: 1;
+  border: 2px solid transparent;
+  border-radius: calc(var(--радиус) * .6);
+  background: var(--фон-итог);
+  font-size: 1.15rem;
+  cursor: pointer;
+}
+.сетка-значков button[aria-checked="true"] { border-color: var(--акцент); }
+.сетка-цветов { display: flex; flex-wrap: wrap; gap: .45rem; }
+.сетка-цветов button {
+  width: 1.9rem;
+  height: 1.9rem;
+  border: 0;
+  border-radius: 50%;
+  background: var(--цвет-списка);
+  cursor: pointer;
+  transition: transform .15s;
+}
+.сетка-цветов button:hover { transform: scale(1.1); }
+.сетка-цветов button[aria-checked="true"] { box-shadow: 0 0 0 2px var(--панель-итог), 0 0 0 4px var(--цвет-списка); }
+.окно-низ[hidden] { display: none; }
+
 @keyframes появление { from { opacity: 0; } }
 @keyframes всплытие { from { opacity: 0; transform: translateY(.5rem) scale(.98); } }
 
@@ -646,3 +874,4 @@ input[type=text]:focus, textarea:focus { outline: none; border-color: var(--ак
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+.группы .список { overflow: visible; flex: none; }

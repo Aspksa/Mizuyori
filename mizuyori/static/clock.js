@@ -11,6 +11,10 @@
   let показанный = new Date();          // какой месяц показан в календаре
   показанный.setDate(1);
   let сегодняКлюч = ключДня(new Date());
+  let выбранный = null;                 // выбранный день «ГГГГ-ММ-ДД» или null
+  let поДням = new Map();               // «ГГГГ-ММ-ДД» → { открыто, сделано }
+
+  const деньISO = (д) => `${д.getFullYear()}-${двузначное(д.getMonth() + 1)}-${двузначное(д.getDate())}`;
 
   // ---- Часы ----
 
@@ -25,6 +29,7 @@
     if (ключДня(сейчас) !== сегодняКлюч) {
       сегодняКлюч = ключДня(сейчас);
       нарисоватьКалендарь();
+      document.dispatchEvent(new CustomEvent("mizuyori:новый-день"));
     }
     // Следующее обновление — ровно в начале следующей секунды
     setTimeout(обновитьЧасы, 1000 - сейчас.getMilliseconds() + 5);
@@ -43,14 +48,28 @@
     const дни = [];
     for (let i = 0; i < 42; i++) {
       const д = new Date(начало.getFullYear(), начало.getMonth(), начало.getDate() + i);
+      const iso = деньISO(д);
+      const задачиДня = поДням.get(iso);
       const классы = ["день"];
       if (д.getMonth() !== месяц) классы.push("чужой");
       if (ключДня(д) === сегодняКлюч) классы.push("сегодня");
       if ((д.getDay() + 6) % 7 >= 5) классы.push("выходной");
-      дни.push(создать("span", {
+      if (iso === выбранный) классы.push("выбран");
+      if (задачиДня?.открыто) классы.push("есть-задачи");
+      else if (задачиДня?.сделано) классы.push("всё-сделано");
+
+      let подсказка = д.toLocaleDateString("ru-RU", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+      if (задачиДня?.открыто) подсказка += ` — задач: ${задачиДня.открыто}`;
+      дни.push(создать("button", {
+        type: "button",
         класс: классы.join(" "),
         текст: String(д.getDate()),
-        title: д.toLocaleDateString("ru-RU", { weekday: "long", day: "numeric", month: "long", year: "numeric" }),
+        title: подсказка,
+        "aria-label": подсказка,
+        "aria-pressed": String(iso === выбранный),
+        // Клик по дню — показать задачи на этот день; повторный клик — снять выбор
+        onclick: () => document.dispatchEvent(new CustomEvent("mizuyori:день",
+          { detail: iso === выбранный ? null : iso })),
       }));
     }
     $("календарь-дни").replaceChildren(...дни);
@@ -66,6 +85,29 @@
   $("календарь-месяц").addEventListener("click", () => {
     показанный = new Date();
     показанный.setDate(1);
+    нарисоватьКалендарь();
+  });
+
+  // ---- Связь с задачами ----
+
+  document.addEventListener("mizuyori:задачи", (событие) => {
+    поДням = new Map();
+    for (const задача of событие.detail) {
+      if (!задача.срок) continue;
+      const счёт = поДням.get(задача.срок) || { открыто: 0, сделано: 0 };
+      if (задача.готово) счёт.сделано++; else счёт.открыто++;
+      поДням.set(задача.срок, счёт);
+    }
+    нарисоватьКалендарь();
+  });
+
+  document.addEventListener("mizuyori:день", (событие) => {
+    выбранный = событие.detail;
+    if (выбранный) {
+      // Если день из другого месяца — переходим на его месяц
+      const [г, м] = выбранный.split("-").map(Number);
+      показанный = new Date(г, м - 1, 1);
+    }
     нарисоватьКалендарь();
   });
 
