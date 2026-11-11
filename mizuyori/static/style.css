@@ -178,7 +178,8 @@ main.главная {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(15rem, 18rem) minmax(0, 1fr) minmax(17rem, 22rem);
+  /* «Дела» шире: часы и календарь — уже, чат — гибкий */
+  grid-template-columns: minmax(14rem, 16.5rem) minmax(0, 1fr) minmax(22rem, 30rem);
   gap: calc(1rem * var(--п));
   padding: calc(1rem * var(--п));
 }
@@ -1180,3 +1181,40 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .связь-строка .кнопка-значок:hover { opacity: 1; }
 .упоминание { color: var(--тихий); font-size: .82rem; }
 .карточка-узла .ссылка { color: var(--акцент); }
+
+/* ---- Дела: развёрнуты на всю главную -------------------------------------- */
+#дела-развернуть .значок-свернуть { display: none; }
+#дела-развернуть[aria-pressed="true"] .значок-развернуть { display: none; }
+#дела-развернуть[aria-pressed="true"] .значок-свернуть { display: block; }
+
+main.главная.дела-развёрнуты { grid-template-columns: minmax(0, 1fr); }
+main.главная.дела-развёрнуты > .колонка,
+main.главная.дела-развёрнуты > .чат { display: none; }
+main.главная.дела-развёрнуты > .дела { grid-column: 1 / -1; animation: развернуть .25s ease-out; }
+@keyframes развернуть { from { opacity: .4; transform: scale(.985); } }
+
+/* в развёрнутом виде группы задач — карточками в несколько колонок */
+.дела-развёрнуты .дела .вкладки,
+.дела-развёрнуты .дела .фильтры,
+.дела-развёрнуты .дела .выбран-день,
+.дела-развёрнуты .дела .добавление { max-width: 56rem; width: 100%; }
+.дела-развёрнуты .дела .вкладки { margin-left: calc(.75rem * var(--п)); }
+.дела-развёрнуты .группы {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
+  align-content: start;
+  gap: calc(.9rem * var(--п));
+  margin: 0;
+  padding: .1rem;
+}
+.дела-развёрнуты .группа {
+  margin: 0;
+  padding: calc(.6rem * var(--п)) calc(.75rem * var(--п));
+  border: 1px solid var(--рамка);
+  border-radius: var(--радиус);
+  background: var(--фон-итог);
+}
+.дела-развёрнуты .группа + .группа { margin-top: 0; }
+.дела-развёрнуты .заметки { display: grid; grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr)); gap: calc(.7rem * var(--п)); }
+.дела-развёрнуты #новая-заметка { max-width: 20rem; }
+.дела-развёрнуты .редактор { max-width: 56rem; }
