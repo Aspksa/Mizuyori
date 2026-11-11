@@ -1,0 +1,82 @@
+@charset "utf-8";
+:root {
+  --фон: #f4f6f8;
+  --карточка: #ffffff;
+  --текст: #1d2733;
+  --тихий: #6b7785;
+  --акцент: #2f7fd8;
+  --рамка: #dde3ea;
+  --ошибка: #c0392b;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --фон: #12161b;
+    --карточка: #1b2129;
+    --текст: #e6ebf0;
+    --тихий: #8d99a6;
+    --акцент: #5aa2f0;
+    --рамка: #2b333d;
+    --ошибка: #ff6b5e;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--фон);
+  color: var(--текст);
+  font: 16px/1.5 "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+main { max-width: 640px; margin: 0 auto; padding: 32px 16px 48px; }
+header { margin-bottom: 24px; }
+h1 { margin: 0; font-size: 28px; }
+h2 { margin: 0 0 12px; font-size: 18px; }
+.подпись { margin: 4px 0 0; color: var(--тихий); }
+.карточка {
+  background: var(--карточка);
+  border: 1px solid var(--рамка);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+form { display: flex; gap: 8px; }
+input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--рамка);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+button {
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--акцент);
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+button:disabled { opacity: .6; cursor: default; }
+ul { list-style: none; margin: 16px 0 0; padding: 0; }
+li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--рамка);
+}
+li .текст { flex: 1; white-space: pre-wrap; word-break: break-word; }
+li time { display: block; color: var(--тихий); font-size: 13px; }
+li .удалить {
+  background: transparent;
+  color: var(--тихий);
+  padding: 4px 8px;
+}
+li .удалить:hover { color: var(--ошибка); }
+.пусто { color: var(--тихий); margin: 16px 0 0; }
+.ошибка { color: var(--ошибка); margin: 8px 0 0; }
+dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 0; }
+dt { color: var(--тихий); }
+dd { margin: 0; word-break: break-all; }

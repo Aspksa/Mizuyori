@@ -1,4 +1,12 @@
+# Python и окружения
 .venv/
 python/
 __pycache__/
 *.pyc
+
+# Данные пользователя — у каждого свои
+config.json
+config.broken.json
+config.tmp
+data/
+logs/
