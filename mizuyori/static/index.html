@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru" data-theme="{{тема}}">
+<html lang="ru" {{атрибуты}}>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -20,7 +20,7 @@
 </header>
 
 <main class="ширина">
-  <section class="пусто">
+  <section class="панель пусто">
     <h1>Здесь пока пусто</h1>
     <p>Сайт работает. Содержимое появится позже.</p>
   </section>
@@ -42,11 +42,14 @@
       </button>
     </div>
 
-    <section class="раздел">
-      <h3>Цвет сайта</h3>
-      <div class="темы" id="темы" role="radiogroup" aria-label="Цвет сайта"></div>
-    </section>
+    <div class="окно-тело" id="поля"><!-- рисуется из описания настроек --></div>
 
+    <div class="окно-низ">
+      <button class="кнопка второстепенная" id="сбросить" type="button">Сбросить внешний вид</button>
+      <span class="растяжка"></span>
+      <button class="кнопка второстепенная" id="отменить" type="button">Отменить</button>
+      <button class="кнопка главная" id="сохранить" type="button" disabled>Сохранить</button>
+    </div>
     <p class="статус" id="статус-настроек" aria-live="polite"></p>
   </div>
 </div>
