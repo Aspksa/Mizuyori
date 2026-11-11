@@ -9,16 +9,15 @@ from pathlib import Path
 
 # Каждое изменение структуры базы — новый шаг. Уже применённые шаги
 # не повторяются: номер последнего хранится в PRAGMA user_version.
-МИГРАЦИИ = [
-    # 1: записи
-    """
-    CREATE TABLE записи (
-        id      INTEGER PRIMARY KEY,
-        текст   TEXT NOT NULL,
-        создано TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
-    );
-    """,
-]
+# Пример шага:
+#     """
+#     CREATE TABLE пример (
+#         id      INTEGER PRIMARY KEY,
+#         текст   TEXT NOT NULL,
+#         создано TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+#     );
+#     """,
+МИГРАЦИИ: list[str] = []
 
 
 class База:
@@ -50,22 +49,3 @@ class База:
                 журнал.info("Обновляю базу до версии %s", номер)
                 связь.executescript(sql)
                 связь.execute(f"PRAGMA user_version = {номер}")
-
-    # ---- Записи ---------------------------------------------------------
-
-    def все_записи(self) -> list[dict]:
-        with self.соединение() as связь:
-            строки = связь.execute("SELECT id, текст, создано FROM записи ORDER BY id DESC").fetchall()
-        return [dict(строка) for строка in строки]
-
-    def добавить_запись(self, текст: str) -> dict:
-        with self.соединение() as связь:
-            курсор = связь.execute("INSERT INTO записи (текст) VALUES (?)", (текст,))
-            строка = связь.execute("SELECT id, текст, создано FROM записи WHERE id = ?",
-                                   (курсор.lastrowid,)).fetchone()
-        return dict(строка)
-
-    def удалить_запись(self, номер: int) -> bool:
-        with self.соединение() as связь:
-            курсор = связь.execute("DELETE FROM записи WHERE id = ?", (номер,))
-        return курсор.rowcount > 0

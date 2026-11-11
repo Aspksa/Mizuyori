@@ -7,28 +7,23 @@
 <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-<main>
-  <header>
-    <h1 id="имя">Mizuyori</h1>
-    <p class="подпись" id="подпись">Загрузка…</p>
-  </header>
+<header class="шапка">
+  <div class="ширина">
+    <a class="логотип" href="/" id="имя">Mizuyori</a>
+    <nav id="меню"><!-- сюда добавятся разделы сайта --></nav>
+  </div>
+</header>
 
-  <section class="карточка">
-    <h2>Записи</h2>
-    <form id="форма">
-      <input id="поле" type="text" maxlength="5000" placeholder="Новая запись…" autocomplete="off" required>
-      <button type="submit">Добавить</button>
-    </form>
-    <p class="ошибка" id="ошибка" hidden></p>
-    <ul id="список"></ul>
-    <p class="пусто" id="пусто" hidden>Пока нет ни одной записи.</p>
-  </section>
-
-  <section class="карточка">
-    <h2>Состояние</h2>
-    <dl id="состояние"></dl>
+<main class="ширина">
+  <section class="пусто">
+    <h1>Здесь пока пусто</h1>
+    <p>Сайт работает. Содержимое появится позже.</p>
   </section>
 </main>
+
+<footer class="подвал">
+  <div class="ширина" id="подвал">Mizuyori</div>
+</footer>
 <script src="/static/app.js" charset="utf-8"></script>
 </body>
 </html>
