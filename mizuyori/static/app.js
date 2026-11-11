@@ -12,11 +12,55 @@ async function запрос(адрес, параметры = {}) {
   return данные;
 }
 
-// ---- Подвал: имя и версия ----------------------------------------------
+// Создать элемент: создать("div", { класс: "…", текст: "…", onclick: … }, ...дети)
+function создать(тег, свойства = {}, ...дети) {
+  const элемент = document.createElement(тег);
+  for (const [к, з] of Object.entries(свойства)) {
+    if (к === "класс") элемент.className = з;
+    else if (к === "текст") элемент.textContent = з;
+    else if (к === "данные") Object.assign(элемент.dataset, з);
+    else if (к.startsWith("on")) элемент.addEventListener(к.slice(2), з);
+    else элемент.setAttribute(к, з);
+  }
+  элемент.append(...дети);
+  return элемент;
+}
 
+// «2026-11-12 08:10:00» → «сегодня, 08:10» / «вчера, 08:10» / «12 нояб., 08:10»
+function дата(строка) {
+  const д = new Date(String(строка).replace(" ", "T"));
+  if (isNaN(д)) return строка;
+  const время = д.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+  const сегодня = new Date(); сегодня.setHours(0, 0, 0, 0);
+  const день = new Date(д); день.setHours(0, 0, 0, 0);
+  const разница = Math.round((сегодня - день) / 86400000);
+  if (разница === 0) return `сегодня, ${время}`;
+  if (разница === 1) return `вчера, ${время}`;
+  const опции = { day: "numeric", month: "short" };
+  if (д.getFullYear() !== сегодня.getFullYear()) опции.year = "numeric";
+  return `${д.toLocaleDateString("ru-RU", опции)}, ${время}`;
+}
+
+// Иконка-значок из SVG-пути
+function значок(путь) {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("fill", "none");
+  svg.setAttribute("stroke", "currentColor");
+  svg.setAttribute("stroke-width", "2");
+  svg.setAttribute("stroke-linecap", "round");
+  svg.setAttribute("stroke-linejoin", "round");
+  const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  p.setAttribute("d", путь);
+  svg.append(p);
+  return svg;
+}
+
+// Версия — в окне настроек
 запрос("/api/status")
-  .then((с) => { $("подвал").textContent = `${с.имя} · версия ${с.версия}`; })
-  .catch(() => { $("подвал").textContent = "Нет связи с сервером"; });
+  .then((с) => { $("версия").textContent = `${с.имя} · версия ${с.версия}`; })
+  .catch(() => {});
 
 // ---- Окно «Настройки проекта» -------------------------------------------
 //
@@ -64,19 +108,6 @@ function изменить(ключ, значение) {
 }
 
 // ---- Отрисовка полей по описанию с сервера ---------------------------------
-
-function создать(тег, свойства = {}, ...дети) {
-  const элемент = document.createElement(тег);
-  for (const [к, з] of Object.entries(свойства)) {
-    if (к === "класс") элемент.className = з;
-    else if (к === "текст") элемент.textContent = з;
-    else if (к === "данные") Object.assign(элемент.dataset, з);
-    else if (к.startsWith("on")) элемент.addEventListener(к.slice(2), з);
-    else элемент.setAttribute(к, з);
-  }
-  элемент.append(...дети);
-  return элемент;
-}
 
 function полеТемы(ключ, о) {
   const карточки = Object.entries(о.варианты).map(([значение, надпись]) =>

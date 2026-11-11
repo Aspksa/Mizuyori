@@ -8,10 +8,10 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from . import __version__
+from . import __version__, ai
 from .config import (ВИД_ПО_УМОЛЧАНИЮ, ВНЕШНИЙ_ВИД, НеверныйВнешнийВид, атрибуты_html,
                      проверить_внешний_вид, сохранить_настройки)
 from .database import База
@@ -22,6 +22,22 @@ from .paths import ПАПКА_СТАТИКИ, ФАЙЛ_НАСТРОЕК
 
 class ИзменениеНастроек(BaseModel):
     внешний_вид: dict
+
+
+class Текст(BaseModel):
+    текст: str = Field(max_length=20000)
+
+
+class ИзменениеЗадачи(BaseModel):
+    текст: str | None = Field(default=None, max_length=2000)
+    готово: bool | None = None
+
+
+def _непустой(текст: str | None, что: str) -> str:
+    текст = (текст or "").strip()
+    if not текст:
+        raise StarletteHTTPException(400, f"{что} не может быть пустым.")
+    return текст
 
 
 def создать_приложение(настройки: dict, база: База, порт: int) -> FastAPI:
@@ -98,5 +114,77 @@ def создать_приложение(настройки: dict, база: Ба
             сохранить_настройки(ФАЙЛ_НАСТРОЕК, настройки)
             журнал.info("Внешний вид сохранён (изменено: %s).", ", ".join(изменено).lower())
         return получить_настройки()
+
+    # ---- Чат ------------------------------------------------------------
+
+    @app.get("/api/chat")
+    def чат():
+        return {"сообщения": база.сообщения(), "ии_подключён": ai.подключён()}
+
+    @app.post("/api/chat")
+    def написать(сообщение: Текст):
+        текст = _непустой(сообщение.текст, "Сообщение")
+        вопрос = база.добавить_сообщение("пользователь", текст)
+        try:
+            ответ_текст = ai.ответить(база.сообщения(50))
+        except Exception:
+            журнал.exception("ИИ не смог ответить")
+            ответ_текст = "Не получилось ответить: ошибка ИИ. Подробности в журнале."
+        ответ = база.добавить_сообщение("ии", ответ_текст)
+        return {"вопрос": вопрос, "ответ": ответ}
+
+    @app.delete("/api/chat")
+    def очистить_чат():
+        база.очистить_чат()
+        журнал.info("Чат очищен.")
+        return {"очищено": True}
+
+    # ---- Дела: задачи ---------------------------------------------------
+    # Имена параметров в адресах — латиницей: кириллица в шаблоне пути не работает
+
+    @app.get("/api/tasks")
+    def задачи():
+        return база.задачи()
+
+    @app.post("/api/tasks", status_code=201)
+    def новая_задача(задача: Текст):
+        return база.добавить_задачу(_непустой(задача.текст, "Текст задачи")[:2000])
+
+    @app.patch("/api/tasks/{task_id}")
+    def изменить_задачу(task_id: int, изменение: ИзменениеЗадачи):
+        текст = None if изменение.текст is None else _непустой(изменение.текст, "Текст задачи")
+        задача = база.изменить_задачу(task_id, текст=текст, готово=изменение.готово)
+        if задача is None:
+            raise StarletteHTTPException(404, "Такой задачи нет.")
+        return задача
+
+    @app.delete("/api/tasks/{task_id}")
+    def удалить_задачу(task_id: int):
+        if not база.удалить_задачу(task_id):
+            raise StarletteHTTPException(404, "Такой задачи нет.")
+        return {"удалено": task_id}
+
+    # ---- Дела: заметки --------------------------------------------------
+
+    @app.get("/api/notes")
+    def заметки():
+        return база.заметки()
+
+    @app.post("/api/notes", status_code=201)
+    def новая_заметка(заметка: Текст):
+        return база.добавить_заметку(_непустой(заметка.текст, "Заметка"))
+
+    @app.patch("/api/notes/{note_id}")
+    def изменить_заметку(note_id: int, заметка: Текст):
+        изменённая = база.изменить_заметку(note_id, _непустой(заметка.текст, "Заметка"))
+        if изменённая is None:
+            raise StarletteHTTPException(404, "Такой заметки нет.")
+        return изменённая
+
+    @app.delete("/api/notes/{note_id}")
+    def удалить_заметку(note_id: int):
+        if not база.удалить_заметку(note_id):
+            raise StarletteHTTPException(404, "Такой заметки нет.")
+        return {"удалено": note_id}
 
     return app

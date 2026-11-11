@@ -19,22 +19,102 @@
   <nav id="меню"><!-- сюда добавятся разделы сайта --></nav>
 </header>
 
-<main class="ширина">
-  <section class="панель пусто">
-    <h1>Здесь пока пусто</h1>
-    <p>Сайт работает. Содержимое появится позже.</p>
-  </section>
-</main>
+<main class="главная">
 
-<footer class="подвал">
-  <div class="ширина" id="подвал">{{имя}}</div>
-</footer>
+  <!-- Слева: часы и календарь -->
+  <aside class="колонка">
+    <section class="панель часы" aria-label="Часы">
+      <div class="время"><span id="часы-время">--:--</span><span class="секунды" id="часы-секунды">--</span></div>
+      <div class="дата" id="часы-дата"></div>
+    </section>
+
+    <section class="панель календарь" aria-label="Календарь">
+      <div class="календарь-шапка">
+        <button class="кнопка-значок малая" id="календарь-назад" type="button" aria-label="Предыдущий месяц">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+        </button>
+        <button class="месяц" id="календарь-месяц" type="button" title="К сегодняшнему дню"></button>
+        <button class="кнопка-значок малая" id="календарь-вперёд" type="button" aria-label="Следующий месяц">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+      <div class="дни-недели" aria-hidden="true">
+        <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span>
+      </div>
+      <div class="дни" id="календарь-дни"></div>
+    </section>
+  </aside>
+
+  <!-- По центру: чат -->
+  <section class="панель чат" aria-label="Чат">
+    <div class="панель-шапка">
+      <h2>Чат</h2>
+      <span class="метка" id="чат-ии"></span>
+      <span class="растяжка"></span>
+      <button class="кнопка-значок малая" id="чат-очистить" type="button" aria-label="Очистить чат" title="Очистить чат">
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>
+      </button>
+    </div>
+    <div class="сообщения" id="чат-сообщения" aria-live="polite"></div>
+    <form class="чат-ввод" id="чат-форма">
+      <textarea id="чат-поле" rows="1" maxlength="20000" placeholder="Напишите сообщение…" aria-label="Сообщение"></textarea>
+      <button class="кнопка главная отправить" type="submit" aria-label="Отправить">
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+    </form>
+  </section>
+
+  <!-- Справа: Дела — задачи и заметки -->
+  <aside class="панель дела" aria-label="Дела">
+    <div class="панель-шапка">
+      <h2>Дела</h2>
+    </div>
+    <div class="вкладки" role="tablist">
+      <button type="button" role="tab" id="вкладка-задачи" aria-controls="дела-задачи" aria-selected="true">Задачи <span class="счёт" id="счёт-задач"></span></button>
+      <button type="button" role="tab" id="вкладка-заметки" aria-controls="дела-заметки" aria-selected="false">Заметки <span class="счёт" id="счёт-заметок"></span></button>
+    </div>
+
+    <div class="дела-раздел" id="дела-задачи" role="tabpanel" aria-labelledby="вкладка-задачи">
+      <form class="строка-ввода" id="задача-форма">
+        <input id="задача-поле" type="text" maxlength="2000" placeholder="Новая задача…" autocomplete="off" aria-label="Новая задача">
+        <button class="кнопка главная" type="submit">Добавить</button>
+      </form>
+      <ul class="список задачи" id="список-задач"></ul>
+      <p class="пустой-список" id="задач-нет" hidden>Задач нет</p>
+      <div class="дела-низ" id="задачи-низ" hidden>
+        <span id="задач-осталось"></span>
+        <button class="ссылка" id="убрать-выполненные" type="button">Убрать выполненные</button>
+      </div>
+    </div>
+
+    <div class="дела-раздел" id="дела-заметки" role="tabpanel" aria-labelledby="вкладка-заметки" hidden>
+      <div id="заметки-список-вид">
+        <button class="кнопка второстепенная во-всю" id="новая-заметка" type="button">+ Новая заметка</button>
+        <ul class="список заметки" id="список-заметок"></ul>
+        <p class="пустой-список" id="заметок-нет" hidden>Заметок нет</p>
+      </div>
+      <form class="редактор" id="заметка-редактор" hidden>
+        <textarea id="заметка-поле" maxlength="20000" placeholder="Текст заметки. Первая строка — заголовок." aria-label="Текст заметки"></textarea>
+        <div class="редактор-кнопки">
+          <button class="кнопка второстепенная опасная" id="заметка-удалить" type="button">Удалить</button>
+          <span class="растяжка"></span>
+          <button class="кнопка второстепенная" id="заметка-отмена" type="button">Отмена</button>
+          <button class="кнопка главная" type="submit">Сохранить</button>
+        </div>
+      </form>
+    </div>
+    <p class="ошибка-дел" id="дела-ошибка" hidden></p>
+  </aside>
+</main>
 
 <!-- Окно настроек проекта -->
 <div class="затемнение" id="окно-настроек" hidden>
   <div class="окно" role="dialog" aria-modal="true" aria-labelledby="заголовок-настроек">
     <div class="окно-шапка">
-      <h2 id="заголовок-настроек">Настройки проекта</h2>
+      <div>
+        <h2 id="заголовок-настроек">Настройки проекта</h2>
+        <div class="версия" id="версия"></div>
+      </div>
       <button class="кнопка-значок" id="закрыть-настройки" type="button" aria-label="Закрыть">
         <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
           <path d="M6 6l12 12M18 6L6 18"/>
@@ -55,5 +135,8 @@
 </div>
 
 <script src="/static/app.js" charset="utf-8"></script>
+<script src="/static/clock.js" charset="utf-8"></script>
+<script src="/static/chat.js" charset="utf-8"></script>
+<script src="/static/tasks.js" charset="utf-8"></script>
 </body>
 </html>

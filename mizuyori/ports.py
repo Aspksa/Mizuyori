@@ -1,6 +1,7 @@
 """Поиск свободного порта."""
 
 import logging
+import os
 import socket
 
 журнал = logging.getLogger("mizuyori.порт")
@@ -14,6 +15,10 @@ def порт_занят(порт: int) -> bool:
             return True
     # 2) Можно ли занять порт самим?
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        # Вне Windows без этого порт после перезапуска ещё ~минуту кажется занятым.
+        # В Windows этот флаг означает другое (можно «отнять» порт), поэтому там его не ставим.
+        if os.name != "nt":
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
             s.bind(("0.0.0.0", порт))
         except OSError:
