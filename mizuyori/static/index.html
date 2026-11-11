@@ -113,6 +113,7 @@
       <p class="пустой-список" id="задач-нет" hidden></p>
       <div class="дела-низ" id="задачи-низ" hidden>
         <span id="задач-осталось"></span>
+        <button class="ссылка" id="привязать-цели" type="button" title="ИИ разложит задачи по вашим целям">🎯 К целям</button>
         <button class="ссылка" id="убрать-выполненные" type="button">Убрать выполненные</button>
       </div>
     </div>
@@ -165,6 +166,7 @@
         <button type="button" role="radio" data-значение="сила">Сила</button>
         <button type="button" role="radio" data-значение="плата">Плата</button>
         <button type="button" role="radio" data-значение="hud">HUD</button>
+        <button type="button" role="radio" data-значение="понимание">Понимание</button>
       </div>
     </div>
 
@@ -211,11 +213,16 @@
       <div class="карточка-тип" id="мозги-карточка-тип"></div>
       <div class="карточка-текст" id="мозги-карточка-текст"></div>
       <div class="карточка-мета" id="мозги-карточка-мета"></div>
+      <div class="зачем" id="мозги-зачем" hidden></div>
+      <div class="подробно" id="мозги-подробно"></div>
       <div class="похожее" id="мозги-похожее" hidden>
         <div class="поле-название">Похожее по смыслу</div>
         <ul id="мозги-похожее-список"></ul>
       </div>
-      <button class="кнопка главная" id="мозги-открыть" type="button">Открыть</button>
+      <div class="кнопки-карточки">
+        <button class="кнопка второстепенная" id="мозги-доп" type="button" hidden></button>
+        <button class="кнопка главная" id="мозги-открыть" type="button">Открыть</button>
+      </div>
     </div>
   </aside>
 

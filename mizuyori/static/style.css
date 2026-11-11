@@ -1152,3 +1152,31 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .рабочая-память summary { cursor: pointer; color: var(--тихий); font-size: .82rem; }
 .рабочая-память .сводка { white-space: pre-wrap; margin-top: .3rem; font-size: .84rem; color: var(--тихий); }
 @media (max-width: 30rem) { .добавить-факт { flex-wrap: wrap; } .добавить-факт input { flex-basis: 100%; } }
+
+/* ---- Цели у задач --------------------------------------------------------- */
+.метка-цели { white-space: nowrap; color: var(--акцент); }
+.выбор-цели { width: 100%; }
+.дела-низ { gap: .6rem; }
+.дела-низ span:first-child { margin-right: auto; }
+#привязать-цели:disabled { opacity: .6; cursor: wait; }
+
+/* ---- Мозги: карточка сущности, «Зачем» ----------------------------------- */
+.кнопки-карточки { display: flex; gap: .4rem; }
+.кнопки-карточки .кнопка { flex: 1; }
+.кнопки-карточки .кнопка[hidden] { display: none; }
+.зачем { font-size: .88rem; line-height: 1.6; }
+.зачем[hidden] { display: none; }
+.зачем .поле-название { display: block; margin: 0 0 .1rem; color: #ffb347; }
+.отношение { color: var(--тихий); font-family: ui-monospace, Consolas, monospace; font-size: .8rem; }
+.подробно { display: flex; flex-direction: column; gap: .5rem; }
+.подробно:empty { display: none; }
+.подробно .смысл { display: flex; flex-direction: column; gap: .15rem; font-size: .86rem; }
+.подробно .смысл b { color: var(--тихий); font-weight: 600; }
+.раздел-карточки .поле-название { display: block; margin: 0 0 .2rem; }
+.раздел-карточки ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .15rem; font-size: .86rem; }
+.раздел-карточки .ссылка { text-align: left; font-size: .86rem; }
+.связь-строка { display: flex; align-items: center; gap: .3rem; flex-wrap: wrap; }
+.связь-строка .кнопка-значок { width: 1.4rem; height: 1.4rem; margin-left: auto; opacity: .5; }
+.связь-строка .кнопка-значок:hover { opacity: 1; }
+.упоминание { color: var(--тихий); font-size: .82rem; }
+.карточка-узла .ссылка { color: var(--акцент); }

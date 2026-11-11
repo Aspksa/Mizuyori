@@ -80,7 +80,44 @@ from pathlib import Path
         значение TEXT NOT NULL
     );
     """,
+    # 5: понимание — сущности (люди, места, цели…), связи между ними, смысл фактов, цели у задач
+    """
+    CREATE TABLE сущности (
+        id           INTEGER PRIMARY KEY,
+        имя          TEXT NOT NULL,
+        ключ         TEXT NOT NULL UNIQUE,         -- имя в нижнем регистре, для поиска
+        тип          TEXT NOT NULL DEFAULT 'другое',
+        описание     TEXT NOT NULL DEFAULT '',
+        другие_имена TEXT NOT NULL DEFAULT '[]',   -- JSON: «мама», «мамуля»…
+        причина      TEXT NOT NULL DEFAULT '',     -- для целей: почему это важно
+        статус       TEXT NOT NULL DEFAULT '',     -- для целей: активна | достигнута | отменена
+        создано      TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+        изменено     TEXT
+    );
+    CREATE TABLE отношения (
+        id        INTEGER PRIMARY KEY,
+        от_id     INTEGER NOT NULL REFERENCES сущности(id) ON DELETE CASCADE,
+        отношение TEXT NOT NULL,                   -- «любит», «для», «потому что», «чтобы»…
+        к_id      INTEGER NOT NULL REFERENCES сущности(id) ON DELETE CASCADE,
+        создано   TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+        UNIQUE (от_id, отношение, к_id)
+    );
+    CREATE TABLE факт_сущность (
+        факт_id     INTEGER NOT NULL REFERENCES память(id) ON DELETE CASCADE,
+        сущность_id INTEGER NOT NULL REFERENCES сущности(id) ON DELETE CASCADE,
+        PRIMARY KEY (факт_id, сущность_id)
+    );
+    ALTER TABLE память ADD COLUMN смысл TEXT NOT NULL DEFAULT '{}';  -- JSON: кто, что, для_кого, зачем, почему, когда
+    ALTER TABLE задачи ADD COLUMN цель_id INTEGER REFERENCES сущности(id) ON DELETE SET NULL;
+    """,
 ]
+
+ТИПЫ_СУЩНОСТЕЙ = ["человек", "питомец", "место", "организация", "проект", "цель", "событие", "вещь", "другое"]
+ПОЛЯ_СМЫСЛА = ["кто", "что", "для_кого", "зачем", "почему", "когда"]
+
+
+def ключ_имени(имя: str) -> str:
+    return " ".join(имя.casefold().replace("ё", "е").split())
 
 
 class База:
@@ -136,7 +173,7 @@ class База:
 
     # ---- Задачи ---------------------------------------------------------
 
-    _ПОЛЯ_ЗАДАЧИ = "id, текст, готово, срок, список_id, создано"
+    _ПОЛЯ_ЗАДАЧИ = "id, текст, готово, срок, список_id, цель_id, создано"
 
     @staticmethod
     def _задача(строка) -> dict:
@@ -164,7 +201,7 @@ class База:
 
     def изменить_задачу(self, номер: int, поля: dict) -> dict | None:
         """поля — что менять: текст, готово, срок, список_id (None у срока и списка — убрать)."""
-        разрешённые = {"текст", "готово", "срок", "список_id"}
+        разрешённые = {"текст", "готово", "срок", "список_id", "цель_id"}
         поля = {к: (int(з) if к == "готово" else з) for к, з in поля.items() if к in разрешённые}
         if поля:
             набор = ", ".join(f"{к} = ?" for к in поля)
@@ -240,32 +277,53 @@ class База:
 
     # ---- Память ИИ ------------------------------------------------------
 
-    _ПОЛЯ_ФАКТА = "id, факт, источник, категория, важность, создано, изменено"
+    _ПОЛЯ_ФАКТА = "id, факт, источник, категория, важность, смысл, создано, изменено"
+
+    @staticmethod
+    def _факт(строка) -> dict:
+        ф = dict(строка)
+        try:
+            ф["смысл"] = json.loads(ф.get("смысл") or "{}")
+        except ValueError:
+            ф["смысл"] = {}
+        return ф
 
     def память(self) -> list[dict]:
         with self.соединение() as связь:
             строки = связь.execute(f"SELECT {self._ПОЛЯ_ФАКТА} FROM память ORDER BY важность DESC, id").fetchall()
-        return [dict(с) for с in строки]
+            пары = связь.execute("SELECT факт_id, сущность_id FROM факт_сущность").fetchall()
+        сущности: dict[int, list[int]] = {}
+        for п in пары:
+            сущности.setdefault(п[0], []).append(п[1])
+        итог = []
+        for с in строки:
+            ф = self._факт(с)
+            ф["сущности"] = сущности.get(ф["id"], [])
+            итог.append(ф)
+        return итог
 
     def факт(self, номер: int) -> dict | None:
         with self.соединение() as связь:
             строка = связь.execute(f"SELECT {self._ПОЛЯ_ФАКТА} FROM память WHERE id = ?", (номер,)).fetchone()
-        return dict(строка) if строка else None
+        return self._факт(строка) if строка else None
 
     def запомнить(self, факт: str, источник: int | None = None,
-                  категория: str = "другое", важность: int = 3) -> dict | None:
+                  категория: str = "другое", важность: int = 3, смысл: dict | None = None) -> dict | None:
         """Новый факт. Точный повтор (без учёта регистра) не добавляется."""
+        ключ = ключ_имени(факт)
         with self.соединение() as связь:
-            есть = связь.execute("SELECT 1 FROM память WHERE lower(факт) = lower(?)", (факт,)).fetchone()
-            if есть:
-                return None
+            for (текст,) in связь.execute("SELECT факт FROM память").fetchall():
+                if ключ_имени(текст) == ключ:
+                    return None
             номер = связь.execute(
-                "INSERT INTO память (факт, источник, категория, важность) VALUES (?, ?, ?, ?)",
-                (факт, источник, категория, важность)).lastrowid
+                "INSERT INTO память (факт, источник, категория, важность, смысл) VALUES (?, ?, ?, ?, ?)",
+                (факт, источник, категория, важность, json.dumps(смысл or {}, ensure_ascii=False))).lastrowid
         return self.факт(номер)
 
     def изменить_факт(self, номер: int, поля: dict) -> dict | None:
-        поля = {к: з for к, з in поля.items() if к in {"факт", "категория", "важность", "источник"}}
+        if "смысл" in поля:
+            поля = {**поля, "смысл": json.dumps(поля["смысл"] or {}, ensure_ascii=False)}
+        поля = {к: з for к, з in поля.items() if к in {"факт", "категория", "важность", "источник", "смысл"}}
         if поля:
             набор = ", ".join(f"{к} = ?" for к in поля)
             with self.соединение() as связь:
@@ -336,3 +394,116 @@ class База:
             for (ключ,) in связь.execute("SELECT ключ FROM вектора").fetchall():
                 if ключ not in нужные:
                     связь.execute("DELETE FROM вектора WHERE ключ = ?", (ключ,))
+
+    # ---- Понимание: сущности и связи --------------------------------------
+
+    _ПОЛЯ_СУЩНОСТИ = "id, имя, тип, описание, другие_имена, причина, статус, создано, изменено"
+
+    @staticmethod
+    def _сущность(строка) -> dict:
+        с = dict(строка)
+        try:
+            с["другие_имена"] = json.loads(с.get("другие_имена") or "[]")
+        except ValueError:
+            с["другие_имена"] = []
+        return с
+
+    def сущности(self) -> list[dict]:
+        with self.соединение() as связь:
+            строки = связь.execute(f"SELECT {self._ПОЛЯ_СУЩНОСТИ} FROM сущности ORDER BY тип, имя").fetchall()
+        return [self._сущность(с) for с in строки]
+
+    def сущность(self, номер: int) -> dict | None:
+        with self.соединение() as связь:
+            строка = связь.execute(f"SELECT {self._ПОЛЯ_СУЩНОСТИ} FROM сущности WHERE id = ?", (номер,)).fetchone()
+        return self._сущность(строка) if строка else None
+
+    def найти_сущность(self, имя: str) -> dict | None:
+        """По имени или другому имени, без учёта регистра и «ё»."""
+        ключ = ключ_имени(имя)
+        if not ключ:
+            return None
+        for с in self.сущности():
+            if ключ_имени(с["имя"]) == ключ or any(ключ_имени(д) == ключ for д in с["другие_имена"]):
+                return с
+        return None
+
+    def сущность_или_новая(self, имя: str, тип: str = "другое", описание: str = "",
+                           другие_имена: list[str] | None = None) -> dict:
+        """Найти по имени или создать. Уточняет тип, описание и другие имена, если их не было."""
+        имя = " ".join(имя.split())[:80]
+        тип = тип if тип in ТИПЫ_СУЩНОСТЕЙ else "другое"
+        другие = [" ".join(д.split())[:80] for д in (другие_имена or []) if isinstance(д, str) and д.strip()]
+        есть = self.найти_сущность(имя) or next((self.найти_сущность(д) for д in другие if self.найти_сущность(д)), None)
+        if есть:
+            поля = {}
+            if есть["тип"] == "другое" and тип != "другое":
+                поля["тип"] = тип
+            if описание and not есть["описание"]:
+                поля["описание"] = описание[:300]
+            новые = [д for д in другие + ([имя] if ключ_имени(имя) != ключ_имени(есть["имя"]) else [])
+                     if ключ_имени(д) not in {ключ_имени(х) for х in есть["другие_имена"] + [есть["имя"]]}]
+            if новые:
+                поля["другие_имена"] = есть["другие_имена"] + новые
+            return self.изменить_сущность(есть["id"], поля) if поля else есть
+        with self.соединение() as связь:
+            номер = связь.execute(
+                "INSERT INTO сущности (имя, ключ, тип, описание, другие_имена, статус) VALUES (?, ?, ?, ?, ?, ?)",
+                (имя, ключ_имени(имя), тип, описание[:300], json.dumps(другие, ensure_ascii=False),
+                 "активна" if тип == "цель" else "")).lastrowid
+        return self.сущность(номер)
+
+    def изменить_сущность(self, номер: int, поля: dict) -> dict | None:
+        поля = {к: з for к, з in поля.items() if к in {"имя", "тип", "описание", "другие_имена", "причина", "статус"}}
+        if "другие_имена" in поля:
+            поля["другие_имена"] = json.dumps(поля["другие_имена"], ensure_ascii=False)
+        if "имя" in поля:
+            поля["ключ"] = ключ_имени(поля["имя"])
+        if поля:
+            набор = ", ".join(f"{к} = ?" for к in поля)
+            with self.соединение() as связь:
+                связь.execute(f"UPDATE сущности SET {набор}, изменено = datetime('now', 'localtime') WHERE id = ?",
+                              (*поля.values(), номер))
+        return self.сущность(номер)
+
+    def удалить_сущность(self, номер: int) -> bool:
+        with self.соединение() as связь:
+            связь.execute("DELETE FROM вектора WHERE ключ = ?", (f"е{номер}",))
+            return связь.execute("DELETE FROM сущности WHERE id = ?", (номер,)).rowcount > 0
+
+    def отношения(self) -> list[dict]:
+        with self.соединение() as связь:
+            строки = связь.execute("SELECT id, от_id, отношение, к_id, создано FROM отношения ORDER BY id").fetchall()
+        return [dict(с) for с in строки]
+
+    def связать(self, от_id: int, отношение: str, к_id: int) -> None:
+        if от_id == к_id:
+            return
+        with self.соединение() as связь:
+            связь.execute("INSERT OR IGNORE INTO отношения (от_id, отношение, к_id) VALUES (?, ?, ?)",
+                          (от_id, " ".join(отношение.split())[:40], к_id))
+
+    def удалить_отношение(self, номер: int) -> bool:
+        with self.соединение() as связь:
+            return связь.execute("DELETE FROM отношения WHERE id = ?", (номер,)).rowcount > 0
+
+    def привязать_факт(self, факт_id: int, сущность_id: int) -> None:
+        with self.соединение() as связь:
+            связь.execute("INSERT OR IGNORE INTO факт_сущность (факт_id, сущность_id) VALUES (?, ?)", (факт_id, сущность_id))
+
+    def цели(self) -> list[dict]:
+        return [с for с in self.сущности() if с["тип"] == "цель"]
+
+    def найти_сообщения(self, слова: list[str], сколько: int = 5) -> list[dict]:
+        """Последние сообщения, где встречается любое из слов (без учёта регистра — в Python)."""
+        ключи = [ключ_имени(с) for с in слова if с.strip()]
+        if not ключи:
+            return []
+        итог = []
+        for с in reversed(self.сообщения(1000)):
+            текст = ключ_имени(с["текст"])
+            if any(к in текст for к in ключи):
+                итог.append(с)
+                if len(итог) >= сколько:
+                    break
+        return итог
