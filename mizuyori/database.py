@@ -1,5 +1,6 @@
 """База данных SQLite в data/mizuyori.db."""
 
+import json
 import logging
 import sqlite3
 from contextlib import contextmanager
@@ -61,6 +62,22 @@ from pathlib import Path
         модель    TEXT NOT NULL,
         отпечаток TEXT NOT NULL,     -- чтобы пересчитать, если текст изменился
         вектор    BLOB NOT NULL      -- float32
+    );
+    """,
+    # 4: категории и важность фактов, сводка чата, рабочая память
+    """
+    ALTER TABLE память ADD COLUMN категория TEXT NOT NULL DEFAULT 'другое';
+    ALTER TABLE память ADD COLUMN важность INTEGER NOT NULL DEFAULT 3;
+    ALTER TABLE память ADD COLUMN изменено TEXT;
+    CREATE TABLE сводки (
+        id           INTEGER PRIMARY KEY,
+        до_сообщения INTEGER NOT NULL,   -- сводка охватывает сообщения с id ≤ этого
+        текст        TEXT NOT NULL,
+        создано      TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+    );
+    CREATE TABLE состояние (
+        ключ     TEXT PRIMARY KEY,
+        значение TEXT NOT NULL
     );
     """,
 ]
@@ -223,21 +240,38 @@ class База:
 
     # ---- Память ИИ ------------------------------------------------------
 
+    _ПОЛЯ_ФАКТА = "id, факт, источник, категория, важность, создано, изменено"
+
     def память(self) -> list[dict]:
         with self.соединение() as связь:
-            строки = связь.execute("SELECT id, факт, источник, создано FROM память ORDER BY id").fetchall()
+            строки = связь.execute(f"SELECT {self._ПОЛЯ_ФАКТА} FROM память ORDER BY важность DESC, id").fetchall()
         return [dict(с) for с in строки]
 
-    def запомнить(self, факт: str, источник: int | None = None) -> dict | None:
+    def факт(self, номер: int) -> dict | None:
+        with self.соединение() as связь:
+            строка = связь.execute(f"SELECT {self._ПОЛЯ_ФАКТА} FROM память WHERE id = ?", (номер,)).fetchone()
+        return dict(строка) if строка else None
+
+    def запомнить(self, факт: str, источник: int | None = None,
+                  категория: str = "другое", важность: int = 3) -> dict | None:
         """Новый факт. Точный повтор (без учёта регистра) не добавляется."""
         with self.соединение() as связь:
             есть = связь.execute("SELECT 1 FROM память WHERE lower(факт) = lower(?)", (факт,)).fetchone()
             if есть:
                 return None
-            курсор = связь.execute("INSERT INTO память (факт, источник) VALUES (?, ?)", (факт, источник))
-            строка = связь.execute("SELECT id, факт, источник, создано FROM память WHERE id = ?",
-                                   (курсор.lastrowid,)).fetchone()
-        return dict(строка)
+            номер = связь.execute(
+                "INSERT INTO память (факт, источник, категория, важность) VALUES (?, ?, ?, ?)",
+                (факт, источник, категория, важность)).lastrowid
+        return self.факт(номер)
+
+    def изменить_факт(self, номер: int, поля: dict) -> dict | None:
+        поля = {к: з for к, з in поля.items() if к in {"факт", "категория", "важность", "источник"}}
+        if поля:
+            набор = ", ".join(f"{к} = ?" for к in поля)
+            with self.соединение() as связь:
+                связь.execute(f"UPDATE память SET {набор}, изменено = datetime('now', 'localtime') WHERE id = ?",
+                              (*поля.values(), номер))
+        return self.факт(номер)
 
     def забыть(self, номер: int) -> bool:
         with self.соединение() as связь:
@@ -248,6 +282,41 @@ class База:
         with self.соединение() as связь:
             связь.execute("DELETE FROM память")
             связь.execute("DELETE FROM вектора WHERE ключ LIKE 'п%'")
+
+    # ---- Сводка чата и рабочая память ------------------------------------
+
+    def сводка(self) -> dict | None:
+        with self.соединение() as связь:
+            строка = связь.execute("SELECT id, до_сообщения, текст, создано FROM сводки ORDER BY id DESC LIMIT 1").fetchone()
+        return dict(строка) if строка else None
+
+    def сохранить_сводку(self, до_сообщения: int, текст: str) -> None:
+        with self.соединение() as связь:
+            связь.execute("INSERT INTO сводки (до_сообщения, текст) VALUES (?, ?)", (до_сообщения, текст))
+            # храним только несколько последних
+            связь.execute("DELETE FROM сводки WHERE id NOT IN (SELECT id FROM сводки ORDER BY id DESC LIMIT 5)")
+
+    def сообщения_между(self, после: int, до: int) -> list[dict]:
+        with self.соединение() as связь:
+            строки = связь.execute("SELECT id, роль, текст, создано FROM сообщения WHERE id > ? AND id <= ? ORDER BY id",
+                                   (после, до)).fetchall()
+        return [dict(с) for с in строки]
+
+    def прочитать(self, ключ: str, по_умолчанию=None):
+        with self.соединение() as связь:
+            строка = связь.execute("SELECT значение FROM состояние WHERE ключ = ?", (ключ,)).fetchone()
+        return json.loads(строка[0]) if строка else по_умолчанию
+
+    def записать(self, ключ: str, значение) -> None:
+        with self.соединение() as связь:
+            связь.execute("INSERT OR REPLACE INTO состояние (ключ, значение) VALUES (?, ?)",
+                          (ключ, json.dumps(значение, ensure_ascii=False)))
+
+    def очистить_разговор(self) -> None:
+        """Чат очищен — сводка и рабочая память больше не нужны."""
+        with self.соединение() as связь:
+            связь.execute("DELETE FROM сводки")
+            связь.execute("DELETE FROM состояние WHERE ключ = 'рабочая'")
 
     # ---- Смысловые вектора ----------------------------------------------
 

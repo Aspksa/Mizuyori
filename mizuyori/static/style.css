@@ -1084,10 +1084,9 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .память-ии .пояснение { display: block; color: var(--тихий); font-size: .85rem; }
 .память-ии .текст-поля { flex: 1; }
 .список-фактов {
-  list-style: none;
   margin: 0 0 .6rem;
   padding: 0;
-  max-height: 12rem;
+  max-height: 16rem;
   overflow-y: auto;
   border: 1px solid var(--рамка);
   border-radius: calc(var(--радиус) * .6);
@@ -1117,3 +1116,39 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .текст-похожего { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .процент { font: .75rem ui-monospace, Consolas, monospace; color: var(--тихий); }
 .кнопка.главная.опасная-главная { background: #c93c37; color: #fff; }
+
+/* ---- Память ИИ: категории, важность, рабочая память ------------------------ */
+.группа-фактов ul { list-style: none; margin: 0; padding: 0; }
+.шапка-фактов {
+  position: sticky; top: 0; z-index: 1;
+  padding: .3rem .7rem; background: var(--фон-итог);
+  font-size: .72rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--тихий);
+  border-bottom: 1px solid var(--рамка);
+}
+.текст-факта { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.важность { display: inline-flex; gap: 2px; flex: none; }
+.важность button {
+  width: .55rem; height: .55rem; padding: 0; border-radius: 50%;
+  border: 1px solid var(--тихий); background: transparent; cursor: pointer;
+}
+.важность button.вкл { background: var(--акцент); border-color: var(--акцент); }
+.категория-факта { flex: none; max-width: 7.5rem; padding: .15rem .3rem; font-size: .75rem; }
+.пусто-памяти { margin: 0; padding: .7rem; text-align: center; color: var(--тихий); font-size: .9rem; }
+.добавить-факт { display: flex; gap: .4rem; }
+.добавить-факт input { flex: 1; min-width: 0; }
+.добавить-факт select { flex: none; max-width: 8rem; }
+.рабочая-память {
+  margin-bottom: .6rem; padding: .6rem .75rem;
+  border: 1px dashed color-mix(in srgb, var(--акцент) 60%, transparent);
+  border-radius: calc(var(--радиус) * .6);
+  background: color-mix(in srgb, var(--акцент) 6%, transparent);
+  font-size: .88rem; display: flex; flex-direction: column; gap: .25rem;
+}
+.рабочая-память[hidden] { display: none; }
+.рабочая-шапка { display: flex; justify-content: space-between; align-items: center; }
+.рабочая-шапка .поле-название { margin: 0; color: var(--акцент); }
+.рабочая-шапка .ссылка { font-size: .8rem; }
+.рабочая-память b { color: var(--тихий); font-weight: 600; }
+.рабочая-память summary { cursor: pointer; color: var(--тихий); font-size: .82rem; }
+.рабочая-память .сводка { white-space: pre-wrap; margin-top: .3rem; font-size: .84rem; color: var(--тихий); }
+@media (max-width: 30rem) { .добавить-факт { flex-wrap: wrap; } .добавить-факт input { flex-basis: 100%; } }

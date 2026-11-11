@@ -331,9 +331,15 @@
             </span>
             <button class="тумблер" id="ии-память" type="button" role="switch" aria-checked="true" aria-labelledby="ии-память-название"></button>
           </div>
-          <ul class="список-фактов" id="ии-факты"></ul>
-          <form class="строка-ввода" id="ии-факт-форма">
+          <div class="рабочая-память" id="ии-рабочая" hidden>
+            <div class="рабочая-шапка"><span class="поле-название">Сейчас в разговоре</span>
+              <button class="ссылка" id="ии-рабочая-очистить" type="button">Сбросить</button></div>
+            <div id="ии-рабочая-текст"></div>
+          </div>
+          <div class="список-фактов" id="ии-факты"></div>
+          <form class="добавить-факт" id="ии-факт-форма">
             <input id="ии-факт" type="text" maxlength="300" placeholder="Добавить факт, например «Люблю зелёный чай»" autocomplete="off">
+            <select id="ии-факт-категория" aria-label="Категория"></select>
             <button class="кнопка второстепенная" type="submit">Запомнить</button>
           </form>
           <button class="ссылка" id="ии-забыть-всё" type="button">Очистить память</button>
