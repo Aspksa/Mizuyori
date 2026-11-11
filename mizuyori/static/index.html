@@ -16,7 +16,16 @@
     </svg>
   </button>
   <a class="логотип" href="/" id="имя">{{имя}}</a>
-  <nav id="меню"><!-- сюда добавятся разделы сайта --></nav>
+  <nav class="меню" id="меню" aria-label="Разделы">
+    <a href="#главная" data-экран="главная" aria-current="page">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg>
+      <span>Главная</span>
+    </a>
+    <a href="#мозги" data-экран="мозги">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.5"/><circle cx="5" cy="6" r="1.6"/><circle cx="19" cy="6" r="1.6"/><circle cx="5" cy="18" r="1.6"/><circle cx="19" cy="18" r="1.6"/><path d="M6.3 7l3.7 3.4M17.7 7L14 10.4M6.3 17l3.7-3.4M17.7 17L14 13.6"/></svg>
+      <span>Мозги</span>
+    </a>
+  </nav>
 </header>
 
 <main class="главная">
@@ -128,6 +137,80 @@
   </aside>
 </main>
 
+<!-- Экран «Мозги»: всё, что знает Mizuyori, в виде живого графа -->
+<section class="мозги" id="экран-мозги" aria-label="Мозги" hidden>
+  <canvas id="мозги-холст" aria-label="Граф мозгов: перетаскивайте мышью, колесо — приближение"></canvas>
+
+  <div class="мозги-верх">
+    <div class="мозги-счёт"><span class="огонёк"></span><span id="мозги-счёт">—</span></div>
+    <button class="кнопка второстепенная малая" id="мозги-обновить" type="button">Обновить</button>
+  </div>
+
+  <button class="кнопка-значок мозги-панель-кнопка" id="мозги-панель-кнопка" type="button" aria-label="Панель мозгов" aria-expanded="true">
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+  </button>
+
+  <aside class="мозги-панель" id="мозги-панель">
+    <div class="поиск">
+      <input id="мозги-поиск" type="text" placeholder="Искать в мозгах" autocomplete="off" aria-label="Поиск">
+      <kbd>/</kbd>
+    </div>
+
+    <div class="группа-панели">
+      <span class="поле-название">Раскладка</span>
+      <div class="кнопки-выбора" id="мозги-раскладка" role="radiogroup" aria-label="Раскладка">
+        <button type="button" role="radio" data-значение="кольца">Кольца</button>
+        <button type="button" role="radio" data-значение="круг">Круг</button>
+        <button type="button" role="radio" data-значение="соты">Соты</button>
+        <button type="button" role="radio" data-значение="сила">Сила</button>
+      </div>
+    </div>
+
+    <div class="группа-панели">
+      <span class="поле-название">Вид</span>
+      <div class="кнопки-выбора" id="мозги-вид" role="radiogroup" aria-label="Вид">
+        <button type="button" role="radio" data-значение="разделы">Разделы</button>
+        <button type="button" role="radio" data-значение="списки">Списки</button>
+      </div>
+    </div>
+
+    <div class="группа-панели">
+      <label class="ползунок"><span>Вращение колец</span><output id="мозги-вращение-знач"></output>
+        <input type="range" id="мозги-вращение" min="0" max="1" step="0.05"></label>
+      <label class="флажок-строка"><input type="checkbox" id="мозги-названия"> Названия точек при приближении</label>
+      <label class="ползунок"><span>Пружины (сила)</span><output id="мозги-пружины-знач"></output>
+        <input type="range" id="мозги-пружины" min="0.005" max="0.1" step="0.005"></label>
+      <label class="ползунок"><span>Размер (круг и соты)</span><output id="мозги-размер-знач"></output>
+        <input type="range" id="мозги-размер" min="0.3" max="1.5" step="0.05"></label>
+    </div>
+
+    <div class="три-кнопки">
+      <button class="кнопка второстепенная" id="мозги-развернуть" type="button">Развернуть всё</button>
+      <button class="кнопка второстепенная" id="мозги-свернуть" type="button">Свернуть всё</button>
+      <button class="кнопка второстепенная" id="мозги-центр" type="button">В центр</button>
+    </div>
+    <div class="две-кнопки">
+      <button class="кнопка главная" id="мозги-сохранить" type="button">Сохранить настройки</button>
+      <button class="кнопка второстепенная" id="мозги-png" type="button">Скачать PNG</button>
+    </div>
+    <p class="статус" id="мозги-статус" aria-live="polite"></p>
+
+    <div class="карточка-узла" id="мозги-карточка" hidden>
+      <div class="карточка-тип" id="мозги-карточка-тип"></div>
+      <div class="карточка-текст" id="мозги-карточка-текст"></div>
+      <div class="карточка-мета" id="мозги-карточка-мета"></div>
+      <button class="кнопка главная" id="мозги-открыть" type="button">Открыть</button>
+    </div>
+  </aside>
+
+  <div class="мозги-подсказка" id="мозги-подсказка" hidden></div>
+
+  <div class="мозги-загрузка" id="мозги-загрузка">
+    <div class="загрузка-текст">Собираю мозги</div>
+    <div class="загрузка-полоса"><span id="мозги-полоса"></span></div>
+  </div>
+</section>
+
 <!-- Окно настроек проекта -->
 <div class="затемнение" id="окно-настроек" hidden>
   <div class="окно" role="dialog" aria-modal="true" aria-labelledby="заголовок-настроек">
@@ -175,5 +258,6 @@
 <script src="/static/clock.js" charset="utf-8"></script>
 <script src="/static/chat.js" charset="utf-8"></script>
 <script src="/static/tasks.js" charset="utf-8"></script>
+<script src="/static/brain.js" charset="utf-8"></script>
 </body>
 </html>

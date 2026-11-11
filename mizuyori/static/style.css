@@ -130,9 +130,23 @@ h1, h2, .логотип { color: var(--заголовок); }
   border-bottom: 1px solid var(--рамка);
 }
 .логотип { font-size: 1.25rem; font-weight: 600; text-decoration: none; }
-nav { display: flex; gap: 1rem; margin-left: auto; }
-nav a { color: var(--тихий); text-decoration: none; }
-nav a:hover, nav a.текущий { color: var(--акцент); }
+/* ---- Меню разделов в шапке ------------------------------------------- */
+.меню { display: flex; gap: .25rem; margin-left: calc(1rem * var(--п)); }
+.меню a {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: calc(.4rem * var(--п)) .8rem;
+  border-radius: calc(var(--радиус) * .7);
+  color: var(--тихий);
+  text-decoration: none;
+  font-size: .92rem;
+  transition: color .15s, background-color .15s;
+}
+.меню a svg { width: 1.15rem; height: 1.15rem; }
+.меню a:hover { color: var(--текст); background: var(--рамка); }
+.меню a[aria-current="page"] { color: var(--акцент); background: color-mix(in srgb, var(--акцент) 14%, transparent); font-weight: 600; }
+@media (max-width: 30rem) { .меню a span { display: none; } }
 
 .кнопка-значок {
   display: inline-flex;
@@ -168,6 +182,7 @@ main.главная {
   gap: calc(1rem * var(--п));
   padding: calc(1rem * var(--п));
 }
+main.главная[hidden] { display: none; }
 .колонка { display: flex; flex-direction: column; gap: calc(1rem * var(--п)); min-height: 0; }
 
 .панель {
@@ -875,3 +890,153 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
 .группы .список { overflow: visible; flex: none; }
+
+/* =====================================================================
+   МОЗГИ
+   ===================================================================== */
+
+.мозги {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  /* еле заметные соты на фоне */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='97' viewBox='0 0 56 97'%3E%3Cpath d='M28 0l28 16v32L28 64 0 48V16zM28 64v33' fill='none' stroke='%23888' stroke-opacity='.07'/%3E%3C/svg%3E");
+}
+.мозги[hidden] { display: none; }
+@media (max-width: 64rem) { .мозги { flex: none; height: calc(100dvh - 3.8rem); } }
+#мозги-холст { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; touch-action: none; }
+#мозги-холст.тянут { cursor: grabbing; }
+
+.мозги-верх {
+  position: absolute;
+  top: calc(.8rem * var(--п));
+  left: calc(1rem * var(--п));
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  pointer-events: none;
+}
+.мозги-верх > * { pointer-events: auto; }
+.мозги-счёт {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  font: .8rem ui-monospace, "Cascadia Mono", Consolas, monospace;
+  letter-spacing: .04em;
+  color: var(--тихий);
+}
+.огонёк { width: .5rem; height: .5rem; border-radius: 50%; background: var(--акцент); box-shadow: 0 0 8px var(--акцент); animation: огонёк 2s infinite; }
+@keyframes огонёк { 50% { opacity: .4; } }
+.кнопка.малая { padding: .3rem .7rem; font-size: .8rem; }
+
+.мозги-панель-кнопка {
+  position: absolute;
+  top: calc(.6rem * var(--п));
+  right: calc(.75rem * var(--п));
+  z-index: 3;
+  background: var(--панель);
+  border: 1px solid var(--рамка);
+}
+.мозги-панель {
+  position: absolute;
+  top: calc(3.4rem * var(--п));
+  right: calc(.75rem * var(--п));
+  bottom: calc(.75rem * var(--п));
+  z-index: 2;
+  width: 19rem;
+  display: flex;
+  flex-direction: column;
+  gap: calc(.8rem * var(--п));
+  padding: calc(1rem * var(--п));
+  overflow-y: auto;
+  background: color-mix(in srgb, var(--панель-итог) 88%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--рамка);
+  border-radius: var(--радиус);
+  transition: transform .25s ease, opacity .25s;
+}
+.мозги-панель.скрыта { transform: translateX(calc(100% + 1rem)); opacity: 0; pointer-events: none; }
+@media (max-width: 44rem) { .мозги-панель { width: auto; left: calc(.75rem * var(--п)); top: auto; max-height: 70%; } }
+
+.поиск { position: relative; }
+.поиск input { width: 100%; padding-right: 2.2rem; }
+.поиск kbd {
+  position: absolute; right: .5rem; top: 50%; transform: translateY(-50%);
+  padding: 0 .4rem; border: 1px solid var(--рамка); border-radius: 4px;
+  font: .75rem ui-monospace, Consolas, monospace; color: var(--тихий);
+}
+.группа-панели { display: flex; flex-direction: column; gap: .5rem; }
+.группа-панели .поле-название { margin: 0; }
+.кнопки-выбора { display: flex; flex-wrap: wrap; gap: .3rem; }
+.кнопки-выбора button {
+  padding: calc(.3rem * var(--п) + .05rem) .7rem;
+  border: 1px solid var(--рамка);
+  border-radius: calc(var(--радиус) * .5);
+  background: transparent;
+  color: var(--тихий);
+  font: .85rem ui-monospace, "Cascadia Mono", Consolas, monospace;
+  cursor: pointer;
+}
+.кнопки-выбора button:hover { color: var(--текст); border-color: var(--тихий); }
+.кнопки-выбора button[aria-checked="true"] { background: var(--акцент); border-color: var(--акцент); color: var(--на-акценте); font-weight: 600; }
+.ползунок { display: grid; grid-template-columns: 1fr auto; gap: .2rem .5rem; font-size: .78rem; color: var(--тихий); text-transform: uppercase; letter-spacing: .04em; }
+.ползунок output { font-family: ui-monospace, Consolas, monospace; color: var(--текст); }
+.ползунок input { grid-column: 1 / -1; width: 100%; accent-color: var(--акцент); }
+.флажок-строка { display: flex; align-items: center; gap: .5rem; font-size: .85rem; color: var(--текст); }
+.флажок-строка input { accent-color: var(--акцент); width: 1rem; height: 1rem; }
+.три-кнопки { display: grid; grid-template-columns: repeat(3, 1fr); gap: .35rem; }
+.три-кнопки .кнопка { padding: .5rem .3rem; font-size: .8rem; line-height: 1.2; }
+.две-кнопки { display: grid; grid-template-columns: 1fr 1fr; gap: .35rem; }
+.две-кнопки .кнопка { padding: .55rem .4rem; font-size: .82rem; line-height: 1.2; }
+.мозги-панель .статус { padding: 0; min-height: 1rem; }
+
+.карточка-узла {
+  padding: .8rem;
+  border: 1px solid var(--рамка);
+  border-radius: calc(var(--радиус) * .8);
+  background: var(--фон-итог);
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+}
+.карточка-узла[hidden] { display: none; }
+.карточка-тип { font: .72rem ui-monospace, Consolas, monospace; text-transform: uppercase; letter-spacing: .05em; color: var(--акцент); }
+.карточка-текст { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 10rem; overflow-y: auto; }
+.карточка-мета { font-size: .8rem; color: var(--тихий); }
+.карточка-мета:empty { display: none; }
+
+.мозги-подсказка {
+  position: absolute;
+  z-index: 4;
+  max-width: 18rem;
+  padding: .5rem .7rem;
+  border: 1px solid var(--рамка);
+  border-radius: calc(var(--радиус) * .6);
+  background: var(--панель-итог);
+  box-shadow: 0 .5rem 1.5rem rgba(0, 0, 0, .35);
+  font-size: .85rem;
+  pointer-events: none;
+}
+.мозги-подсказка[hidden] { display: none; }
+.мозги-подсказка b { display: block; color: var(--акцент); font-family: ui-monospace, Consolas, monospace; }
+.мозги-подсказка small { display: block; color: var(--тихий); font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; font-family: ui-monospace, Consolas, monospace; }
+
+.мозги-загрузка {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .9rem;
+  background: var(--фон-итог);
+  transition: opacity .5s;
+}
+.мозги-загрузка[hidden] { display: none; }
+.мозги-загрузка.уходит { opacity: 0; pointer-events: none; }
+.загрузка-текст { font: .8rem ui-monospace, "Cascadia Mono", Consolas, monospace; letter-spacing: .25em; text-transform: uppercase; color: var(--тихий); }
+.загрузка-полоса { width: 12rem; height: 2px; background: var(--рамка); overflow: hidden; border-radius: 1px; }
+.загрузка-полоса span { display: block; height: 100%; width: 0; background: var(--акцент); box-shadow: 0 0 8px var(--акцент); transition: width .9s ease-out; }

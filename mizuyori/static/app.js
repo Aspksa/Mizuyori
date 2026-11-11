@@ -250,3 +250,31 @@ $("сбросить").addEventListener("click", сбросить);
 document.addEventListener("keydown", (событие) => {
   if (событие.key === "Escape" && !окно.hidden) закрытьНастройки();
 });
+
+// ---- Меню: «Главная» и «Мозги» --------------------------------------------
+// Экран выбирается по адресу: #главная или #мозги (работают «назад» и «вперёд»).
+
+const ЭКРАНЫ = {
+  главная: () => document.querySelector("main.главная"),
+  мозги: () => $("экран-мозги"),
+};
+
+function текущийЭкран() {
+  const имя = decodeURIComponent(location.hash.slice(1));
+  return имя in ЭКРАНЫ ? имя : "главная";
+}
+
+function показатьЭкран() {
+  const имя = текущийЭкран();
+  for (const [к, найти] of Object.entries(ЭКРАНЫ)) найти().hidden = к !== имя;
+  for (const ссылка of document.querySelectorAll("#меню a")) {
+    if (ссылка.dataset.экран === имя) ссылка.setAttribute("aria-current", "page");
+    else ссылка.removeAttribute("aria-current");
+  }
+  document.body.dataset.экран = имя;
+  document.dispatchEvent(new CustomEvent("mizuyori:экран", { detail: имя }));
+}
+
+window.addEventListener("hashchange", показатьЭкран);
+// Запуск после того, как подключатся все скрипты (мозги слушают это событие)
+window.addEventListener("DOMContentLoaded", показатьЭкран);
