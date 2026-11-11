@@ -1077,3 +1077,43 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 }
 @keyframes курсор { 50% { opacity: 0; } }
 .сообщение.ошибка { display: flex; flex-direction: column; align-items: center; gap: .2rem; text-align: center; max-width: 90%; }
+
+/* ---- Память ИИ в настройках --------------------------------------------- */
+.память-ии .флажок { display: flex; align-items: center; gap: 1rem; margin-bottom: .6rem; }
+.память-ии .поле-название { margin: 0; }
+.память-ии .пояснение { display: block; color: var(--тихий); font-size: .85rem; }
+.память-ии .текст-поля { flex: 1; }
+.список-фактов {
+  list-style: none;
+  margin: 0 0 .6rem;
+  padding: 0;
+  max-height: 12rem;
+  overflow-y: auto;
+  border: 1px solid var(--рамка);
+  border-radius: calc(var(--радиус) * .6);
+}
+.список-фактов li { display: flex; align-items: center; gap: .5rem; padding: .35rem .3rem .35rem .7rem; border-bottom: 1px solid var(--рамка); font-size: .9rem; }
+.список-фактов li:last-child { border-bottom: 0; }
+.список-фактов li span { flex: 1; }
+.список-фактов .пусто-памяти { color: var(--тихий); justify-content: center; padding: .7rem; }
+.память-ии .ссылка { margin-top: .5rem; font-size: .85rem; }
+.память-ии .ссылка[hidden] { display: none; }
+#ии-эмбеддинги { width: 100%; padding: calc(.5rem * var(--п) + .05rem) .7rem; font-size: .92rem; }
+
+/* ---- Мозги: смысловые связи и «Похожее» ------------------------------------ */
+.связи-статус { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; font-size: .78rem; color: var(--тихий); }
+.связи-статус .плохо { color: #e5534b; }
+.связи-статус .ссылка { font-size: .78rem; white-space: nowrap; }
+.похожее[hidden] { display: none; }
+.похожее .поле-название { margin: .2rem 0 .3rem; }
+.похожее ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .2rem; }
+.похожее button {
+  display: flex; align-items: center; gap: .45rem; width: 100%;
+  padding: .3rem .4rem; border: 0; border-radius: calc(var(--радиус) * .5);
+  background: transparent; color: var(--текст); font: inherit; font-size: .85rem; text-align: left; cursor: pointer;
+}
+.похожее button:hover { background: var(--рамка); }
+.точка-похожего { flex: none; width: .5rem; height: .5rem; border-radius: 50%; background: var(--цвет-списка); }
+.текст-похожего { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.процент { font: .75rem ui-monospace, Consolas, monospace; color: var(--тихий); }
+.кнопка.главная.опасная-главная { background: #c93c37; color: #fff; }

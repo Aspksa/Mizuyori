@@ -163,6 +163,8 @@
         <button type="button" role="radio" data-значение="круг">Круг</button>
         <button type="button" role="radio" data-значение="соты">Соты</button>
         <button type="button" role="radio" data-значение="сила">Сила</button>
+        <button type="button" role="radio" data-значение="плата">Плата</button>
+        <button type="button" role="radio" data-значение="hud">HUD</button>
       </div>
     </div>
 
@@ -184,6 +186,16 @@
         <input type="range" id="мозги-размер" min="0.3" max="1.5" step="0.05"></label>
     </div>
 
+    <div class="группа-панели">
+      <label class="флажок-строка"><input type="checkbox" id="мозги-связи"> Смысловые связи</label>
+      <label class="ползунок"><span>Порог похожести</span><output id="мозги-порог-знач"></output>
+        <input type="range" id="мозги-порог" min="0.3" max="0.98" step="0.01"></label>
+      <div class="связи-статус">
+        <span id="мозги-связи-статус"></span>
+        <button class="ссылка" id="мозги-связи-обновить" type="button">Пересчитать</button>
+      </div>
+    </div>
+
     <div class="три-кнопки">
       <button class="кнопка второстепенная" id="мозги-развернуть" type="button">Развернуть всё</button>
       <button class="кнопка второстепенная" id="мозги-свернуть" type="button">Свернуть всё</button>
@@ -199,6 +211,10 @@
       <div class="карточка-тип" id="мозги-карточка-тип"></div>
       <div class="карточка-текст" id="мозги-карточка-текст"></div>
       <div class="карточка-мета" id="мозги-карточка-мета"></div>
+      <div class="похожее" id="мозги-похожее" hidden>
+        <div class="поле-название">Похожее по смыслу</div>
+        <ul id="мозги-похожее-список"></ul>
+      </div>
       <button class="кнопка главная" id="мозги-открыть" type="button">Открыть</button>
     </div>
   </aside>
@@ -277,6 +293,12 @@
         </div>
 
         <div class="поле">
+          <label class="поле-название" for="ии-эмбеддинги">Модель для смысловых связей</label>
+          <select id="ии-эмбеддинги" disabled><option value="">Сначала проверьте ключ</option></select>
+          <p class="подсказка-поля">Эмбеддинги: по ним «Мозги» соединяют похожие по смыслу задачи, заметки и факты.</p>
+        </div>
+
+        <div class="поле">
           <label class="ползунок"><span>Температура</span><output id="ии-температура-знач"></output>
             <input type="range" id="ии-температура" min="0" max="1.5" step="0.05"></label>
           <div class="шкала"><span>точнее</span><span>свободнее</span></div>
@@ -299,6 +321,22 @@
         <div class="поле">
           <label class="поле-название" for="ии-характер">Характер</label>
           <textarea id="ии-характер" rows="3" maxlength="8000" placeholder="Какой должен быть ИИ: как общается, что умеет"></textarea>
+        </div>
+
+        <div class="поле память-ии">
+          <div class="флажок">
+            <span class="текст-поля">
+              <span class="поле-название" id="ии-память-название">Память ИИ</span>
+              <span class="пояснение">Запоминать факты о вас из разговоров</span>
+            </span>
+            <button class="тумблер" id="ии-память" type="button" role="switch" aria-checked="true" aria-labelledby="ии-память-название"></button>
+          </div>
+          <ul class="список-фактов" id="ии-факты"></ul>
+          <form class="строка-ввода" id="ии-факт-форма">
+            <input id="ии-факт" type="text" maxlength="300" placeholder="Добавить факт, например «Люблю зелёный чай»" autocomplete="off">
+            <button class="кнопка второстепенная" type="submit">Запомнить</button>
+          </form>
+          <button class="ссылка" id="ии-забыть-всё" type="button">Очистить память</button>
         </div>
 
         <details class="поле дополнительно">

@@ -1,12 +1,14 @@
 """Веб-сервер: страница и API."""
 
+import hashlib
 import json
 import logging
 import platform
+import threading
 from datetime import date
 from html import escape
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -189,8 +191,9 @@ def создать_приложение(настройки: dict, база: Ба
             история = [с for с in база.сообщения(max(н["история"], 1) + 10) if с["текст"] != ai.ЗАГЛУШКА]
             история = история[-max(н["история"], 1):]
             собрано = []
+            факты = [ф["факт"] for ф in база.память()] if н["память"] else None
             try:
-                for кусок in ai.ответ_потоком(история, н, настройки["имя"]):
+                for кусок in ai.ответ_потоком(история, н, настройки["имя"], факты):
                     собрано.append(кусок)
                     yield строка({"кусок": кусок})
             except ai.ОшибкаИИ as ошибка:
@@ -203,9 +206,52 @@ def создать_приложение(настройки: dict, база: Ба
                 return
             ответ = ai.убрать_размышления("".join(собрано)) or "…"
             yield строка({"ответ": база.добавить_сообщение("ии", ответ)})
+            if н["память"] and len(текст) >= 8:
+                # Запоминание — в фоне, чтобы не задерживать ответ
+                threading.Thread(target=_запомнить_из, args=(текст, вопрос["id"], н), daemon=True).start()
 
         return StreamingResponse(поток(), media_type="application/x-ndjson",
                                  headers={"Cache-Control": "no-store", "X-Accel-Buffering": "no"})
+
+    def _запомнить_из(текст: str, сообщение_id: int, н: dict) -> None:
+        try:
+            известные = [ф["факт"] for ф in база.память()]
+            for факт in ai.извлечь_факты(текст, известные, н):
+                if база.запомнить(факт, сообщение_id):
+                    журнал.info("ИИ запомнил: %s", факт)
+        except ai.ОшибкаИИ as ошибка:
+            журнал.warning("Не удалось обновить память ИИ: %s", ошибка)
+        except Exception:
+            журнал.exception("Ошибка при обновлении памяти ИИ")
+
+    # ---- Память ИИ ----------------------------------------------------------
+
+    class НовыйФакт(BaseModel):
+        факт: str = Field(max_length=300)
+
+    @app.get("/api/memory")
+    def память():
+        return база.память()
+
+    @app.post("/api/memory", status_code=201)
+    def запомнить(факт: НовыйФакт):
+        новый = база.запомнить(_непустой(факт.факт, "Факт"))
+        if новый is None:
+            raise StarletteHTTPException(400, "Такой факт уже есть в памяти.")
+        return новый
+
+    @app.delete("/api/memory/{fact_id}")
+    def забыть(fact_id: int):
+        if not база.забыть(fact_id):
+            raise StarletteHTTPException(404, "Такого факта нет.")
+        журнал.info("Факт удалён из памяти ИИ.")
+        return {"удалено": fact_id}
+
+    @app.delete("/api/memory")
+    def забыть_всё():
+        база.забыть_всё()
+        журнал.info("Память ИИ очищена.")
+        return {"очищено": True}
 
     @app.delete("/api/chat")
     def очистить_чат():
@@ -398,9 +444,70 @@ def создать_приложение(настройки: dict, база: Ба
             "цвета": ЦВЕТА_СПИСКОВ,
             "заметки": база.заметки(),
             "сообщения": база.сообщения(500),
+            "память": база.память(),
             "настройки": настройки["мозги"],
             "по_умолчанию": МОЗГИ_ПО_УМОЛЧАНИЮ,
         }
+
+    # Смысловые связи: эмбеддинги cloud.ru → похожесть по косинусу.
+    # Вектора считаются один раз и хранятся в базе; пересчёт — только изменённых текстов.
+    _замок_связей = threading.Lock()
+
+    @app.get("/api/brain/links")
+    def смысловые_связи(порог: float = Query(0.75, alias="threshold"), соседей: int = Query(3, alias="k")):
+        import numpy as np
+
+        н = _ии()
+        модель = н["модель_эмбеддингов"]
+        if not н["ключ"]:
+            return {"доступно": False, "причина": "Нужен ключ cloud.ru (настройки проекта → ИИ)."}
+        if not модель:
+            return {"доступно": False, "причина": "Выберите модель для связей (настройки проекта → ИИ)."}
+
+        тексты: dict[str, str] = {}
+        for з in база.задачи():
+            тексты[f"з{з['id']}"] = з["текст"]
+        for з in база.заметки():
+            тексты[f"н{з['id']}"] = з["текст"][:4000]
+        for ф in база.память():
+            тексты[f"п{ф['id']}"] = ф["факт"]
+        if len(тексты) < 2:
+            return {"доступно": True, "связи": [], "модель": модель, "новых": 0}
+
+        with _замок_связей:
+            отпечаток = lambda т: hashlib.sha1(f"{модель}\n{т}".encode("utf-8")).hexdigest()
+            есть = база.вектора(модель)
+            нужно = [к for к, т in тексты.items() if есть.get(к, ("",))[0] != отпечаток(т)]
+            if нужно:
+                try:
+                    вектора = ai.эмбеддинги(н["адрес"], н["ключ"], модель, [тексты[к] for к in нужно])
+                except ai.ОшибкаИИ as ошибка:
+                    return {"доступно": False, "причина": str(ошибка)}
+                записи = [(к, отпечаток(тексты[к]), np.asarray(в, dtype=np.float32).tobytes())
+                          for к, в in zip(нужно, вектора)]
+                база.сохранить_вектора(модель, записи)
+                журнал.info("Смысловые вектора посчитаны: %s", len(нужно))
+                есть = база.вектора(модель)
+            база.убрать_лишние_вектора(set(тексты))
+
+        ключи = [к for к in тексты if к in есть]
+        if len(ключи) < 2:
+            return {"доступно": True, "связи": [], "модель": модель, "новых": len(нужно)}
+        матрица = np.stack([np.frombuffer(есть[к][1], dtype=np.float32) for к in ключи])
+        матрица /= np.linalg.norm(матрица, axis=1, keepdims=True) + 1e-9
+        похожесть = матрица @ матрица.T
+        np.fill_diagonal(похожесть, -1)
+        соседей = max(1, min(соседей, 10))
+        пары = {}
+        for i in range(len(ключи)):
+            for j in np.argsort(-похожесть[i])[:соседей]:
+                п = float(похожесть[i, j])
+                if п < порог:
+                    break
+                а, б = sorted((ключи[i], ключи[int(j)]))
+                пары[(а, б)] = round(п, 3)
+        связи = [{"а": а, "б": б, "похожесть": п} for (а, б), п in sorted(пары.items(), key=lambda x: -x[1])]
+        return {"доступно": True, "связи": связи, "модель": модель, "новых": len(нужно)}
 
     class НастройкиМозгов(BaseModel):
         мозги: dict

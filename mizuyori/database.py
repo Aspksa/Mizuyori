@@ -48,6 +48,21 @@ from pathlib import Path
     ALTER TABLE задачи ADD COLUMN список_id INTEGER REFERENCES списки(id) ON DELETE SET NULL;
     CREATE INDEX задачи_срок ON задачи(срок);
     """,
+    # 3: память ИИ и смысловые вектора
+    """
+    CREATE TABLE память (
+        id       INTEGER PRIMARY KEY,
+        факт     TEXT NOT NULL,
+        источник INTEGER,            -- id сообщения, из которого запомнено
+        создано  TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+    );
+    CREATE TABLE вектора (
+        ключ      TEXT PRIMARY KEY,  -- «з12» задача, «н3» заметка, «п5» факт памяти
+        модель    TEXT NOT NULL,
+        отпечаток TEXT NOT NULL,     -- чтобы пересчитать, если текст изменился
+        вектор    BLOB NOT NULL      -- float32
+    );
+    """,
 ]
 
 
@@ -205,3 +220,50 @@ class База:
     def удалить_заметку(self, номер: int) -> bool:
         with self.соединение() as связь:
             return связь.execute("DELETE FROM заметки WHERE id = ?", (номер,)).rowcount > 0
+
+    # ---- Память ИИ ------------------------------------------------------
+
+    def память(self) -> list[dict]:
+        with self.соединение() as связь:
+            строки = связь.execute("SELECT id, факт, источник, создано FROM память ORDER BY id").fetchall()
+        return [dict(с) for с in строки]
+
+    def запомнить(self, факт: str, источник: int | None = None) -> dict | None:
+        """Новый факт. Точный повтор (без учёта регистра) не добавляется."""
+        with self.соединение() as связь:
+            есть = связь.execute("SELECT 1 FROM память WHERE lower(факт) = lower(?)", (факт,)).fetchone()
+            if есть:
+                return None
+            курсор = связь.execute("INSERT INTO память (факт, источник) VALUES (?, ?)", (факт, источник))
+            строка = связь.execute("SELECT id, факт, источник, создано FROM память WHERE id = ?",
+                                   (курсор.lastrowid,)).fetchone()
+        return dict(строка)
+
+    def забыть(self, номер: int) -> bool:
+        with self.соединение() as связь:
+            связь.execute("DELETE FROM вектора WHERE ключ = ?", (f"п{номер}",))
+            return связь.execute("DELETE FROM память WHERE id = ?", (номер,)).rowcount > 0
+
+    def забыть_всё(self) -> None:
+        with self.соединение() as связь:
+            связь.execute("DELETE FROM память")
+            связь.execute("DELETE FROM вектора WHERE ключ LIKE 'п%'")
+
+    # ---- Смысловые вектора ----------------------------------------------
+
+    def вектора(self, модель: str) -> dict[str, tuple[str, bytes]]:
+        with self.соединение() as связь:
+            строки = связь.execute("SELECT ключ, отпечаток, вектор FROM вектора WHERE модель = ?", (модель,)).fetchall()
+        return {с["ключ"]: (с["отпечаток"], с["вектор"]) for с in строки}
+
+    def сохранить_вектора(self, модель: str, записи: list[tuple[str, str, bytes]]) -> None:
+        with self.соединение() as связь:
+            связь.executemany(
+                "INSERT OR REPLACE INTO вектора (ключ, модель, отпечаток, вектор) VALUES (?, ?, ?, ?)",
+                [(ключ, модель, отпечаток, вектор) for ключ, отпечаток, вектор in записи])
+
+    def убрать_лишние_вектора(self, нужные: set[str]) -> None:
+        with self.соединение() as связь:
+            for (ключ,) in связь.execute("SELECT ключ FROM вектора").fetchall():
+                if ключ not in нужные:
+                    связь.execute("DELETE FROM вектора WHERE ключ = ?", (ключ,))
