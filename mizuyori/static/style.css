@@ -1,22 +1,44 @@
 @charset "utf-8";
 
-:root {
-  --фон: #f4f6f8;
-  --поверхность: #ffffff;
-  --текст: #1d2733;
-  --тихий: #6b7785;
-  --акцент: #2f7fd8;
-  --рамка: #dde3ea;
+/* ---- Цвета сайта ------------------------------------------------------
+   Каждая тема задаёт одни и те же переменные. Тема выбирается в окне
+   «Настройки проекта» и хранится в config.json («тема»).            */
+
+[data-theme="тёмно-чёрный"] {
+  --фон: #070708;
+  --поверхность: #121214;
+  --текст: #ececef;
+  --тихий: #85858f;
+  --акцент: #d6d8de;
+  --на-акценте: #0b0b0c;
+  --рамка: #232327;
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --фон: #12161b;
-    --поверхность: #1b2129;
-    --текст: #e6ebf0;
-    --тихий: #8d99a6;
-    --акцент: #5aa2f0;
-    --рамка: #2b333d;
-  }
+[data-theme="золото"] {
+  --фон: #0f0d08;
+  --поверхность: #1a160d;
+  --текст: #f4ecd6;
+  --тихий: #a79a77;
+  --акцент: #d4af37;
+  --на-акценте: #1a1405;
+  --рамка: #3a3120;
+}
+[data-theme="янтарь"] {
+  --фон: #170d05;
+  --поверхность: #24150a;
+  --текст: #fbe8d2;
+  --тихий: #b8936a;
+  --акцент: #ffa62b;
+  --на-акценте: #2a1500;
+  --рамка: #4a2f17;
+}
+[data-theme="нефрит"] {
+  --фон: #06120e;
+  --поверхность: #0d1e18;
+  --текст: #dcf2e8;
+  --тихий: #83a698;
+  --акцент: #3fbf8f;
+  --на-акценте: #03140d;
+  --рамка: #1e3a2f;
 }
 
 * { box-sizing: border-box; }
@@ -28,24 +50,131 @@ body {
   background: var(--фон);
   color: var(--текст);
   font: 16px/1.5 "Segoe UI", system-ui, -apple-system, sans-serif;
+  transition: background-color .25s, color .25s;
 }
 
 .ширина { width: 100%; max-width: 960px; margin: 0 auto; padding: 0 20px; }
 
-/* Шапка */
-.шапка { background: var(--поверхность); border-bottom: 1px solid var(--рамка); }
-.шапка .ширина { display: flex; align-items: center; gap: 24px; min-height: 60px; }
+/* ---- Шапка: значок настроек в самом левом верхнем углу ---------------- */
+.шапка {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 60px;
+  padding: 0 20px 0 10px;
+  background: var(--поверхность);
+  border-bottom: 1px solid var(--рамка);
+}
 .логотип { font-size: 20px; font-weight: 600; color: var(--текст); text-decoration: none; }
 nav { display: flex; gap: 16px; margin-left: auto; }
 nav a { color: var(--тихий); text-decoration: none; }
 nav a:hover, nav a.текущий { color: var(--акцент); }
 
-/* Содержимое */
+.кнопка-значок {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--тихий);
+  cursor: pointer;
+  transition: color .15s, background-color .15s;
+}
+.кнопка-значок:hover { color: var(--акцент); background: var(--рамка); }
+.кнопка-значок:focus-visible,
+.тема:focus-visible { outline: 2px solid var(--акцент); outline-offset: 2px; }
+#открыть-настройки svg { transition: transform .4s; }
+#открыть-настройки:hover svg { transform: rotate(60deg); }
+
+/* ---- Содержимое ------------------------------------------------------- */
 main { flex: 1; display: flex; }
 .пусто { margin: auto; padding: 64px 0; text-align: center; }
 .пусто h1 { margin: 0 0 8px; font-size: 28px; font-weight: 600; }
 .пусто p { margin: 0; color: var(--тихий); }
 
-/* Подвал */
+/* ---- Подвал ----------------------------------------------------------- */
 .подвал { border-top: 1px solid var(--рамка); color: var(--тихий); font-size: 14px; }
 .подвал .ширина { padding-top: 16px; padding-bottom: 16px; }
+
+/* ---- Окно настроек по центру ----------------------------------------- */
+.затемнение {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, .6);
+  backdrop-filter: blur(3px);
+  animation: появление .15s ease-out;
+}
+.затемнение[hidden] { display: none; }
+.окно {
+  width: 100%;
+  max-width: 520px;
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+  padding: 20px 24px 24px;
+  background: var(--поверхность);
+  border: 1px solid var(--рамка);
+  border-radius: 16px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, .5);
+  animation: всплытие .18s ease-out;
+}
+.окно-шапка { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.окно-шапка h2 { margin: 0; font-size: 20px; font-weight: 600; }
+.раздел h3 {
+  margin: 0 0 12px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--тихий);
+}
+
+.темы { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.тема {
+  /* Каждая карточка окрашена в свою тему через data-theme */
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 2px solid var(--рамка);
+  border-radius: 12px;
+  background: var(--фон);
+  color: var(--текст);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .15s, transform .15s;
+}
+.тема span:nth-child(2) { white-space: nowrap; }
+.тема:hover { transform: translateY(-1px); }
+.тема[aria-checked="true"] { border-color: var(--акцент); }
+.тема .образец {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--поверхность) 0 50%, var(--акцент) 50% 100%);
+  border: 1px solid var(--рамка);
+}
+.тема .галочка { margin-left: auto; color: var(--акцент); visibility: hidden; }
+.тема[aria-checked="true"] .галочка { visibility: visible; }
+
+.статус { min-height: 20px; margin: 14px 0 0; font-size: 14px; color: var(--тихий); }
+
+@keyframes появление { from { opacity: 0; } }
+@keyframes всплытие { from { opacity: 0; transform: translateY(8px) scale(.98); } }
+
+@media (max-width: 420px) {
+  .темы { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

@@ -5,15 +5,21 @@ import platform
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from . import __version__
+from .config import ТЕМЫ, сохранить_настройки
 from .database import База
-from .paths import ПАПКА_СТАТИКИ
+from .paths import ПАПКА_СТАТИКИ, ФАЙЛ_НАСТРОЕК
 
 журнал = logging.getLogger("mizuyori.сервер")
+
+
+class ИзменениеНастроек(BaseModel):
+    тема: str | None = None
 
 
 def создать_приложение(настройки: dict, база: База, порт: int) -> FastAPI:
@@ -49,7 +55,10 @@ def создать_приложение(настройки: dict, база: Ба
 
     @app.get("/", include_in_schema=False)
     def главная():
-        return FileResponse(ПАПКА_СТАТИКИ / "index.html")
+        # Тема подставляется сразу в HTML, чтобы страница не мигала другим цветом
+        html = (ПАПКА_СТАТИКИ / "index.html").read_text(encoding="utf-8")
+        html = html.replace("{{тема}}", настройки["тема"]).replace("{{имя}}", настройки["имя"])
+        return HTMLResponse(html, headers={"Cache-Control": "no-store"})
 
     app.mount("/static", StaticFiles(directory=ПАПКА_СТАТИКИ), name="static")
 
@@ -65,5 +74,23 @@ def создать_приложение(настройки: dict, база: Ба
             "порт": порт,
             "база": str(база.файл),
         }
+
+    @app.get("/api/settings")
+    def получить_настройки():
+        return {
+            "тема": настройки["тема"],
+            "темы": [{"ключ": ключ, "название": название} for ключ, название in ТЕМЫ.items()],
+        }
+
+    @app.put("/api/settings")
+    def изменить_настройки(изменение: ИзменениеНастроек):
+        if изменение.тема is not None:
+            if изменение.тема not in ТЕМЫ:
+                raise StarletteHTTPException(400, "Такой темы нет.")
+            if изменение.тема != настройки["тема"]:
+                настройки["тема"] = изменение.тема
+                сохранить_настройки(ФАЙЛ_НАСТРОЕК, настройки)
+                журнал.info("Тема сайта: %s", ТЕМЫ[изменение.тема])
+        return получить_настройки()
 
     return app
