@@ -237,6 +237,18 @@ function закрытьНастройки() {
   кнопкаОткрыть.focus();
 }
 
+// Вкладки окна настроек: «Внешний вид» и «ИИ»
+function вкладкаНастроек(имя) {
+  const вид = имя === "вид";
+  $("вкладка-вид").setAttribute("aria-selected", String(вид));
+  $("вкладка-ии").setAttribute("aria-selected", String(!вид));
+  $("раздел-вид").hidden = !вид;
+  $("раздел-ии").hidden = вид;
+  if (!вид) document.dispatchEvent(new CustomEvent("mizuyori:настройки-ии"));
+}
+$("вкладка-вид").addEventListener("click", () => вкладкаНастроек("вид"));
+$("вкладка-ии").addEventListener("click", () => вкладкаНастроек("ии"));
+
 кнопкаОткрыть.addEventListener("click", открытьНастройки);
 $("закрыть-настройки").addEventListener("click", закрытьНастройки);
 $("сохранить").addEventListener("click", сохранить);
@@ -278,3 +290,9 @@ function показатьЭкран() {
 window.addEventListener("hashchange", показатьЭкран);
 // Запуск после того, как подключатся все скрипты (мозги слушают это событие)
 window.addEventListener("DOMContentLoaded", показатьЭкран);
+
+// Открыть настройки сразу на вкладке «ИИ» (например, из чата)
+document.addEventListener("mizuyori:открыть-настройки-ии", async () => {
+  await открытьНастройки();
+  вкладкаНастроек("ии");
+});

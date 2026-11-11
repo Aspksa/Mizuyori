@@ -58,7 +58,7 @@
   <section class="панель чат" aria-label="Чат">
     <div class="панель-шапка">
       <h2>Чат</h2>
-      <span class="метка" id="чат-ии"></span>
+      <button class="метка" id="чат-ии" type="button"></button>
       <span class="растяжка"></span>
       <button class="кнопка-значок малая" id="чат-очистить" type="button" aria-label="Очистить чат" title="Очистить чат">
         <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>
@@ -226,15 +226,95 @@
       </button>
     </div>
 
-    <div class="окно-тело" id="поля"><!-- рисуется из описания настроек --></div>
-
-    <div class="окно-низ">
-      <button class="кнопка второстепенная" id="сбросить" type="button">Сбросить внешний вид</button>
-      <span class="растяжка"></span>
-      <button class="кнопка второстепенная" id="отменить" type="button">Отменить</button>
-      <button class="кнопка главная" id="сохранить" type="button" disabled>Сохранить</button>
+    <div class="вкладки вкладки-окна" role="tablist">
+      <button type="button" role="tab" id="вкладка-вид" aria-controls="раздел-вид" aria-selected="true">Внешний вид</button>
+      <button type="button" role="tab" id="вкладка-ии" aria-controls="раздел-ии" aria-selected="false">ИИ · cloud.ru</button>
     </div>
-    <p class="статус" id="статус-настроек" aria-live="polite"></p>
+
+    <!-- Внешний вид -->
+    <div class="раздел-окна" id="раздел-вид" role="tabpanel" aria-labelledby="вкладка-вид">
+      <div class="окно-тело" id="поля"><!-- рисуется из описания настроек --></div>
+      <div class="окно-низ">
+        <button class="кнопка второстепенная" id="сбросить" type="button">Сбросить внешний вид</button>
+        <span class="растяжка"></span>
+        <button class="кнопка второстепенная" id="отменить" type="button">Отменить</button>
+        <button class="кнопка главная" id="сохранить" type="button" disabled>Сохранить</button>
+      </div>
+      <p class="статус" id="статус-настроек" aria-live="polite"></p>
+    </div>
+
+    <!-- ИИ через cloud.ru -->
+    <div class="раздел-окна" id="раздел-ии" role="tabpanel" aria-labelledby="вкладка-ии" hidden>
+      <div class="окно-тело">
+        <div class="поле флажок">
+          <span class="текст-поля">
+            <span class="поле-название" id="ии-включён-название">ИИ в чате</span>
+            <span class="пояснение" id="ии-состояние">Не подключён</span>
+          </span>
+          <button class="тумблер" id="ии-включён" type="button" role="switch" aria-checked="false" aria-labelledby="ии-включён-название"></button>
+        </div>
+
+        <div class="поле">
+          <label class="поле-название" for="ии-ключ">API-ключ cloud.ru</label>
+          <div class="строка-ввода">
+            <input id="ии-ключ" type="password" autocomplete="off" spellcheck="false" placeholder="Вставьте ключ (Key Secret)">
+            <button class="кнопка-значок" id="ии-показать-ключ" type="button" aria-label="Показать ключ" title="Показать ключ">
+              <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+            <button class="кнопка второстепенная" id="ии-проверить-ключ" type="button">Проверить</button>
+          </div>
+          <p class="подсказка-поля" id="ии-ключ-итог"></p>
+          <p class="подсказка-поля">
+            Где взять: личный кабинет cloud.ru → Пользователи → Сервисные аккаунты → аккаунт →
+            «Создать API-ключ», сервис — Foundation Models.
+            <a href="https://cloud.ru/docs/foundation-models/ug/topics/quickstart" target="_blank" rel="noopener">Инструкция cloud.ru</a>
+          </p>
+        </div>
+
+        <div class="поле">
+          <label class="поле-название" for="ии-модель">Модель</label>
+          <select id="ии-модель" disabled><option value="">Сначала проверьте ключ</option></select>
+        </div>
+
+        <div class="поле">
+          <label class="ползунок"><span>Температура</span><output id="ии-температура-знач"></output>
+            <input type="range" id="ии-температура" min="0" max="1.5" step="0.05"></label>
+          <div class="шкала"><span>точнее</span><span>свободнее</span></div>
+        </div>
+
+        <div class="поле">
+          <span class="поле-название">Длина ответа</span>
+          <div class="выбор" id="ии-длина" role="radiogroup" aria-label="Длина ответа">
+            <button type="button" role="radio" data-значение="600">Короткий</button>
+            <button type="button" role="radio" data-значение="2000">Обычный</button>
+            <button type="button" role="radio" data-значение="6000">Длинный</button>
+          </div>
+        </div>
+
+        <div class="поле">
+          <label class="ползунок"><span>Память чата (сообщений)</span><output id="ии-история-знач"></output>
+            <input type="range" id="ии-история" min="0" max="60" step="2"></label>
+        </div>
+
+        <div class="поле">
+          <label class="поле-название" for="ии-характер">Характер</label>
+          <textarea id="ии-характер" rows="3" maxlength="8000" placeholder="Какой должен быть ИИ: как общается, что умеет"></textarea>
+        </div>
+
+        <details class="поле дополнительно">
+          <summary class="поле-название">Дополнительно</summary>
+          <label class="поле-название" for="ии-адрес">Адрес API</label>
+          <input id="ии-адрес" type="text" spellcheck="false">
+          <button class="ссылка" id="ии-удалить-ключ" type="button">Удалить сохранённый ключ</button>
+        </details>
+      </div>
+      <div class="окно-низ">
+        <button class="кнопка второстепенная" id="ии-проверить" type="button">Проверить ответ</button>
+        <span class="растяжка"></span>
+        <button class="кнопка главная" id="ии-сохранить" type="button">Сохранить</button>
+      </div>
+      <p class="статус" id="ии-статус" aria-live="polite"></p>
+    </div>
   </div>
 </div>
 
@@ -259,5 +339,6 @@
 <script src="/static/chat.js" charset="utf-8"></script>
 <script src="/static/tasks.js" charset="utf-8"></script>
 <script src="/static/brain.js" charset="utf-8"></script>
+<script src="/static/ai-settings.js" charset="utf-8"></script>
 </body>
 </html>
