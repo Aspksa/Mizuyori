@@ -18,7 +18,7 @@ from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from . import paths
-from . import (__version__, agent_profiles, chat_delegate, agents, ai, archive, audit, browser_fetch, documents, evolve, housekeeping, graph_tools, learning, mcp_client, memory, memory_plus, missions, printing, putevoy,
+from . import (__version__, agent_profiles, chat_delegate, desk, agents, ai, archive, audit, browser_fetch, documents, evolve, housekeeping, graph_tools, learning, mcp_client, memory, memory_plus, missions, printing, putevoy,
                search_eval, senses, smeta, soul, tools, usage, work, work_agents)
 from .config import (ВИД_ПО_УМОЛЧАНИЮ, ВНЕШНИЙ_ВИД, ИИ_ПО_УМОЛЧАНИЮ, МОЗГИ_ПО_УМОЛЧАНИЮ,
                      НеверныйВнешнийВид, атрибуты_html, проверить_внешний_вид, проверить_ии,
@@ -1163,6 +1163,10 @@ def создать_приложение(настройки: dict, база: Ба
         return {"агенты": итог, "ии_подключён": ai.подключён(_ии())}
 
     _сегодня_кэш: dict = {"время": 0.0, "замечания": []}
+
+    @app.get("/api/desk")
+    def стол():
+        return desk.снимок(база, настройки["агенты"])
 
     @app.get("/api/today")
     def сегодня():

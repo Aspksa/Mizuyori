@@ -50,6 +50,7 @@ from . import chat_delegate, graph_tools, overseer, senses, agents, archive, doc
 
 _замок = threading.Lock()
 _поток = None
+СЛЕДУЮЩИЙ_ОБХОД: float = 0.0           # когда агенты в следующий раз обойдут данные (для экрана «Стол»)
 _последние: dict[str, list[dict]] = {}     # замечания с последнего обхода — для чата, без пересчёта
 
 # слова, по которым в чат подмешиваются данные Работы
@@ -439,12 +440,15 @@ def запустить_фоновое_развитие(база, получит�
             return
 
         def цикл():
+            global СЛЕДУЮЩИЙ_ОБХОД
+            СЛЕДУЮЩИЙ_ОБХОД = time.time() + 60
             time.sleep(60)
             while True:
                 try:
                     обойти_всех(база)
                 except Exception:
                     журнал.exception("Фоновое развитие агентов Работы")
+                СЛЕДУЮЩИЙ_ОБХОД = time.time() + ИНТЕРВАЛ_ЧАСОВ * 3600
                 time.sleep(ИНТЕРВАЛ_ЧАСОВ * 3600)
 
         _поток = threading.Thread(target=цикл, name="mizuyori-work-agents", daemon=True)
