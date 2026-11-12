@@ -3135,8 +3135,8 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .агенты-группа-все { position: absolute; right: 3.2rem; top: .55rem; padding: .1rem .5rem; border-radius: 999px; font-size: .72rem;
   border: 1px solid color-mix(in srgb, var(--гц) 40%, var(--рамка)); background: transparent; color: var(--тихий); cursor: pointer; z-index: 3; }
 .агенты-группа-все:hover { color: var(--текст); border-color: var(--гц); }
-.агенты-группа.все .агенты-группа-все { color: var(--гц); border-color: var(--гц); }
-.агенты-группа:not(.все) .агент:not(.интересен) { display: none; }
+.агенты-группа.компакт .агенты-группа-все { color: var(--гц); border-color: var(--гц); }
+.агенты-группа.компакт .агент:not(.интересен) { display: none; }
 .агент.интересен { opacity: 1; }
 .агент.работает { border-color: var(--гц, var(--акцент)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--гц, var(--акцент)) 45%, transparent), 0 0 14px color-mix(in srgb, var(--гц, var(--акцент)) 25%, transparent); }
 .агент.спит:not(.интересен) { opacity: .55; }
@@ -3193,7 +3193,7 @@ main.главная > .чат { grid-column: 1; grid-row: 1; }
   main.главная > .конвейер { max-height: none; }
 }
 /* заголовок группы: название слева, счётчик и кнопка «все» не налезают друг на друга */
-.агенты-группа-шапка { padding-right: 3.6rem; gap: .5rem; }
+.агенты-группа-шапка { padding-right: 5.2rem; gap: .5rem; }
 .агенты-группа-шапка > span:first-of-type { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .агенты-группа-счёт { white-space: nowrap; flex: none; }
 .агенты-группа-все { right: .4rem; }

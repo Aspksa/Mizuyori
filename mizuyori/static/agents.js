@@ -98,17 +98,17 @@
             try { localStorage.setItem(`mizuyori.агенты.свёрнуто.${группа}`, свернуть ? "1" : ""); } catch {}
           } },
           создать("span", { текст: группа }), создать("span", { класс: "агенты-группа-счёт" })),
-        создать("button", { type: "button", класс: "агенты-группа-все", текст: "все", title: "Показать всех агентов группы",
+        создать("button", { type: "button", класс: "агенты-группа-все", текст: "активные", title: "Показать только тех, кто работает или чего-то ждёт; повторный клик — снова всех",
           onclick: () => {
-            const все = блок.classList.toggle("все");
-            try { localStorage.setItem(`mizuyori.агенты.все.${группа}`, все ? "1" : ""); } catch {}
+            const компакт = блок.classList.toggle("компакт");
+            try { localStorage.setItem(`mizuyori.агенты.компакт.${группа}`, компакт ? "1" : ""); } catch {}
             if (последниеДанные) показать(последниеДанные);
           } }),
         создать("div", { класс: "агенты-группа-список" }));
       блок.style.setProperty("--гц", ЦВЕТА_ГРУПП[группы.size % ЦВЕТА_ГРУПП.length]);
       try {
         if (localStorage.getItem(`mizuyori.агенты.свёрнуто.${группа}`)) блок.classList.add("свёрнута");
-        if (localStorage.getItem(`mizuyori.агенты.все.${группа}`)) блок.classList.add("все");
+        if (localStorage.getItem(`mizuyori.агенты.компакт.${группа}`)) блок.classList.add("компакт");
       } catch {}
       ряд.append(блок);
       группы.set(группа, блок);
