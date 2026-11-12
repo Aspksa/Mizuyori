@@ -178,8 +178,8 @@ main.главная {
   flex: 1;
   min-height: 0;
   display: grid;
-  /* Главная: слева часы и календарь, справа чат («Дела» — отдельный экран) */
-  grid-template-columns: minmax(15rem, 18rem) minmax(0, 1fr);
+  /* Главная: слева часы и календарь, по центру чат, справа агенты («Дела» — отдельный экран) */
+  grid-template-columns: minmax(15rem, 18rem) minmax(0, 1fr) minmax(15rem, 17.5rem);
   gap: calc(1rem * var(--п));
   padding: calc(1rem * var(--п));
 }
@@ -1575,26 +1575,39 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 /* =============================================================================
    ГЛАВНАЯ → КОНВЕЙЕР АГЕНТОВ (под чатом)
    ============================================================================= */
-.центр { display: flex; flex-direction: column; gap: calc(1rem * var(--п)); min-height: 0; min-width: 0; }
-.центр > .чат { flex: 1; }
-.конвейер { flex: none; padding: calc(.7rem * var(--п)) calc(1rem * var(--п)) calc(.6rem * var(--п)); }
-.конвейер-шапка { display: flex; align-items: baseline; gap: .8rem; margin-bottom: .35rem; }
+.конвейер { display: flex; flex-direction: column; min-height: 0; padding: calc(.8rem * var(--п)) calc(.7rem * var(--п)); }
+.конвейер-шапка { display: flex; align-items: baseline; flex-wrap: wrap; gap: .2rem .6rem; padding: 0 .3rem .5rem; border-bottom: 1px solid var(--рамка); margin-bottom: .4rem; }
 .конвейер-шапка h2 { margin: 0; font-size: .75rem; letter-spacing: .1em; text-transform: uppercase; color: var(--тихий); font-weight: 600; }
 .конвейер-шапка .ссылка { margin-left: auto; font-size: .8rem; }
+.конвейер-шапка .агенты-итог { order: 3; flex-basis: 100%; }
 .агенты-итог { font: .72rem ui-monospace, "Cascadia Mono", Consolas, monospace; color: var(--тихий); }
 .агенты-итог.активно { color: var(--акцент); }
 .счётчик { display: inline-grid; place-items: center; min-width: 1.1rem; height: 1.1rem; padding: 0 .3rem; margin-left: .2rem;
   border-radius: 999px; background: var(--акцент); color: var(--на-акценте); font-size: .7rem; font-weight: 700; }
 .счётчик[hidden] { display: none; }
-.конвейер-лента { position: relative; }
+.конвейер-лента { position: relative; flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; }
 #конвейер-холст { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
-.агенты-ряд { position: relative; display: flex; justify-content: space-between; gap: .3rem; }
-.агент { position: relative; display: flex; flex-direction: column; align-items: center; gap: .1rem; flex: 1 1 0; min-width: 0;
-  padding: .3rem .1rem; border: 0; border-radius: 10px; background: none; color: inherit; font: inherit; cursor: pointer; text-align: center;
+.агенты-ряд { position: relative; display: flex; flex-direction: column; gap: .2rem; }
+.агенты-группа-шапка { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: .35rem;
+  padding: .3rem .4rem .3rem 2.2rem; border: 0; background: none; color: var(--тихий); cursor: pointer; font: inherit;
+  font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; font-weight: 600; text-align: left; position: relative; }
+.агенты-группа-шапка::before { content: "▾"; position: absolute; left: .95rem; transition: transform .2s; }
+.агенты-группа.свёрнута .агенты-группа-шапка::before { transform: rotate(-90deg); }
+.агенты-группа-шапка:hover { color: var(--текст); }
+.агенты-группа.идёт .агенты-группа-шапка { color: var(--акцент); }
+.агенты-группа-счёт { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; letter-spacing: 0; text-transform: none; }
+.агенты-группа-список { display: flex; flex-direction: column; gap: .15rem; }
+.агенты-группа.свёрнута .агенты-группа-список { display: none; }
+.агент { position: relative; display: flex; align-items: center; gap: .65rem; width: 100%; min-width: 0;
+  padding: .4rem .45rem; border: 0; border-radius: 10px; background: none; color: inherit; font: inherit; cursor: pointer; text-align: left;
   transition: background .2s; }
+.агент.работает { background: color-mix(in srgb, var(--акцент) 9%, transparent); }
+.агент-текст { display: flex; flex-direction: column; min-width: 0; flex: 1; gap: .05rem; }
+.агент-строка-имени { display: flex; align-items: baseline; gap: .4rem; min-width: 0; }
+.агент-последнее { font-size: .7rem; color: var(--тихий); opacity: .8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .агент:hover { background: color-mix(in srgb, var(--акцент) 8%, transparent); }
 .агент:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--акцент); }
-.агент-круг { position: relative; width: 3rem; height: 3rem; display: grid; place-items: center; flex: none; }
+.агент-круг { position: relative; width: 2.6rem; height: 2.6rem; display: grid; place-items: center; flex: none; z-index: 2; }
 .агент-круг.большой { width: 4rem; height: 4rem; }
 .агент-круг.большой .агент-значок { width: 1.7rem; height: 1.7rem; }
 .агент-кольцо { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
@@ -1622,8 +1635,8 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .агент-звёзды { font-size: .62rem; letter-spacing: .05em; color: #f5c451; line-height: 1; }
 .агент-счёт { font-size: .66rem; color: var(--тихий); white-space: nowrap; }
 .агент.работает .агент-счёт { color: var(--акцент); }
-.агент-записки { position: absolute; top: .1rem; right: calc(50% - 2.2rem); font-size: .62rem; padding: 0 .3rem; border-radius: 999px;
-  background: var(--акцент); color: var(--на-акценте); font-weight: 700; z-index: 3; }
+.агент-записки { flex: none; font-size: .64rem; padding: .05rem .35rem; border-radius: 999px;
+  background: var(--акцент); color: var(--на-акценте); font-weight: 700; }
 .агент-записки[hidden] { display: none; }
 
 /* окно агента */
@@ -1669,8 +1682,17 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
   .агент.работает .агент-бег, .агент-круг.работает .агент-бег, .агент.работает .агент-значок,
   .агент.успех .агент-круг, .агент.провал .агент-круг { animation: none; }
 }
-@media (max-width: 44rem) {
-  .агенты-ряд { flex-wrap: wrap; justify-content: center; }
-  .агент { flex: 0 0 31%; }
+/* уже экран — агенты под чатом, в две-три колонки */
+@media (max-width: 80rem) {
+  main.главная { grid-template-columns: minmax(15rem, 17rem) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
+  main.главная > .колонка { grid-row: span 2; }
+  .конвейер { grid-column: 2; }
+  .конвейер { max-height: 15rem; }
+  .агенты-ряд { display: grid; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); column-gap: .6rem; align-items: start; }
   #конвейер-холст { display: none; }
+}
+@media (max-width: 44rem) {
+  main.главная { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; }
+  main.главная > .колонка { grid-row: auto; }
+  .конвейер { grid-column: 1; max-height: none; }
 }
