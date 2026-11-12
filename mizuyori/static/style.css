@@ -2643,3 +2643,40 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .аудит-удалить { flex: none; padding: .15rem .6rem; border-radius: 999px; border: 1px solid var(--рамка); background: transparent; color: inherit; cursor: pointer; font-size: .78rem; }
 .аудит-удалить:hover:not(:disabled) { border-color: #ff7a7a; color: #ff7a7a; }
 @media (max-width: 640px) { .найдено-ряд { grid-template-columns: 1fr; gap: .1rem; } }
+
+/* Электронные часы: вид переключается кликом, по умолчанию — табло */
+.часы.вид-электрон .вокзал, .часы.вид-электрон .время { display: none; }
+.часы.вид-вокзал .табло { display: none; }
+.вокзал, .табло { cursor: pointer; }
+.табло {
+  --эл: #7df9ff;
+  position: relative; overflow: hidden; margin-bottom: .6rem; padding: 1rem .9rem .8rem;
+  border-radius: calc(var(--радиус) * .8); border: 1px solid color-mix(in srgb, var(--эл) 25%, #000);
+  background: radial-gradient(120% 90% at 50% 0%, #0d1418 0%, #04070a 70%);
+  box-shadow: inset 0 0 1.6rem rgba(0, 0, 0, .8), 0 0 1.2rem color-mix(in srgb, var(--эл) 14%, transparent);
+}
+[data-theme="золото"] .табло { --эл: #ffd24a; }
+[data-theme="янтарь"] .табло { --эл: #ffa62b; }
+[data-theme="нефрит"] .табло { --эл: #3fe0a5; }
+.табло::after {                       /* строки ЖК и блик стекла */
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 3px),
+              linear-gradient(160deg, rgba(255,255,255,.09), transparent 38%);
+}
+.эл-время { display: flex; align-items: center; justify-content: center; gap: .22rem; color: var(--эл); }
+.цифра { width: 2.6rem; height: 3.7rem; overflow: visible; }
+.цифра.малая { width: 1.35rem; height: 1.95rem; }
+.сег { fill: currentColor; opacity: .07; transition: opacity .2s; }
+.сег.горит { opacity: 1; filter: drop-shadow(0 0 3px currentColor) drop-shadow(0 0 9px color-mix(in srgb, currentColor 60%, transparent)); }
+.сег.вспышка { animation: эл-вспышка .5s ease-out; }
+@keyframes эл-вспышка { 0% { opacity: .2; filter: brightness(2.4) drop-shadow(0 0 12px currentColor); } 100% { opacity: 1; } }
+.эл-двоеточие { display: flex; flex-direction: column; gap: .75rem; margin: 0 .15rem; transition: opacity .12s; }
+.эл-двоеточие i { width: .4rem; height: .4rem; border-radius: 50%; background: currentColor; box-shadow: 0 0 6px currentColor, 0 0 14px color-mix(in srgb, currentColor 60%, transparent); }
+.эл-двоеточие.погасло { opacity: .12; }
+.эл-секунды { display: flex; gap: .12rem; align-self: flex-end; margin: 0 0 .35rem .35rem; opacity: .85; }
+.эл-шкала { height: 3px; margin: .75rem .2rem .55rem; border-radius: 2px; background: color-mix(in srgb, var(--эл) 14%, transparent); }
+.эл-шкала u { display: block; height: 100%; border-radius: 2px; background: var(--эл); box-shadow: 0 0 8px var(--эл); }
+.эл-дни { display: flex; justify-content: space-between; padding: 0 .3rem; font: 600 .62rem/1 system-ui, sans-serif; letter-spacing: .08em; color: var(--эл); }
+.эл-дни span { opacity: .18; }
+.эл-дни span.сегодня { opacity: 1; text-shadow: 0 0 6px var(--эл), 0 0 12px var(--эл); }
+@media (prefers-reduced-motion: reduce) { .сег.вспышка { animation: none; } .эл-двоеточие { transition: none; } }
