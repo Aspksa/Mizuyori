@@ -2057,3 +2057,39 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .закрепление-сейчас { font-size: .82rem; color: var(--акцент); }
 .подсказка-закреплений { margin: .2rem 0 .4rem; font-size: .8rem; color: var(--тихий); }
 .закрепление-добавить summary { cursor: pointer; font-size: .84rem; color: var(--тихий); padding-top: .3rem; }
+
+/* Статистика и контроль ГСМ */
+.гсм-месяц.с-выпиской { background: rgba(63, 178, 127, .2); border-color: rgba(63, 178, 127, .65); color: #4cc58f; box-shadow: inset 0 -3px 0 #3fb27f; }
+.гсм-месяц.с-выпиской.выбрано { background: color-mix(in srgb, #3fb27f 38%, var(--фон)); color: var(--текст); }
+.гсм-месяц.с-выпиской.начало.конец { background: #3fb27f; color: #04140d; }
+.стат-блок { display: grid; gap: .6rem; padding: .8rem .9rem; background: var(--поверхность); border: 1px solid var(--рамка); border-radius: var(--радиус); }
+.стат-блок h3 { margin: 0; font-size: 1.05rem; }
+.стат-блок h4 { margin: 0 0 .3rem; font-size: .8rem; color: var(--тихий); font-weight: 600; }
+.стат-пояснение { margin: 0; font-size: .82rem; color: var(--тихий); max-width: 62rem; }
+.стат-ок { margin: 0; color: #4cc58f; font-weight: 600; }
+.стат-таблица { max-height: 26rem; }
+.стат-имя strong { display: block; } .стат-имя small { color: var(--тихий); font-size: .74rem; }
+.стат-азс { max-width: 18rem; white-space: normal; font-size: .82rem; text-align: left; }
+.стат-контроль { display: grid; gap: .45rem; padding: .7rem .8rem; background: var(--фон); border: 1px solid var(--рамка); border-left: 4px solid var(--рамка); border-radius: 10px; }
+.стат-контроль.плохо { border-left-color: #e5534b; } .стат-контроль.внимание { border-left-color: #f0a020; }
+.стат-контроль header { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .9rem; }
+.гсм-статус.внимание { color: #f0a020; background: rgba(240, 160, 32, .12); border-color: rgba(240, 160, 32, .45); }
+.стат-оценка { margin-left: auto; font-size: .84rem; font-weight: 600; }
+.стат-признаки { margin: 0; padding-left: 1.1rem; display: grid; gap: .4rem; }
+.стат-литры { color: var(--тихий); font-size: .84rem; }
+.стат-пояснения p { margin: .1rem 0 0; font-size: .82rem; color: var(--тихий); }
+.стат-пояснения summary { cursor: pointer; font-size: .78rem; color: var(--тихий); }
+.стат-спарк { display: inline-flex; align-items: flex-end; gap: 2px; height: 18px; }
+.стат-спарк i { display: block; width: 5px; background: var(--тихий); border-radius: 1px; }
+.стат-спарк i.плохо { background: #e5534b; } .стат-спарк i.хорошо { background: #3fb27f; }
+.стат-две { display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; }
+.стат-столбики { display: flex; align-items: flex-end; gap: 3px; }
+.стат-столбик { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; min-width: 0; }
+.стат-столбик i { display: block; width: 100%; background: var(--акцент); border-radius: 3px 3px 0 0; opacity: .85; }
+.стат-столбик.ночь i { background: #8b7be8; }
+.стат-столбик small { font-size: .62rem; color: var(--тихий); margin-top: 2px; }
+.стат-чипы { display: flex; flex-wrap: wrap; gap: .35rem; }
+.стат-чип { font-size: .8rem; padding: .2rem .6rem; border: 1px solid var(--рамка); border-radius: 999px; color: var(--тихий); }
+.стат-как summary, .стат-без-машины summary { cursor: pointer; font-size: .85rem; color: var(--тихий); }
+.стат-как ul { margin: .4rem 0 0; padding-left: 1.1rem; font-size: .82rem; color: var(--тихий); display: grid; gap: .25rem; }
+@media (max-width: 760px) { .стат-две { grid-template-columns: 1fr; } .стат-столбики { overflow-x: auto; } }
