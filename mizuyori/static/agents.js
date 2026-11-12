@@ -58,6 +58,25 @@
   document.addEventListener("mizuyori:сегодня", (с) => { замечанияПо = с.detail.поАгентам || {}; if (последниеДанные) показать(последниеДанные); });
   document.addEventListener("mizuyori:открыть-агента", (с) => открыть(с.detail));
   const прошлое = new Map();     // ключ → { работает, всего }
+
+  // Герои следят глазами за курсором, плитка под курсором наклоняется (всё через CSS-переменные, один раз за кадр)
+  let кадрВзгляда = 0, курсор = null;
+  function взгляд() {
+    кадрВзгляда = 0;
+    if (!курсор) return;
+    for (const э of ячейки.values()) {
+      const р = э.getBoundingClientRect();
+      if (р.bottom < 0 || р.top > innerHeight) continue;
+      const дх = (курсор.x - (р.left + р.width / 2)) / Math.max(180, innerWidth / 3), ду = (курсор.y - (р.top + р.height * .38)) / Math.max(180, innerHeight / 3);
+      э.style.setProperty("--lx", Math.max(-1, Math.min(1, дх)).toFixed(2));
+      э.style.setProperty("--ly", Math.max(-1, Math.min(1, ду)).toFixed(2));
+      if (э.matches(":hover")) {
+        э.style.setProperty("--ry", `${(((курсор.x - р.left) / р.width) - .5) * 10}deg`);
+        э.style.setProperty("--rx", `${(.5 - ((курсор.y - р.top) / р.height)) * 8}deg`);
+      } else { э.style.setProperty("--ry", "0deg"); э.style.setProperty("--rx", "0deg"); }
+    }
+  }
+  if (!безАнимаций()) document.addEventListener("pointermove", (с) => { курсор = { x: с.clientX, y: с.clientY }; if (!кадрВзгляда) кадрВзгляда = requestAnimationFrame(взгляд); }, { passive: true });
   let последнийАктивный = null, когдаАктивен = 0;
   let имена = {};
   let значкиПо = {};
@@ -73,7 +92,8 @@
     const значок = svg("svg", { viewBox: "0 0 24 24", class: "агент-значок", "aria-hidden": "true",
       fill: "none", stroke: "currentColor", "stroke-width": "1.8", "stroke-linecap": "round", "stroke-linejoin": "round" });
     значок.append(svg("path", { d: ЗНАЧКИ[а.значок] || ЗНАЧКИ.чат }));
-    return создать("div", { класс: `агент-круг${большой ? " большой" : ""}` }, кольцо, значок, создать("span", { класс: "агент-точка" }));
+    const герой = а.ключ && window.персонаж ? window.персонаж(а.ключ) : null;
+    return создать("div", { класс: `агент-круг${большой ? " большой" : ""}${герой ? " с-героем" : ""}` }, кольцо, значок, ...(герой ? [герой] : []), создать("span", { класс: "агент-точка" }));
   }
 
   // Активность за неделю: семь столбиков, последний — сегодня
@@ -122,7 +142,9 @@
           создать("span", { класс: "агент-неделя-место" })),
         создать("span", { класс: "агент-счёт" }),
         создать("span", { класс: "агент-последнее" })),
-      создать("span", { класс: "агент-записки", hidden: "" }));
+      создать("span", { класс: "агент-записки", hidden: "" }),
+      создать("span", { класс: "пол", "aria-hidden": "true" }),
+      создать("span", { класс: "частицы", "aria-hidden": "true" }, ...Array.from({ length: 9 }, (_, i) => создать("i", { style: `--x:${8 + ((i * 37) % 84)}%;--d:${(i * .37).toFixed(2)}s;--s:${(2.2 + (i % 4) * .5).toFixed(1)}s;--r:${3 + (i % 3) * 2}px` }))));
     группы.get(группа).querySelector(".агенты-группа-список").append(элемент);
     ячейки.set(а.ключ, элемент);
     return элемент;
@@ -288,7 +310,8 @@
       return [р.left + 16 - л.left, р.top + р.height / 2 - л.top, 4];
     }
     const р = э.getBoundingClientRect(), л = холст.getBoundingClientRect();
-    return [р.left + р.width / 2 - л.left, р.top + р.height / 2 - л.top, р.width / 2];
+    const герой = э.classList.contains("с-героем");        // герой крупный: волны и спутники идут вокруг него, а не по краю плитки
+    return [р.left + р.width / 2 - л.left, р.top + р.height * (герой ? .55 : .5) - л.top, герой ? Math.min(р.width, р.height) * .3 : р.width / 2];
   }
   function искра(от, кому) {
     if (безАнимаций()) return;

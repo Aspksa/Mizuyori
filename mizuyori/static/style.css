@@ -3205,3 +3205,185 @@ main.главная > .чат { grid-column: 1; grid-row: 1; }
 @media (max-width: 44rem) {
   .агент-имя { font-size: .62rem; -webkit-line-clamp: 4; min-height: 3.45em; }
 }
+
+/* =============================================================================
+   ГЕРОИ АГЕНТОВ: сцена в каждой плитке, живые персонажи, эффекты работы
+   ============================================================================= */
+
+/* --- сам персонаж: слои и постоянная жизнь --- */
+.персонаж { display: block; width: 100%; height: 100%; overflow: visible; }
+.персонаж .героя { animation: дыхание 3.8s ease-in-out infinite; }
+.персонаж .голова-героя { transform-origin: 60px 72px; animation: голова 6.5s ease-in-out infinite; }
+.персонаж .аура { transform-origin: 60px 76px; animation: пульс-ауры 3.4s ease-in-out infinite; }
+.персонаж .глаз { fill: var(--cg); filter: drop-shadow(0 0 2.5px var(--cg)); transform-box: fill-box; transform-origin: center; animation: моргание 5s infinite; }
+.персонаж .глаз.большой { animation-duration: 6.5s; }
+.персонаж .г-обычно { transform: translate(calc(var(--lx, 0) * 3px), calc(var(--ly, 0) * 2px)); transition: transform .16s ease-out; }
+.персонаж .г-скан, .персонаж .г-ошибка, .персонаж .зз { display: none; }
+.персонаж .скан-полоса { fill: var(--cg); filter: drop-shadow(0 0 4px var(--cg)); transform-box: fill-box; transform-origin: center; animation: скан .8s ease-in-out infinite alternate; }
+.персонаж .ядро { fill: var(--cg); filter: drop-shadow(0 0 5px var(--cg)); animation: сердцебиение 2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.персонаж .маяк { fill: var(--cg); filter: drop-shadow(0 0 4px var(--cg)); animation: маяк 2.2s ease-in-out infinite; }
+.персонаж .рука { animation: рука 3s ease-in-out infinite alternate; }
+.персонаж .рука.р2 { animation-delay: -1.4s; }
+.персонаж .зз text { fill: var(--cl); animation: плыть-вверх 3s ease-in-out infinite; transform-box: fill-box; }
+.персонаж .зз .з2 { animation-delay: -1.3s; }
+.персонаж .рот { transition: opacity .2s; }
+.персонаж .зрачок { transform: translate(calc(var(--lx, 0) * 3px), calc(var(--ly, 0) * 2px)); transition: transform .16s ease-out; }
+
+/* реквизит */
+.персонаж .плав { animation: плыть 3.6s ease-in-out infinite; }
+.персонаж .плав.п2, .персонаж .п2 { animation-delay: -1.7s; }
+.персонаж .вращ { transform-origin: 108px 34px; animation: крутить 26s linear infinite; }
+.персонаж .узел { fill: var(--cg); filter: drop-shadow(0 0 4px var(--cg)); animation: мерцать 1.8s ease-in-out infinite; }
+.персонаж .искр { fill: var(--cl); filter: drop-shadow(0 0 3px var(--cg)); animation: мерцать 1.6s ease-in-out infinite; }
+.персонаж .искр.и2 { animation-delay: -.5s; } .персонаж .искр.и3 { animation-delay: -1s; }
+.персонаж .т { fill: var(--cg); animation: печать 1.3s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.персонаж .т2 { animation-delay: .18s; } .персонаж .т3 { animation-delay: .36s; }
+.персонаж .перо { transform-origin: 98px 118px; animation: писать 2.2s ease-in-out infinite; }
+.персонаж .сердце { transform-origin: 60px 12px; animation: сердцебиение 1.5s ease-in-out infinite; filter: drop-shadow(0 0 7px var(--cg)); }
+.персонаж .шест { transform-origin: -2px 88px; animation: крутить 6s linear infinite; }
+.персонаж .гайка { transform-origin: 108px 100px; animation: гаечный 2.4s ease-in-out infinite; }
+.персонаж .радар { transform-origin: 104px 94px; animation: крутить 3s linear infinite; }
+.персонаж .точка { fill: var(--cg); animation: мерцать 3s ease-in-out infinite; } .персонаж .точка.т2 { animation-delay: -1.4s; }
+.персонаж .путь { animation: маршрут 1.6s linear infinite; }
+.персонаж .лупа { transform-origin: 104px 96px; animation: лупа 3.2s ease-in-out infinite; }
+.персонаж .бейдж { transform-origin: 60px 74px; animation: бейдж 3.4s ease-in-out infinite alternate; }
+.персонаж .весы .балка { transform-origin: 104px 52px; animation: весы 3.8s ease-in-out infinite alternate; }
+.персонаж .руль { transform-origin: 60px 102px; animation: руль 4s ease-in-out infinite alternate; }
+.персонаж .стрела { stroke-dasharray: 60; animation: рисовать 3s ease-in-out infinite; }
+.персонаж .штамп { animation: штамп 2.6s ease-in-out infinite; }
+.персонаж .след { animation: след 2.6s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.персонаж .тележка { animation: тележка 3s ease-in-out infinite alternate; }
+.персонаж .сцеп { animation: сцеп 3s ease-in-out infinite alternate; }
+.персонаж .подпись { stroke-dasharray: 40; animation: рисовать 3.2s ease-in-out infinite; }
+.персонаж .галка { stroke-dasharray: 30; animation: рисовать 2.8s ease-in-out infinite; }
+.персонаж .клапан { animation: мерцать 2.2s ease-in-out infinite; }
+.персонаж .уведом { transform-box: fill-box; transform-origin: center; animation: сердцебиение 1.4s ease-in-out infinite; }
+.персонаж .струйка { stroke-dasharray: 2 3; animation: маршрут .5s linear infinite; }
+.п-сроки .стрелка { transform-origin: 8px 86px; animation: крутить 8s linear infinite; }
+.п-гсмконтроль .стрелка { transform-origin: 104px 74px; animation: стрелка 3s ease-in-out infinite alternate; }
+.персонаж .лучик { animation: мерцать .9s steps(2) infinite; }
+.персонаж .луч { animation: мерцать 2.4s ease-in-out infinite; }
+.персонаж .цепь { stroke-dasharray: 4 3; animation: маршрут 1.2s linear infinite; }
+.персонаж .центр { animation: сердцебиение 1.6s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+
+@keyframes дыхание { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2.6px); } }
+@keyframes голова { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(2.2deg); } 70% { transform: rotate(-2.2deg); } }
+@keyframes пульс-ауры { 0%, 100% { opacity: .72; transform: scale(.94); } 50% { opacity: 1; transform: scale(1.06); } }
+@keyframes моргание { 0%, 91%, 100% { transform: scaleY(1); } 94.5% { transform: scaleY(.08); } }
+@keyframes скан { from { transform: translateX(-3.5px) scaleX(.8); } to { transform: translateX(3.5px) scaleX(1.05); } }
+@keyframes сердцебиение { 0%, 100% { transform: scale(1); } 40% { transform: scale(1.22); } }
+@keyframes маяк { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+@keyframes рука { from { transform: translateY(-2px); } to { transform: translateY(3px); } }
+@keyframes плыть { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes плыть-вверх { 0% { opacity: 0; transform: translate(0, 6px); } 40% { opacity: 1; } 100% { opacity: 0; transform: translate(6px, -10px); } }
+@keyframes крутить { to { transform: rotate(360deg); } }
+@keyframes мерцать { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+@keyframes печать { 0%, 60%, 100% { transform: translateY(0); opacity: .45; } 30% { transform: translateY(-3px); opacity: 1; } }
+@keyframes писать { 0%, 100% { transform: rotate(0) translate(0); } 30% { transform: rotate(-8deg) translate(-4px, 2px); } 60% { transform: rotate(5deg) translate(2px, -1px); } }
+@keyframes гаечный { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(14deg); } }
+@keyframes маршрут { to { stroke-dashoffset: -16; } }
+@keyframes лупа { 0%, 100% { transform: rotate(0); } 30% { transform: rotate(-14deg); } 70% { transform: rotate(10deg); } }
+@keyframes бейдж { from { transform: rotate(-5deg); } to { transform: rotate(5deg); } }
+@keyframes весы { from { transform: rotate(-9deg); } to { transform: rotate(9deg); } }
+@keyframes руль { from { transform: rotate(-26deg); } to { transform: rotate(26deg); } }
+@keyframes рисовать { 0% { stroke-dashoffset: 60; } 45%, 80% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: -60; } }
+@keyframes штамп { 0%, 55%, 100% { transform: translateY(0); } 70% { transform: translateY(18px); } 80% { transform: translateY(18px); } }
+@keyframes след { 0%, 65% { opacity: 0; transform: scale(1.4); } 78%, 92% { opacity: .9; transform: scale(1); } 100% { opacity: 0; } }
+@keyframes тележка { from { transform: translateX(-2px); } to { transform: translateX(3px); } }
+@keyframes сцеп { from { transform: translateX(-2px) rotate(-4deg); } to { transform: translateX(3px) rotate(4deg); } }
+@keyframes стрелка { from { transform: rotate(-35deg); } to { transform: rotate(40deg); } }
+
+/* --- состояния (плитка .агент или большой кружок в окне агента) --- */
+:is(.агент.работает, .агент-круг.работает) .персонаж { filter: drop-shadow(0 0 9px var(--cg)); }
+:is(.агент.работает, .агент-круг.работает) .персонаж .героя { animation: усердие .55s ease-in-out infinite alternate; }
+:is(.агент.работает, .агент-круг.работает) .персонаж .г-обычно, :is(.агент.работает, .агент-круг.работает) .персонаж .рот { display: none; }
+:is(.агент.работает, .агент-круг.работает) .персонаж .г-скан { display: inline; }
+:is(.агент.работает, .агент-круг.работает) .персонаж .аура { animation-duration: 1.1s; }
+:is(.агент.работает, .агент-круг.работает) .персонаж .рука { animation: стук .32s ease-in-out infinite alternate; }
+:is(.агент.работает, .агент-круг.работает) .персонаж .рука.р2 { animation-delay: -.16s; }
+:is(.агент.работает, .агент-круг.работает) .персонаж .ядро { animation-duration: .6s; }
+:is(.агент.работает, .агент-круг.работает) .персонаж .проп { animation-duration: 1.8s; }
+:is(.агент.работает, .агент-круг.работает) .персонаж .шест { animation-duration: 1.4s; }
+:is(.агент.работает, .агент-круг.работает) .персонаж .радар { animation-duration: 1s; }
+:is(.агент.работает, .агент-круг.работает) .персонаж .весы .балка { animation-duration: .9s; }
+:is(.агент.работает, .агент-круг.работает) .персонаж .штамп, :is(.агент.работает, .агент-круг.работает) .персонаж .след { animation-duration: 1s; }
+:is(.агент.работает, .агент-круг.работает) .персонаж .путь { animation-duration: .5s; }
+:is(.агент.ошибка, .агент-круг.ошибка) .персонаж { filter: drop-shadow(0 0 8px #ff3b3b) saturate(1.2); }
+:is(.агент.ошибка, .агент-круг.ошибка) .персонаж .г-обычно, :is(.агент.ошибка, .агент-круг.ошибка) .персонаж .г-скан { display: none; }
+:is(.агент.ошибка, .агент-круг.ошибка) .персонаж .г-ошибка { display: inline; }
+:is(.агент.ошибка, .агент-круг.ошибка) .персонаж .ядро, :is(.агент.ошибка, .агент-круг.ошибка) .персонаж .маяк { fill: #ff4a4a; }
+.агент.спит .персонаж { filter: saturate(.85) brightness(.9); }
+.агент.спит .персонаж .героя { animation-duration: 7s; }
+.агент.спит .персонаж .глаз { animation: none; transform: scaleY(.1); }
+.агент.спит .персонаж .зз { display: inline; }
+.агент.спит .персонаж .аура { animation-duration: 8s; opacity: .5; }
+.агент.интересен .персонаж, .агент.спит.интересен .персонаж { filter: none; }
+.агент.успех .персонаж .героя { animation: прыжок .7s ease-out; }
+.агент.провал .персонаж .героя { animation: тряска .5s ease; }
+@keyframes усердие { from { transform: translateY(0) rotate(-.6deg); } to { transform: translateY(-3.4px) rotate(.6deg); } }
+@keyframes стук { from { transform: translateY(-5px); } to { transform: translateY(3px); } }
+@keyframes прыжок { 30% { transform: translateY(-12px) scale(1.04); } 55% { transform: translateY(0) scale(.97, 1.03); } }
+@keyframes тряска { 20%, 60% { transform: translateX(-3px) skewX(-3deg); } 40%, 80% { transform: translateX(3px) skewX(3deg); } }
+
+/* --- сцена плитки: свет, пол с перспективой, рамка-комета, частицы, табличка --- */
+.агенты-группа-список { display: grid; grid-template-columns: repeat(auto-fill, minmax(8.8rem, 1fr)); gap: .75rem; padding: .2rem .1rem .6rem; }
+.агент { position: relative; isolation: isolate; overflow: hidden; min-height: 14rem; padding: .2rem .45rem .65rem; gap: 0; justify-content: flex-start;
+  border-radius: 20px; border: 1px solid color-mix(in srgb, var(--гц) 38%, #1c2030);
+  background: radial-gradient(120% 78% at 50% 0%, color-mix(in srgb, var(--гц) 30%, transparent), transparent 66%), linear-gradient(180deg, #10131c, #06070b);
+  transform: perspective(700px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .25s ease-out, box-shadow .3s, border-color .3s; }
+.агент:hover, .агент.работает:hover { transform: perspective(700px) translateY(-4px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); border-color: var(--гц);
+  box-shadow: 0 18px 38px -16px var(--гц), 0 0 0 1px color-mix(in srgb, var(--гц) 40%, transparent); background: radial-gradient(120% 78% at 50% 0%, color-mix(in srgb, var(--гц) 42%, transparent), transparent 66%), linear-gradient(180deg, #131724, #07080d); }
+.агент .пол { content: ""; position: absolute; left: -10%; right: -10%; bottom: -6%; height: 46%; z-index: -1; pointer-events: none;
+  background: radial-gradient(60% 55% at 50% 34%, color-mix(in srgb, var(--гц) 55%, transparent), transparent 70%),
+    repeating-linear-gradient(90deg, color-mix(in srgb, var(--гц) 26%, transparent) 0 1px, transparent 1px 15px),
+    repeating-linear-gradient(0deg, color-mix(in srgb, var(--гц) 22%, transparent) 0 1px, transparent 1px 13px);
+  -webkit-mask-image: linear-gradient(0deg, #000 8%, transparent 92%); mask-image: linear-gradient(0deg, #000 8%, transparent 92%);
+  transform: perspective(120px) rotateX(52deg); transform-origin: 50% 100%; }
+.агент .агент-круг { position: relative; width: 100%; height: 8.9rem; display: block; margin-top: .55rem; }
+.агент .агент-кольцо, .агент .агент-значок { display: none; }
+.агент .агент-круг .персонаж { position: absolute; inset: 0; transform: scale(1.04); transform-origin: 50% 70%; }
+.агент .агент-точка { position: absolute; top: .55rem; left: .6rem; width: .5rem; height: .5rem; border-radius: 50%; background: #4a5068; box-shadow: 0 0 0 2px #0a0c12; }
+.агент.работает .агент-точка { background: #3ee08a; box-shadow: 0 0 8px #3ee08a, 0 0 0 2px #0a0c12; animation: маяк 1s ease-in-out infinite; }
+.агент.ошибка .агент-точка { background: #ff4a4a; box-shadow: 0 0 8px #ff4a4a, 0 0 0 2px #0a0c12; }
+.агент .агент-текст { position: relative; z-index: 2; margin-top: auto; padding-top: .25rem; }
+.агент .агент-имя { font-size: .66rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: #fff; min-height: 2.3em; text-align: center;
+  text-shadow: 0 0 10px color-mix(in srgb, var(--гц) 80%, transparent), 0 1px 0 #000; }
+.агент .агент-счёт { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: .64rem; color: color-mix(in srgb, var(--гц) 70%, #aab); letter-spacing: .02em; }
+.агент.работает .агент-счёт { color: #7dffb2; text-shadow: 0 0 8px #3ee08a; }
+.агент .агент-записки { top: .4rem; right: .45rem; background: var(--гц); color: #07090f; font-weight: 800; box-shadow: 0 0 10px var(--гц); }
+
+/* работает: бегущая по рамке комета, свечение сцены и поднимающиеся частицы */
+.агент.работает { border-color: var(--гц); animation: none; background: radial-gradient(120% 78% at 50% 0%, color-mix(in srgb, var(--гц) 40%, transparent), transparent 66%), linear-gradient(180deg, #131724, #07080d); box-shadow: 0 0 26px -4px color-mix(in srgb, var(--гц) 70%, transparent), inset 0 0 28px -8px color-mix(in srgb, var(--гц) 60%, transparent); }
+.частицы { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; display: none; }
+.агент.работает .частицы { display: block; }
+.частицы i { position: absolute; bottom: 18%; left: var(--x); width: var(--r); height: var(--r); border-radius: 50%; background: #fff; opacity: 0;
+  box-shadow: 0 0 8px 2px var(--гц), 0 0 2px #fff; animation: взлёт var(--s) ease-out var(--d) infinite; }
+@keyframes взлёт { 0% { opacity: 0; transform: translate(0, 0) scale(.4); } 15% { opacity: 1; } 100% { opacity: 0; transform: translate(calc((var(--r) - 4px) * 6), -7.5rem) scale(1.1); } }
+.агент.успех .пол { animation: вспышка-пола .8s ease-out; }
+@keyframes вспышка-пола { 0% { filter: brightness(3); } 100% { filter: none; } }
+.агент.спит { opacity: .9; }
+.агент.спит:not(.интересен) { background: radial-gradient(120% 78% at 50% 0%, color-mix(in srgb, var(--гц) 12%, transparent), transparent 66%), linear-gradient(180deg, #0c0e15, #05060a); }
+
+/* большой герой в окне агента */
+.агент-круг.большой.с-героем { width: 6.4rem; height: 6.9rem; }
+.агент-круг.с-героем.большой .агент-кольцо, .агент-круг.с-героем.большой .агент-значок { display: none; }
+.агент-круг.с-героем.большой .персонаж { position: absolute; inset: 0; }
+
+/* живой фон панели агентов: северное сияние за плитками */
+.конвейер { position: relative; overflow: hidden; }
+.конвейер::before { content: ""; position: absolute; inset: -25%; z-index: 0; pointer-events: none; filter: blur(36px); opacity: .9;
+  background: radial-gradient(34% 28% at 18% 22%, rgba(70, 120, 255, .22), transparent 70%), radial-gradient(30% 26% at 82% 64%, rgba(255, 80, 170, .17), transparent 70%), radial-gradient(28% 24% at 40% 88%, rgba(60, 230, 170, .15), transparent 70%);
+  animation: сияние 22s ease-in-out infinite alternate; }
+@keyframes сияние { 0% { transform: translate(-4%, -3%) rotate(0deg) scale(1); } 100% { transform: translate(5%, 4%) rotate(14deg) scale(1.15); } }
+.конвейер > * { position: relative; z-index: 1; }
+.конвейер > #конвейер-холст { position: absolute; z-index: 2; }
+
+@media (max-width: 44rem) {
+  .агенты-группа-список { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem; }
+  .агент { min-height: 12.6rem; }
+  .агент .агент-круг { height: 8.2rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .персонаж *, .частицы i, .конвейер::before { animation: none !important; }
+}
+.агент.спит:not(.интересен) { opacity: .92; }
