@@ -198,10 +198,13 @@ def создать_приложение(настройки: dict, база: Ба
                 журнал.exception("Не удалось собрать память для ответа")
                 контекст = {}
             try:
-                with agents.работа("чат"):
+                with agents.работа("чат", "ответил в чате", f"вы написали: «{' '.join(текст.split())[:60]}»") as запись:
                     for кусок in ai.ответ_потоком(история, н, настройки["имя"], контекст):
                         собрано.append(кусок)
                         yield строка({"кусок": кусок})
+                    м, о = ai.отделить_мысль(ai.убрать_размышления("".join(собрано)))
+                    запись["результат"] = f"ответ {len(о)} знаков" + (" · с мыслью" if м else "")
+                    запись["польза"] = 1
             except ai.ОшибкаИИ as ошибка:
                 журнал.warning("ИИ не ответил: %s", ошибка)
                 yield строка({"ошибка": str(ошибка)})
@@ -578,6 +581,53 @@ def создать_приложение(настройки: dict, база: Ба
     @app.get("/api/agents")
     def агенты():
         return agents.сводка()
+
+    def _агент(ключ: str) -> str:
+        if ключ not in agents.ИМЕНА:
+            raise StarletteHTTPException(404, "Такого агента нет.")
+        return ключ
+
+    @app.get("/api/agents/board")
+    def доска_агентов():
+        return {"записки": agents.доска(), "имена": agents.ИМЕНА}
+
+    class Записка(BaseModel):
+        кому: str
+        текст: str = Field(max_length=300)
+
+    @app.post("/api/agents/board", status_code=201)
+    def написать_агенту(записка: Записка):
+        кому = записка.кому if записка.кому == "все" else _агент(записка.кому)
+        return agents.написать("вы", кому, _непустой(записка.текст, "Записка"))
+
+    @app.delete("/api/agents/board")
+    def очистить_доску():
+        agents.очистить_доску()
+        return {"очищено": True}
+
+    @app.get("/api/agents/{agent}")
+    def агент(agent: str, q: str = "", limit: int = Query(50, ge=1, le=500)):
+        ключ = _агент(agent)
+        сводка = next(а for а in agents.сводка()["агенты"] if а["ключ"] == ключ)
+        return {**сводка, "история": agents.история(ключ, q, limit), "заметки": agents.заметки(ключ),
+                "записки": agents.доска(ключ, 40), "имена": agents.ИМЕНА}
+
+    class ЗаметкаАгента(BaseModel):
+        вид: str
+        текст: str = Field(max_length=300)
+
+    @app.post("/api/agents/{agent}/notes", status_code=201)
+    def заметка_агенту(agent: str, заметка: ЗаметкаАгента):
+        ключ = _агент(agent)
+        if заметка.вид not in ("правило", "приём"):
+            raise StarletteHTTPException(400, "Можно добавить правило или приём.")
+        return agents.добавить_заметку(ключ, заметка.вид, _непустой(заметка.текст, "Заметка"))
+
+    @app.delete("/api/agents/notes/{note_id}")
+    def удалить_заметку_агента(note_id: int):
+        if not agents.удалить_заметку(note_id):
+            raise StarletteHTTPException(404, "Такой заметки нет.")
+        return {"удалено": note_id}
 
     # ---- Душа ------------------------------------------------------------
     # Характер и ценности ИИ; настроение считается из дел и разговоров.

@@ -56,17 +56,10 @@
       </div>
       <div class="дни" id="календарь-дни"></div>
     </section>
-
-    <section class="панель агенты" aria-label="Агенты">
-      <div class="агенты-шапка">
-        <h2>Агенты</h2>
-        <span class="агенты-итог" id="агенты-итог">—</span>
-      </div>
-      <div class="агенты-сетка" id="агенты-сетка"></div>
-    </section>
   </aside>
 
-  <!-- По центру: чат -->
+  <!-- По центру: чат, под ним — конвейер агентов -->
+  <div class="центр">
   <section class="панель чат" aria-label="Чат">
     <div class="панель-шапка">
       <h2>Чат</h2>
@@ -84,6 +77,19 @@
       </button>
     </form>
   </section>
+
+  <section class="панель конвейер" aria-label="Агенты">
+    <div class="конвейер-шапка">
+      <h2>Агенты</h2>
+      <span class="агенты-итог" id="агенты-итог">—</span>
+      <button class="ссылка" id="агенты-доска" type="button">Доска <span class="счётчик" id="доска-счёт" hidden></span></button>
+    </div>
+    <div class="конвейер-лента">
+      <canvas id="конвейер-холст" aria-hidden="true"></canvas>
+      <div class="агенты-ряд" id="агенты-сетка"></div>
+    </div>
+  </section>
+  </div>
 
 </main>
 
@@ -197,6 +203,52 @@
 </section>
 
 <!-- Окно правки задачи (доска, неделя, цели) -->
+<!-- Агент: уровень, история решений, своя память, записки -->
+<div class="затемнение" id="окно-агента" hidden>
+  <div class="окно агент-окно" role="dialog" aria-modal="true" aria-labelledby="агент-имя-окна">
+    <div class="окно-шапка">
+      <div class="агент-заголовок">
+        <div class="агент-круг большой" id="агент-круг-окна"></div>
+        <div>
+          <h2 id="агент-имя-окна">Агент</h2>
+          <div class="агент-что" id="агент-что-окна"></div>
+          <div class="агент-уровень" id="агент-уровень-окна"></div>
+        </div>
+      </div>
+      <button class="кнопка-значок" id="закрыть-агента" type="button" aria-label="Закрыть">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="виды агент-вкладки" id="агент-вкладки" role="tablist">
+      <button type="button" role="tab" data-вкладка="история" aria-selected="true">История</button>
+      <button type="button" role="tab" data-вкладка="память" aria-selected="false">Память</button>
+      <button type="button" role="tab" data-вкладка="записки" aria-selected="false">Записки</button>
+    </div>
+    <div class="окно-тело агент-тело" id="агент-тело"></div>
+  </div>
+</div>
+
+<!-- Общая доска записок агентов -->
+<div class="затемнение" id="окно-доски" hidden>
+  <div class="окно узкое доска-окно" role="dialog" aria-modal="true" aria-labelledby="заголовок-доски">
+    <div class="окно-шапка">
+      <h2 id="заголовок-доски">Доска агентов</h2>
+      <button class="кнопка-значок" id="закрыть-доску" type="button" aria-label="Закрыть">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="окно-тело">
+      <form class="доска-форма" id="доска-форма">
+        <select id="доска-кому" aria-label="Кому"></select>
+        <input id="доска-текст" type="text" maxlength="300" placeholder="Записка агенту…" aria-label="Текст записки">
+        <button class="кнопка главная малая" type="submit">Написать</button>
+      </form>
+      <ul class="записки" id="доска-список"></ul>
+      <button class="ссылка" id="доска-очистить" type="button">Очистить доску</button>
+    </div>
+  </div>
+</div>
+
 <div class="затемнение" id="окно-задачи" hidden>
   <form class="окно узкое" id="форма-задачи" role="dialog" aria-modal="true" aria-labelledby="заголовок-задачи">
     <div class="окно-шапка">

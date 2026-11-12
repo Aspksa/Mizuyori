@@ -114,6 +114,39 @@ from pathlib import Path
     """
     ALTER TABLE сообщения ADD COLUMN мысль TEXT NOT NULL DEFAULT '';
     """,
+    # 7: агенты — история решений, своя память (правила, приёмы, ошибки), общая доска записок
+    """
+    CREATE TABLE агент_история (
+        id        INTEGER PRIMARY KEY,
+        агент     TEXT NOT NULL,
+        действие  TEXT NOT NULL,
+        почему    TEXT NOT NULL DEFAULT '',
+        результат TEXT NOT NULL DEFAULT '',
+        успех     INTEGER NOT NULL DEFAULT 1,
+        польза    INTEGER NOT NULL DEFAULT 0,
+        секунд    REAL NOT NULL DEFAULT 0,
+        создано   TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+    );
+    CREATE INDEX агент_история_агент ON агент_история(агент, id);
+    CREATE TABLE агент_заметки (
+        id       INTEGER PRIMARY KEY,
+        агент    TEXT NOT NULL,
+        вид      TEXT NOT NULL CHECK (вид IN ('правило', 'приём', 'ошибка')),
+        текст    TEXT NOT NULL,
+        источник TEXT NOT NULL DEFAULT 'сам',      -- сам | вы
+        счёт     INTEGER NOT NULL DEFAULT 1,       -- сколько раз повторилось (для ошибок)
+        создано  TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+        изменено TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+    );
+    CREATE TABLE доска (
+        id        INTEGER PRIMARY KEY,
+        от        TEXT NOT NULL,                   -- ключ агента или «вы»
+        кому      TEXT NOT NULL,                   -- ключ агента или «все»
+        текст     TEXT NOT NULL,
+        прочитано INTEGER NOT NULL DEFAULT 0,
+        создано   TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+    );
+    """,
 ]
 
 ТИПЫ_СУЩНОСТЕЙ = ["человек", "питомец", "место", "организация", "проект", "цель", "событие", "вещь", "другое"]
