@@ -1861,3 +1861,22 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
   .работа-поля { grid-template-columns: minmax(0, 1fr); }
 }
 .работа-шапка .кнопка-значок { font-size: 1.4rem; line-height: 1; width: 2.2rem; height: 2.2rem; border: 1px solid var(--рамка); border-radius: 8px; }
+
+/* ГСМ → путевые листы */
+.работа-вкладки { align-self: flex-start; }
+.путевые-пояснение { margin: 0; font-size: .82rem; color: var(--тихий); max-width: 70rem; }
+.работа-таблица.путевые tbody tr { cursor: default; }
+.работа-таблица.путевые td { vertical-align: middle; }
+.работа-таблица.путевые td small { display: block; font-size: .72rem; color: var(--тихий); }
+.путевой-ошибка { color: #f0a020 !important; }
+.путевой-ввод { width: 6.2rem; font: inherit; font-size: .88rem; text-align: right; color: var(--текст); background: var(--фон);
+  border: 1px solid var(--рамка); border-radius: 6px; padding: .3rem .45rem; font-variant-numeric: tabular-nums; }
+.путевой-ввод:focus { outline: none; border-color: var(--акцент); }
+.путевой-ввод::placeholder { color: color-mix(in srgb, var(--тихий) 70%, transparent); }
+.работа-таблица.путевые select { font: inherit; font-size: .85rem; color: var(--текст); background: var(--фон); border: 1px solid var(--рамка); border-radius: 6px; padding: .25rem .3rem; }
+.работа-таблица .перерасход { color: #ff6b5b; font-weight: 650; }
+.работа-таблица .экономия { color: #3ecf9a; font-weight: 650; }
+.работа-таблица.путевые th { white-space: normal; line-height: 1.2; vertical-align: bottom; }
+.работа-таблица.путевые th, .работа-таблица.путевые td { padding: .45rem .4rem; }
+.работа-таблица.путевые td:first-child { min-width: 9.5rem; }
+.путевой-ввод { width: 5.3rem; padding: .28rem .35rem; }
