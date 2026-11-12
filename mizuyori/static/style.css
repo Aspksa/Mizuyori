@@ -1689,7 +1689,6 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
   .конвейер { grid-column: 2; }
   .конвейер { max-height: 15rem; }
   .агенты-ряд { display: grid; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); column-gap: .6rem; align-items: start; }
-  #конвейер-холст { display: none; }
 }
 @media (max-width: 44rem) {
   main.главная { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; }
@@ -2383,3 +2382,43 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
   border-radius: 8px; padding: .45rem .6rem; }
 .архив-ошибка { margin: 0; color: #e5534b; font-size: .85rem; }
 .архив-ошибка[hidden] { display: none; }
+
+
+/* ---- Агенты на главной: свечение, вращающаяся кромка, звёзды, пульс ---- */
+@property --угол { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
+.агент { overflow: visible; isolation: isolate; }
+.агент::before { content: ""; position: absolute; inset: 0; border-radius: inherit; z-index: -1; opacity: 0; transition: opacity .4s;
+  background: radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--гц, var(--акцент)) 32%, transparent), transparent 70%); }
+.агент:hover::before, .агент.работает::before { opacity: 1; }
+.агент::after { content: ""; position: absolute; inset: -1px; border-radius: inherit; padding: 1.6px; pointer-events: none; opacity: 0; transition: opacity .3s;
+  background: conic-gradient(from var(--угол), transparent 0 62%, var(--гц, var(--акцент)) 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+.агент.работает::after { opacity: 1; animation: кромка 2.2s linear infinite; }
+@keyframes кромка { to { --угол: 360deg; } }
+.агент.работает { animation: none; }
+.агент-звёзды { display: block; font-size: .56rem; letter-spacing: .08em; color: #f5c451; line-height: 1; opacity: .9; }
+.агент.спит .агент-звёзды { opacity: .45; }
+.агент-неделя-место { display: flex !important; justify-content: center; height: 10px; margin-top: .1rem; }
+.агент-неделя-место .агент-неделя { height: 10px; align-items: flex-end; gap: 1.5px; }
+.агент-неделя-место .агент-неделя i { width: 3px; background: color-mix(in srgb, var(--гц, var(--акцент)) 55%, transparent); border-radius: 1px; }
+.агент-неделя-место .агент-неделя i.сегодня { background: var(--гц, var(--акцент)); }
+.агент { min-height: 6.2rem; }
+.агент.успех { animation: плитка-успех .7s ease; }
+@keyframes плитка-успех { 30% { transform: scale(1.06); } }
+.агенты-пульс { display: inline-flex; align-items: flex-end; gap: 2px; height: .9rem; order: 2; margin-left: .2rem; opacity: .4; }
+.агенты-пульс i { width: 3px; height: 30%; border-radius: 2px; background: var(--акцент); transition: height .3s; }
+.агенты-пульс.идёт { opacity: 1; }
+.агенты-пульс.идёт i { animation: пульс-столбик .9s ease-in-out infinite; }
+.агенты-пульс.идёт i:nth-child(2) { animation-delay: -.15s; } .агенты-пульс.идёт i:nth-child(3) { animation-delay: -.3s; }
+.агенты-пульс.идёт i:nth-child(4) { animation-delay: -.45s; } .агенты-пульс.идёт i:nth-child(5) { animation-delay: -.6s; }
+@keyframes пульс-столбик { 0%, 100% { height: 25%; } 50% { height: 100%; } }
+.агент-круг .агент-дуга { filter: drop-shadow(0 0 3px color-mix(in srgb, var(--гц, var(--акцент)) 60%, transparent)); }
+.агент.спит .агент-круг { animation: дыхание-покоя 5s ease-in-out infinite; }
+@keyframes дыхание-покоя { 50% { transform: scale(1.04); } }
+@media (prefers-reduced-motion: reduce) {
+  .агент.работает::after, .агенты-пульс.идёт i, .агент.спит .агент-круг { animation: none; }
+}
+.агент-строка-имени { flex-direction: column; align-items: center; gap: .1rem; }
+.агент-имя { overflow-wrap: normal; word-break: normal; hyphens: none; }
+.агент-имя.длинное { font-size: .58rem; }

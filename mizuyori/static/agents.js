@@ -102,8 +102,9 @@
       круг(а),
       создать("span", { класс: "агент-текст" },
         создать("span", { класс: "агент-строка-имени" },
-          создать("span", { класс: `агент-имя${а.имя.length > 15 ? " длинное" : ""}`, текст: а.имя }),
+          создать("span", { класс: `агент-имя${а.имя.length > 9 ? " длинное" : ""}`, текст: а.имя }),
           создать("span", { класс: "агент-неделя-место" })),
+        создать("span", { класс: "агент-звёзды" }),
         создать("span", { класс: "агент-счёт" }),
         создать("span", { класс: "агент-последнее" })),
       создать("span", { класс: "агент-записки", hidden: "" }));
@@ -125,11 +126,16 @@
       }
       if (а.работает) { последнийАктивный = а.ключ; когдаАктивен = Date.now(); }
       // закончил: вспышка успеха или ошибки
+      if (было && было.уровень != null && а.уровень > было.уровень) {
+        вспышки.push({ ключ: а.ключ, успех: true, t: 0, золото: true });
+        пузырь(а.ключ, `★ Уровень ${а.уровень}!`, true);
+      }
       if (было && было.всего < а.всего && !а.работает) {
+        пузырь(а.ключ, `${а.ошибка ? "⚠" : "✓"} ${а.последний_результат || а.последнее_действие || "готово"}`);
         вспышка(а.ключ, !а.ошибка);
         последнийАктивный = а.ключ; когдаАктивен = Date.now();
       }
-      прошлое.set(а.ключ, { работает: а.работает, всего: а.всего });
+      прошлое.set(а.ключ, { работает: а.работает, всего: а.всего, уровень: а.уровень });
 
       э.classList.toggle("работает", а.работает);
       э.classList.toggle("ошибка", Boolean(а.ошибка));
@@ -138,6 +144,7 @@
       э.querySelector(".агент-счёт").textContent = а.работает ? `работает… ${а.идёт_секунд ? `${а.идёт_секунд} с` : ""}`
         : а.сегодня ? `${а.сегодня} сегодня${а.последний ? ` · ${дата(а.последний).split(", ").pop()}` : ""}` : "ждёт";
       э.querySelector(".агент-последнее").textContent = а.работает ? (а.что || "") : (а.последний_результат || а.что || "");
+      э.querySelector(".агент-звёзды").textContent = "★".repeat(Math.min(5, а.уровень || 1)) + "☆".repeat(Math.max(0, 5 - (а.уровень || 1)));
       const место = э.querySelector(".агент-неделя-место");
       const ключНедели = (а.неделя || []).join(",");
       if (место.dataset.неделя !== ключНедели) {
@@ -161,6 +168,8 @@
       блок.classList.toggle("идёт", идёт > 0);
     }
     итог.textContent = `${данные.работают} ${данные.работают === 1 ? "работает" : "работают"} · ${данные.сегодня} за сегодня`;
+    const пульс = $("агенты-пульс");
+    if (пульс) пульс.classList.toggle("идёт", данные.работают > 0);
     итог.classList.toggle("активно", данные.работают > 0);
     $("доска-счёт").hidden = !данные.записок;
     $("доска-счёт").textContent = данные.записок || "";
@@ -188,7 +197,26 @@
 
   // ---- Дорожка, искры, вспышки ---------------------------------------------------
 
-  const искры = [], вспышки = [], письма = [];
+  const искры = [], вспышки = [], письма = [], пузыри = [], лучи = [];
+  let пыль = null;
+  const кэшЦветов = new Map();
+  function цветА(ключ) {
+    if (!кэшЦветов.has(ключ)) {
+      const г = ячейки.get(ключ)?.closest(".агенты-группа");
+      const ц = г ? getComputedStyle(г).getPropertyValue("--гц").trim() : "";
+      if (ц) кэшЦветов.set(ключ, ц); else return getComputedStyle(document.documentElement).getPropertyValue("--акцент").trim() || "#3ecf9a";
+    }
+    return кэшЦветов.get(ключ);
+  }
+  function пузырь(ключ, текст, золото = false) {
+    if (безАнимаций()) return;
+    пузыри.push({ ключ, текст: текст.slice(0, 56), золото, t: 0 });
+    if (!кадр) кадр = requestAnimationFrame(рисовать);
+  }
+  const прозрачный = (hex, а) => {
+    const h = (hex || "").replace("#", "");
+    return h.length === 6 ? `rgba(${parseInt(h.slice(0, 2), 16)},${parseInt(h.slice(2, 4), 16)},${parseInt(h.slice(4, 6), 16)},${а})` : hex;
+  };
   let последнееПисьмо = null;               // id самой новой записки, которую уже видели
   function проверитьПисьма(список) {
     if (!список) return;
@@ -204,6 +232,7 @@
   function письмо(от, кому) {
     if (безАнимаций()) return;
     письма.push({ от, кому, t: 0 });
+    лучи.push({ от, кому, t: 0 });
     if (!кадр) кадр = requestAnimationFrame(рисовать);
   }
   let кадр = 0, время = 0, прошлый = 0;
@@ -223,6 +252,7 @@
   function искра(от, кому) {
     if (безАнимаций()) return;
     искры.push({ от, кому, t: 0 });
+    if (от) лучи.push({ от, кому, t: 0 });
     if (!кадр) кадр = requestAnimationFrame(рисовать);
   }
   function вспышка(ключ, успех) {
@@ -244,8 +274,8 @@
     к.setTransform(dpr, 0, 0, dpr, 0, 0);
     к.clearRect(0, 0, ш, в);
     const акцент = getComputedStyle(document.documentElement).getPropertyValue("--акцент").trim() || "#3ecf9a";
-    const точки = [...ячейки.keys()].map(центр).filter(Boolean);
-    if (false && точки.length > 1) {
+    if (false) {
+      const точки = [];
       // дорожка между кругами (в сетке не нужна)
       к.strokeStyle = акцент; к.globalAlpha = 0.22; к.lineWidth = 1.5;
       к.setLineDash([3, 6]); к.lineDashOffset = безАнимаций() ? 0 : -время * 12;
@@ -259,6 +289,45 @@
         к.lineTo(x2 - ux * (r2 + 4), y2 - uy * (r2 + 4));
       }
       к.stroke(); к.setLineDash([]); к.globalAlpha = 1;
+    }
+    if (!безАнимаций()) {
+      // фоновая пыль: медленные светлячки поднимаются вверх
+      if (!пыль || пыль.ш !== ш) пыль = { ш, список: Array.from({ length: 22 }, () => ({ x: Math.random() * ш, y: Math.random() * в, v: 4 + Math.random() * 8,
+        r: .6 + Math.random() * 1.4, ф: Math.random() * 6.28 })) };
+      for (const ч of пыль.список) {
+        ч.y -= ч.v * dt; ч.x += Math.sin(время * .6 + ч.ф) * 4 * dt;
+        if (ч.y < -4) { ч.y = в + 4; ч.x = Math.random() * ш; }
+        к.globalAlpha = .18 + .14 * Math.sin(время * 1.3 + ч.ф); к.fillStyle = акцент;
+        к.beginPath(); к.arc(ч.x, ч.y, ч.r, 0, Math.PI * 2); к.fill();
+      }
+      к.globalAlpha = 1;
+      // работающие агенты: волны и спутники по орбите
+      for (const [ключ, яч] of ячейки) {
+        if (!яч.classList.contains("работает")) continue;
+        const ц = центр(ключ), цв = цветА(ключ);
+        if (!ц || ц[2] < 6) continue;
+        for (let в_ = 0; в_ < 2; в_++) {
+          const ф = (время * .75 + в_ * .5 + ключ.length * .13) % 1;
+          к.strokeStyle = прозрачный(цв, (1 - ф) * .5); к.lineWidth = 1.5;
+          к.beginPath(); к.arc(ц[0], ц[1], ц[2] + 2 + ф * 18, 0, Math.PI * 2); к.stroke();
+        }
+        for (let o = 0; o < 3; o++) {
+          const а_ = время * 3.2 + o * 2.094 + ключ.length;
+          к.fillStyle = прозрачный(цв, .95 - o * .25);
+          к.beginPath(); к.arc(ц[0] + Math.cos(а_) * (ц[2] + 5), ц[1] + Math.sin(а_) * (ц[2] + 5), 2.2 - o * .5, 0, Math.PI * 2); к.fill();
+        }
+      }
+      к.globalAlpha = 1;
+    }
+    // лучи: короткая связь между теми, кто обменялся запиской или передал работу
+    for (let i = лучи.length - 1; i >= 0; i--) {
+      const л = лучи[i]; л.t += dt / 1.6;
+      const а_ = центр(л.от), б_ = центр(л.кому);
+      if (!а_ || !б_ || л.t >= 1) { лучи.splice(i, 1); continue; }
+      const г = к.createLinearGradient(а_[0], а_[1], б_[0], б_[1]);
+      г.addColorStop(0, прозрачный(цветА(л.от), .5 * (1 - л.t))); г.addColorStop(1, прозрачный(цветА(л.кому), .5 * (1 - л.t)));
+      к.strokeStyle = г; к.lineWidth = 1.6; к.setLineDash([2, 5]); к.lineDashOffset = -время * 30;
+      к.beginPath(); к.moveTo(а_[0], а_[1]); к.lineTo(б_[0], б_[1]); к.stroke(); к.setLineDash([]);
     }
     // искры
     for (let i = искры.length - 1; i >= 0; i--) {
@@ -274,7 +343,7 @@
                             откуда[1] + дy * ее - (дx / дл) * Math.sin(ее * Math.PI) * 14];
       for (let х = 0; х < 6; х++) {                       // хвост
         const [xx, yy] = дуга(Math.max(0, е - х * 0.03));
-        к.globalAlpha = (1 - х / 6) * 0.6; к.fillStyle = акцент;
+        к.globalAlpha = (1 - х / 6) * 0.6; к.fillStyle = цветА(и.кому);
         к.beginPath(); к.arc(xx, yy, 3 - х * 0.4, 0, Math.PI * 2); к.fill();
       }
       const [x, y] = дуга(е);
@@ -297,14 +366,14 @@
                              от[1] + дy * ее + (дx / дл) * Math.sin(ее * Math.PI) * подъём * 0.5 - Math.sin(ее * Math.PI) * подъём * 0.6];
       for (let х = 1; х <= 7; х++) {
         const [xx, yy] = точка(Math.max(0, е - х * 0.035));
-        к.globalAlpha = (1 - х / 8) * 0.5; к.fillStyle = акцент;
+        к.globalAlpha = (1 - х / 8) * 0.5; к.fillStyle = цветА(п.от);
         к.beginPath(); к.arc(xx, yy, 2.4 - х * 0.25, 0, Math.PI * 2); к.fill();
       }
       const [x, y] = точка(е);
       const масштаб = 0.8 + Math.sin(е * Math.PI) * 0.45;
       к.save(); к.translate(x, y); к.rotate(Math.sin(е * Math.PI * 2) * 0.18); к.scale(масштаб, масштаб);
       к.globalAlpha = Math.min(1, п.t * 6) * Math.min(1, (1 - п.t) * 8);
-      к.fillStyle = "#fff8e1"; к.strokeStyle = акцент; к.lineWidth = 1.2;
+      к.fillStyle = "#fff8e1"; к.strokeStyle = цветА(п.от); к.lineWidth = 1.2;
       к.beginPath(); к.roundRect(-8, -5.5, 16, 11, 2); к.fill(); к.stroke();
       к.beginPath(); к.moveTo(-8, -5.5); к.lineTo(0, 1); к.lineTo(8, -5.5); к.stroke();
       к.restore(); к.globalAlpha = 1;
@@ -315,7 +384,7 @@
       вс.t += dt / 0.9;
       const ц = центр(вс.ключ);
       if (!ц || вс.t >= 1) { вспышки.splice(i, 1); continue; }
-      const цвет = вс.успех ? акцент : "#ff6b5b";
+      const цвет = вс.золото ? "#f5c451" : вс.успех ? цветА(вс.ключ) : "#ff6b5b";
       к.strokeStyle = цвет; к.globalAlpha = 1 - вс.t; к.lineWidth = 2;
       к.beginPath(); к.arc(ц[0], ц[1], ц[2] + вс.t * 22, 0, Math.PI * 2); к.stroke();
       к.fillStyle = цвет;
@@ -324,6 +393,23 @@
         const р = ц[2] + 4 + вс.t * 26;
         к.beginPath(); к.arc(ц[0] + Math.cos(а) * р, ц[1] + Math.sin(а) * р, 1.8 * (1 - вс.t), 0, Math.PI * 2); к.fill();
       }
+      к.globalAlpha = 1;
+    }
+    // пузыри: что агент только что сделал — всплывает над плиткой
+    к.font = "600 11px ui-sans-serif, 'Segoe UI', sans-serif"; к.textAlign = "center"; к.textBaseline = "middle";
+    for (let i = пузыри.length - 1; i >= 0; i--) {
+      const б = пузыри[i]; б.t += dt / 3.2;
+      const ц = центр(б.ключ);
+      if (!ц || б.t >= 1) { пузыри.splice(i, 1); continue; }
+      const ширина = к.measureText(б.текст).width + 18;
+      const x = Math.min(Math.max(ц[0], ширина / 2 + 4), ш - ширина / 2 - 4);
+      const y = Math.max(14, ц[1] - ц[2] - 16 - Math.min(1, б.t * 5) * 8 - б.t * 10);
+      const а_ = Math.min(1, б.t * 8) * Math.min(1, (1 - б.t) * 4), цв = б.золото ? "#f5c451" : цветА(б.ключ);
+      к.globalAlpha = а_;
+      к.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--поверхность").trim() || "#10201c";
+      к.strokeStyle = цв; к.lineWidth = 1.2;
+      к.beginPath(); к.roundRect(x - ширина / 2, y - 11, ширина, 22, 11); к.fill(); к.stroke();
+      к.fillStyle = цв; к.fillText(б.текст, x, y + .5);
       к.globalAlpha = 1;
     }
     const дальше = !ряд.closest("main").hidden && !document.hidden;
