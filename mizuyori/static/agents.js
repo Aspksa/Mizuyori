@@ -70,8 +70,9 @@
       svg("circle", { cx: 24, cy: 24, r: 21, class: "агент-дуга", pathLength: 100 }),
       svg("circle", { cx: 24, cy: 24, r: 21, class: "агент-бег", pathLength: 100 }),
     );
-    const значок = талисман(а.ключ || а.значок, { работает: Boolean(а.работает) });
-    значок.classList.add("агент-значок");
+    const значок = svg("svg", { viewBox: "0 0 24 24", class: "агент-значок", "aria-hidden": "true",
+      fill: "none", stroke: "currentColor", "stroke-width": "1.8", "stroke-linecap": "round", "stroke-linejoin": "round" });
+    значок.append(svg("path", { d: ЗНАЧКИ[а.значок] || ЗНАЧКИ.чат }));
     return создать("div", { класс: `агент-круг${большой ? " большой" : ""}` }, кольцо, значок, создать("span", { класс: "агент-точка" }));
   }
 
@@ -886,7 +887,7 @@
     if (ключ === "вы" || ключ === "все") {
       э.querySelector(".обмен-кружок").append(значокОбмена(ключ === "вы" ? "человек" : "люди", "агент-значок"));
     } else {
-      const г = круг({ ключ, значок: значкиПо[ключ] || "чат" });
+      const г = круг({ значок: значкиПо[ключ] || "чат" });
       э.querySelector(".обмен-кружок").append(г.querySelector(".агент-значок"));
     }
     return э;

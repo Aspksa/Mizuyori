@@ -3189,133 +3189,70 @@ main.главная { grid-template-columns: minmax(0, 1fr) minmax(28rem, 36rem)
   main.главная { grid-template-rows: none; }
 }
 
-/* ===== Стол агентов: дизайн как на видео «Grok Bot» ===== */
-@font-face { font-family: "JetBrains Mono"; font-weight: 400; font-display: swap; unicode-range: U+0000-00FF, U+2000-206F, U+2190-21FF, U+25A0-25FF;
-  src: url("/static/fonts/jetbrains-mono-latin-400-normal.woff2") format("woff2"); }
-@font-face { font-family: "JetBrains Mono"; font-weight: 700; font-display: swap; unicode-range: U+0000-00FF, U+2000-206F, U+2190-21FF, U+25A0-25FF;
-  src: url("/static/fonts/jetbrains-mono-latin-700-normal.woff2") format("woff2"); }
-@font-face { font-family: "JetBrains Mono"; font-weight: 400; font-display: swap; unicode-range: U+0400-04FF;
-  src: url("/static/fonts/jetbrains-mono-cyrillic-400-normal.woff2") format("woff2"); }
-@font-face { font-family: "JetBrains Mono"; font-weight: 700; font-display: swap; unicode-range: U+0400-04FF;
-  src: url("/static/fonts/jetbrains-mono-cyrillic-700-normal.woff2") format("woff2"); }
-
+/* ===== Стол агентов (во вкладке рядом с чатом) ===== */
 .чат-вкладки { display: flex; gap: .3rem; }
-.чат-вкладки button { white-space: nowrap; display: inline-flex; align-items: center; gap: .3rem; padding: .3rem .8rem; border-radius: 999px;
-  border: 1px solid transparent; background: transparent; color: var(--тихий); cursor: pointer; font: inherit; }
+.чат-вкладки button { padding: .3rem .8rem; border-radius: 999px; border: 1px solid transparent; background: transparent; color: var(--тихий);
+  font: inherit; font-size: 1rem; font-weight: 600; cursor: pointer; }
 .чат-вкладки button[aria-selected="true"] { color: var(--текст); border-color: var(--рамка); background: color-mix(in srgb, var(--текст) 6%, transparent); }
 .чат.вид-стол .чат-ввод, .чат.вид-стол .сообщения { display: none; }
 .чат:not(.вид-стол) .стол { display: none; }
+.стол { flex: 1; min-height: 0; overflow-y: auto; padding: .7rem .9rem .9rem; display: flex; flex-direction: column; gap: .8rem; }
+.стол[hidden] { display: none; }
+.стол-итоги { display: flex; flex-wrap: wrap; gap: .4rem 1.4rem; align-items: baseline; }
+.стол-итоги div { display: grid; }
+.стол-итоги b { font-size: 1.5rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.стол-итоги small { font-size: .76rem; color: var(--тихий); }
+.стол-итоги .ждёт b { color: #ff7a7a; }
+.стол-итоги .идёт b { color: #3ecf9a; }
+.стол-тело { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(14rem, 1fr); gap: .8rem; }
+@media (max-width: 70rem) { .стол-тело { grid-template-columns: minmax(0, 1fr); } }
+.стол-граф-обёртка { border: 1px solid var(--рамка); border-radius: 12px; background: radial-gradient(90% 90% at 50% 40%, color-mix(in srgb, var(--акцент) 6%, transparent), transparent); }
+.стол-граф { width: 100%; height: auto; display: block; }
+.стол-граф .линия { stroke: color-mix(in srgb, var(--тихий) 35%, transparent); stroke-width: 1; }
+.стол-граф .линия.красная { stroke: #ff7a7a; stroke-dasharray: 4 4; stroke-width: 1.5; }
+.стол-граф .узел { cursor: pointer; }
+.стол-граф .узел circle.тело { fill: var(--поверхность); stroke: color-mix(in srgb, var(--гц, var(--акцент)) 55%, var(--рамка)); stroke-width: 1.5; }
+.стол-граф .узел.работает circle.тело { stroke: var(--гц, var(--акцент)); stroke-width: 2.5; }
+.стол-граф .узел.ошибка circle.тело { stroke: #ff7a7a; }
+.стол-граф .узел.спит { opacity: .6; }
+.стол-граф .узел.работает { opacity: 1; }
+.стол-граф .узел text { fill: var(--тихий); font-size: 10.5px; text-anchor: middle; pointer-events: none; }
+.стол-граф .узел.работает text { fill: var(--текст); }
+.стол-граф .узел .значок { stroke: var(--гц, var(--акцент)); fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+.стол-граф .узел .кольцо { fill: none; stroke: var(--гц, var(--акцент)); stroke-width: 2; opacity: 0; transform-box: fill-box; transform-origin: center; }
+.стол-граф .узел.работает .кольцо { animation: стол-пульс 1.6s ease-out infinite; }
+@keyframes стол-пульс { 0% { opacity: .8; transform: scale(1); } 100% { opacity: 0; transform: scale(1.9); } }
+.стол-граф .вы circle.тело { fill: var(--поверхность); stroke: var(--тихий); stroke-width: 1.5; }
+.стол-граф .вы.ждёт circle.тело { stroke: #ff7a7a; stroke-width: 2.5; animation: стол-вы 1.4s ease-in-out infinite; }
+@keyframes стол-вы { 50% { filter: drop-shadow(0 0 8px #ff7a7a); } }
+.стол-граф .вы text { fill: var(--текст); font-size: 11px; text-anchor: middle; font-weight: 600; }
+.стол-граф .пузырь rect { fill: #ff7a7a; }
+.стол-граф .пузырь text { fill: #1a0707; font-size: 10px; font-weight: 700; }
+.стол-граф .искра { fill: var(--акцент); filter: drop-shadow(0 0 4px var(--акцент)); }
+.стол-бок { display: grid; gap: .8rem; align-content: start; }
+.стол-тик, .стол-правила { border: 1px solid var(--рамка); border-radius: 12px; padding: .7rem .85rem; }
+.стол-тик h3, .стол-правила h3 { margin: 0 0 .35rem; font-size: .76rem; letter-spacing: .1em; text-transform: uppercase; color: var(--тихий); font-weight: 600; }
+.стол-тик .время-тика { font: 600 1.7rem ui-monospace, "Cascadia Mono", Consolas, monospace; font-variant-numeric: tabular-nums; }
+.стол-тик small { display: block; color: var(--тихий); font-size: .78rem; }
+.полоса { height: 5px; border-radius: 3px; background: color-mix(in srgb, var(--текст) 10%, transparent); margin: .45rem 0; overflow: hidden; }
+.полоса i { display: block; height: 100%; background: #3ecf9a; border-radius: 3px; transition: width .4s; }
+.стол-правила ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; }
+.стол-правила li { display: grid; grid-template-columns: .55rem 1fr; gap: .5rem; align-items: baseline; font-size: .84rem; }
+.стол-правила li i { width: .5rem; height: .5rem; border-radius: 50%; background: var(--цв, #3ecf9a); align-self: center; }
+.стол-правила li.синий { --цв: #6aa9ff; } .стол-правила li.фиолетовый { --цв: #c58bff; } .стол-правила li.красный { --цв: #ff7a7a; } .стол-правила li.зелёный { --цв: #3ecf9a; }
+.стол-журнал { border: 1px solid var(--рамка); border-radius: 12px; padding: .5rem .3rem; }
+.стол-журнал .строка { display: grid; grid-template-columns: 3.6rem 4.6rem 1fr; gap: .6rem; padding: .22rem .6rem; font-size: .82rem; align-items: baseline; }
+.стол-журнал .строка time { color: var(--тихий); font: .76rem ui-monospace, "Cascadia Mono", Consolas, monospace; }
+.стол-журнал .строка b { font: 600 .76rem ui-monospace, "Cascadia Mono", Consolas, monospace; color: var(--тихий); }
+.стол-журнал .строка.да b { color: #3ecf9a; } .стол-журнал .строка.нет b, .стол-журнал .строка.сбой b, .стол-журнал .строка.защита b { color: #ff7a7a; }
+.стол-журнал .строка.поручение b { color: #c58bff; } .стол-журнал .строка.записка b { color: #6aa9ff; } .стол-журнал .строка.дело b { color: #f5a34b; }
+.стол-журнал .строка span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.стол-журнал .пусто { padding: .5rem .8rem; color: var(--тихий); font-size: .84rem; }
+/* На вкладке «Стол» схема сама показывает агентов, поэтому панель агентов не нужна и столу хватает места */
 main.главная:has(.чат.вид-стол) > .конвейер { display: none; }
 main.главная:has(.чат.вид-стол) { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
-
-/* талисманы: моргание и покачивание, как в гифке */
-.талисман { display: block; overflow: visible; }
-.талисман .глаз { transform-box: fill-box; transform-origin: center; animation: моргнуть 4.2s infinite; }
-.талисман.работает .тело-талисмана { transform-box: fill-box; transform-origin: 50% 100%; animation: покачаться .9s ease-in-out infinite; }
-@keyframes моргнуть { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
-@keyframes покачаться { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-2px) rotate(3deg); } }
-.агент .агент-значок.талисман { width: 1.7rem; height: 1.7rem; }
-
-.стол { --ст-фон: #08090c; --ст-панель: #0f1116; --ст-рамка: #20232c; --ст-текст: #e9ebf1; --ст-тихий: #8b90a0; --ст-красный: #ff5b4d; --ст-зелёный: #2fd27a;
-  font-family: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: .8rem; color: var(--ст-текст); min-height: 0; overflow: auto; padding: .4rem; }
-.стол-окно { background: var(--ст-фон); border: 1px solid var(--ст-рамка); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
-.стол-рамка { display: flex; align-items: center; gap: .4rem; padding: .5rem .8rem; border-bottom: 1px solid var(--ст-рамка); background: var(--ст-панель); }
-.стол-рамка i { width: .65rem; height: .65rem; border-radius: 50%; background: #ff5f57; } .стол-рамка i:nth-child(2) { background: #febc2e; } .стол-рамка i:nth-child(3) { background: #28c840; }
-.стол-рамка span { margin-left: .6rem; color: var(--ст-тихий); font-size: .72rem; }
-.стол-шапка { display: grid; grid-template-columns: auto 1fr auto; gap: 1rem; align-items: center; padding: .9rem 1rem; border-bottom: 1px solid var(--ст-рамка); }
-.стол-лидер { position: relative; width: 3.6rem; height: 3.6rem; }
-.стол-лидер::before { content: ""; position: absolute; inset: -.5rem; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,.16), transparent 68%); animation: дышать 3.2s ease-in-out infinite; }
-.стол-лидер .талисман { position: relative; width: 100%; height: 100%; }
-@keyframes дышать { 0%, 100% { transform: scale(.9); opacity: .6; } 50% { transform: scale(1.15); opacity: 1; } }
-.стол-заголовок h2 { margin: 0; font-size: 1.15rem; font-weight: 700; letter-spacing: .01em; color: var(--ст-текст); }
-.стол-живой { margin-left: .5rem; font-size: .68rem; font-weight: 400; color: var(--ст-зелёный); animation: мигнуть 2s ease-in-out infinite; }
-@keyframes мигнуть { 50% { opacity: .45; } }
-.стол-заголовок p { margin: .25rem 0 0; color: var(--ст-тихий); font-size: .74rem; }
-.стол-итоги { display: flex; gap: 1.1rem; }
-.стол-итоги div { display: grid; text-align: right; }
-.стол-итоги b { font-size: 1.25rem; font-weight: 700; } .стол-итоги small { color: var(--ст-тихий); font-size: .64rem; }
-.стол-итоги .идёт b { color: var(--ст-зелёный); } .стол-итоги .ждёт b { color: var(--ст-красный); }
-.стол-тело { display: grid; grid-template-columns: 12.5rem minmax(0, 1fr) 13rem; gap: .8rem; padding: .9rem 1rem; min-height: 0; }
-.стол-команда { list-style: none; margin: 0; padding: 0; display: grid; gap: .45rem; align-content: start; max-height: 25rem; overflow: auto; }
-.стол-команда li { display: flex; gap: .55rem; align-items: center; padding: .4rem .5rem; border: 1px solid var(--ст-рамка); border-radius: 10px; background: var(--ст-панель); cursor: pointer; }
-.стол-команда li:hover, .стол-команда li:focus-visible { border-color: #3a3f4d; outline: none; }
-.стол-команда li.работает { border-color: color-mix(in srgb, var(--ст-зелёный) 55%, var(--ст-рамка)); }
-.стол-команда li.ошибка { border-color: var(--ст-красный); }
-.значок-стол { flex: none; width: 1.9rem; height: 1.9rem; } .значок-стол .талисман { width: 100%; height: 100%; }
-.стол-команда b { display: block; font-size: .68rem; letter-spacing: .06em; }
-.стол-команда small { display: block; color: var(--ст-тихий); font-size: .62rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 8.2rem; }
-.правило-линия { display: block; height: 2px; width: 70%; margin-top: .25rem; border-radius: 2px; opacity: .85; }
-.стол-граф-обёртка { min-width: 0; display: grid; place-items: center; }
-.стол-граф { width: 100%; height: auto; max-height: 27rem; }
-.стол-граф .гало { fill: rgba(255,255,255,.07); animation: дышать 3.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
-.стол-граф .линия { stroke-opacity: .35; stroke-width: 1.4; }
-.стол-граф .линия-вы { stroke: #4a4f5e; stroke-width: 1.6; stroke-dasharray: 5 5; fill: none; }
-.стол-граф .линия-вы.ждёт { stroke: var(--ст-красный); stroke-width: 2; animation: идут-муравьи .7s linear infinite; }
-@keyframes идут-муравьи { to { stroke-dashoffset: -10; } }
-.стол-граф .узел { cursor: pointer; outline: none; }
-.стол-граф .узел .тело { fill: #14161d; stroke: #2a2e39; stroke-width: 1.5; }
-.стол-граф .узел .кольцо { fill: none; stroke-width: 1.5; opacity: 0; }
-.стол-граф .узел.работает .кольцо { opacity: .9; animation: пульс-кольца 1.4s ease-out infinite; transform-box: fill-box; transform-origin: center; }
-@keyframes пульс-кольца { from { transform: scale(.9); opacity: .9; } to { transform: scale(1.35); opacity: 0; } }
-.стол-граф .узел.спит { opacity: .55; }
-.стол-граф .узел.ошибка .тело { stroke: var(--ст-красный); }
-.стол-граф .узел text { fill: var(--ст-тихий); font: 400 9.5px "JetBrains Mono", monospace; text-anchor: middle; pointer-events: none; }
-.стол-граф .вы text { fill: var(--ст-текст); font-weight: 700; font-size: 12px; }
-.стол-граф .кольцо-вы { fill: none; stroke: #3a3f4d; stroke-width: 1.5; }
-.стол-граф .вы.ждёт .тело { stroke: var(--ст-красный); stroke-width: 2; }
-.стол-граф .вы.ждёт .кольцо-вы { stroke: var(--ст-красный); animation: пульс-кольца 1.6s ease-out infinite; transform-box: fill-box; transform-origin: center; }
-.стол-граф .пузырь { animation: парить 1.6s ease-in-out infinite; }
-.стол-граф .пузырь rect { fill: var(--ст-красный); } .стол-граф .пузырь text { fill: #fff; font: 700 10px "JetBrains Mono", monospace; }
-@keyframes парить { 50% { transform: translate(var(--x, 0), -4px); } }
-.стол-граф .фишка { filter: drop-shadow(0 0 3px currentColor); }
-.стол-граф .искра { fill: #fff; filter: drop-shadow(0 0 5px #fff); }
-.стол-карточки { display: grid; gap: .5rem; align-content: start; }
-.карточка { border: 1px solid var(--ст-рамка); border-radius: 10px; padding: .55rem .65rem; background: var(--ст-панель); display: grid; gap: .25rem; }
-.карточка b { font-size: .72rem; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-.карточка small { color: var(--ст-тихий); font-size: .66rem; }
-.метка { justify-self: start; padding: .05rem .5rem; border-radius: 999px; border: 1px solid #3a3f4d; color: var(--ст-тихий); font-size: .6rem; letter-spacing: .06em; text-transform: uppercase; }
-.карточка.красная { border-color: var(--ст-красный); box-shadow: 0 0 0 1px color-mix(in srgb, var(--ст-красный) 25%, transparent), 0 0 14px color-mix(in srgb, var(--ст-красный) 22%, transparent); animation: мигнуть-рамка 2s ease-in-out infinite; }
-.метка.красная { border-color: var(--ст-красный); color: var(--ст-красный); }
-@keyframes мигнуть-рамка { 50% { box-shadow: 0 0 0 1px color-mix(in srgb, var(--ст-красный) 10%, transparent), 0 0 4px transparent; } }
-.стол-низ { display: grid; grid-template-columns: minmax(0, 1fr) 14rem; gap: .8rem; padding: 0 1rem .9rem; }
-.стол-правила, .стол-тик { border: 1px solid var(--ст-рамка); border-radius: 10px; padding: .7rem .8rem; background: var(--ст-панель); }
-.стол h3 { margin: 0 0 .55rem; font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ст-тихий); font-weight: 400; }
-.стол-правила ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .45rem; }
-.стол-правила li { display: grid; grid-template-columns: .5rem minmax(0, 1fr) 6.5rem; gap: .55rem; align-items: center; font-size: .72rem; }
-.стол-правила li > i { width: .5rem; height: .5rem; border-radius: 50%; background: var(--ст-зелёный); }
-.стол-правила li.голубой > i { background: #22c3e6; } .стол-правила li.синий > i { background: #2f8cff; } .стол-правила li.фиолетовый > i { background: #9a7bff; } .стол-правила li.красный > i { background: var(--ст-красный); }
-.мини { display: flex; align-items: center; gap: .35rem; justify-content: flex-end; }
-.мини small { color: var(--ст-тихий); font-size: .6rem; white-space: nowrap; }
-.мини.полоса { height: auto; }
-.мини.полоса { position: relative; } .мини.полоса::before { content: ""; flex: 1; height: .32rem; border-radius: 4px; background: #1d2029; order: 0; }
-.мини.полоса > i { position: absolute; left: 0; height: .32rem; border-radius: 4px; background: var(--ст-зелёный); max-width: calc(100% - 3rem); transition: width .6s; }
-.мини.полоса small { order: 1; }
-.мини.квадраты i { width: .5rem; height: .5rem; border-radius: 2px; background: #252936; } .мини.квадраты i.горит { background: var(--ст-зелёный); animation: мигнуть 1.2s infinite; }
-.спарк { width: 3.6rem; height: 1.2rem; } .спарк polyline { fill: none; stroke: #2f8cff; stroke-width: 1.6; vector-effect: non-scaling-stroke; }
-.время-тика { font-size: 1.35rem; font-weight: 700; margin-bottom: .45rem; }
-.стол-тик .полоса { height: .32rem; border-radius: 4px; background: #1d2029; overflow: hidden; }
-.стол-тик .полоса i { display: block; height: 100%; background: var(--ст-зелёный); transition: width 1s linear; }
-.стол-тик small { display: block; margin-top: .5rem; color: var(--ст-тихий); font-size: .62rem; line-height: 1.35; }
-.стол-журнал-обёртка { border-top: 1px solid var(--ст-рамка); padding: .6rem 1rem .8rem; }
-.стол-журнал-метка { font-size: .64rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ст-тихий); margin-bottom: .4rem; }
-.стол-журнал-метка span { color: var(--ст-зелёный); margin-left: .4rem; animation: мигнуть 2s infinite; }
-.стол-журнал { display: grid; gap: .1rem; max-height: 11rem; overflow: auto; }
-.стол-журнал .строка { display: grid; grid-template-columns: 3rem 5.5rem minmax(0, 1fr); gap: .6rem; font-size: .68rem; padding: .15rem .35rem; border-radius: 6px; }
-.стол-журнал .строка time { color: var(--ст-тихий); } .стол-журнал .строка b { color: #9a7bff; font-weight: 400; }
-.стол-журнал .строка span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.стол-журнал .строка.свежая { background: color-mix(in srgb, var(--ст-зелёный) 12%, transparent); animation: вспышка 1.4s ease-out; }
-@keyframes вспышка { from { background: color-mix(in srgb, var(--ст-зелёный) 40%, transparent); } }
-.стол-журнал .пусто { color: var(--ст-тихий); font-size: .7rem; }
-@media (max-width: 62rem) {
-  .стол-тело { grid-template-columns: minmax(0, 1fr); } .стол-команда { grid-auto-flow: column; grid-auto-columns: 11rem; overflow-x: auto; max-height: none; }
-  .стол-низ { grid-template-columns: minmax(0, 1fr); } .стол-шапка { grid-template-columns: auto 1fr; } .стол-итоги { grid-column: 1 / -1; justify-content: space-between; }
-}
+.чат-вкладки button { white-space: nowrap; display: inline-flex; align-items: center; gap: .3rem; }
 @media (max-width: 44rem) {
   .стол-граф .узел:not(.работает) text { display: none; }
   .чат-вкладки button { font-size: .92rem; padding: .3rem .6rem; }
-  .стол-правила li { grid-template-columns: .5rem minmax(0, 1fr); } .мини { grid-column: 2; justify-content: flex-start; }
-  .стол-журнал .строка { grid-template-columns: 2.8rem minmax(0, 1fr); } .стол-журнал .строка b { display: none; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .талисман .глаз, .талисман.работает .тело-талисмана, .стол *, .стол-лидер::before { animation: none !important; }
 }

@@ -85,27 +85,17 @@
       </details>
     </div>
     <div class="стол" id="стол" hidden>
-      <div class="стол-окно">
-        <div class="стол-рамка"><i></i><i></i><i></i><span>Стол агентов · Mizuyori</span></div>
-        <header class="стол-шапка">
-          <div class="стол-лидер" id="стол-лидер"></div>
-          <div class="стол-заголовок">
-            <h2>Стол агентов <span class="стол-живой">● live · стол включён</span></h2>
-            <p>Команда видит друг друга, передаёт записки и ждёт вашего «да» там, где решаете вы.</p>
-          </div>
-          <div class="стол-итоги" id="стол-итоги"></div>
-        </header>
-        <div class="стол-тело">
-          <ul class="стол-команда" id="стол-команда"></ul>
-          <div class="стол-граф-обёртка"><svg class="стол-граф" id="стол-граф" viewBox="0 0 780 380" role="img" aria-label="Схема: кто с кем работает"></svg></div>
-          <div class="стол-карточки" id="стол-карточки"></div>
-        </div>
-        <div class="стол-низ">
-          <div class="стол-правила" id="стол-правила"></div>
-          <div class="стол-тик" id="стол-тик"></div>
-        </div>
-        <div class="стол-журнал-обёртка"><div class="стол-журнал-метка">журнал <span>● live</span></div><div class="стол-журнал" id="стол-журнал" aria-live="polite"></div></div>
+      <div class="стол-верх">
+        <div class="стол-итоги" id="стол-итоги"></div>
       </div>
+      <div class="стол-тело">
+        <div class="стол-граф-обёртка"><svg class="стол-граф" id="стол-граф" viewBox="0 0 780 380" role="img" aria-label="Схема: кто с кем работает"></svg></div>
+        <div class="стол-бок">
+          <div class="стол-тик" id="стол-тик"></div>
+          <div class="стол-правила" id="стол-правила"></div>
+        </div>
+      </div>
+      <div class="стол-журнал" id="стол-журнал" aria-live="polite"></div>
     </div>
     <div class="сообщения" id="чат-сообщения" aria-live="polite"></div>
     <form class="чат-ввод" id="чат-форма">
@@ -733,7 +723,6 @@
 </div>
 
 <script src="/static/app.js" charset="utf-8"></script>
-<script src="/static/mascots.js" charset="utf-8"></script>
 <script src="/static/desk.js" charset="utf-8"></script>
 <script src="/static/today.js" charset="utf-8"></script>
 <script src="/static/clock.js" charset="utf-8"></script>
