@@ -1696,3 +1696,68 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
   main.главная > .колонка { grid-row: auto; }
   .конвейер { grid-column: 1; max-height: none; }
 }
+
+/* =============================================================================
+   ЧАТ: разметка ответов, появление, действия «в задачи / в цель / в заметку»
+   ============================================================================= */
+.текст-сообщения.разметка { white-space: normal; line-height: 1.5; }
+.разметка > :first-child { margin-top: 0; }
+.разметка > :last-child { margin-bottom: 0; }
+.разметка p { margin: 0 0 .55em; }
+.разметка h3, .разметка h4, .разметка h5, .разметка h6 { margin: .8em 0 .35em; line-height: 1.3; color: var(--заголовок, var(--текст)); }
+.разметка h3 { font-size: 1.08rem; } .разметка h4 { font-size: 1rem; } .разметка h5, .разметка h6 { font-size: .95rem; }
+.разметка ul, .разметка ol { margin: .2em 0 .6em; padding-left: 1.3em; }
+.разметка li { margin: .15em 0; }
+.разметка li::marker { color: var(--акцент); }
+.разметка li.пункт-флажок { list-style: none; margin-left: -1.1em; }
+.флажок-md { color: var(--акцент); margin-right: .35em; }
+.разметка strong { font-weight: 650; color: var(--заголовок, var(--текст)); }
+.разметка em { font-style: italic; }
+.разметка a { color: var(--акцент); text-decoration: underline; text-underline-offset: 2px; }
+.разметка code { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: .86em; padding: .08em .35em;
+  border-radius: 5px; background: color-mix(in srgb, var(--акцент) 12%, transparent); }
+.разметка blockquote { margin: .3em 0 .6em; padding: .2em .8em; border-left: 3px solid var(--акцент); color: var(--тихий); }
+.разметка hr { border: 0; border-top: 1px solid var(--рамка); margin: .8em 0; }
+.разметка table { border-collapse: collapse; margin: .3em 0 .7em; font-size: .9em; }
+.разметка td { border: 1px solid var(--рамка); padding: .3em .6em; }
+.разметка tr:first-child td { font-weight: 600; background: color-mix(in srgb, var(--акцент) 8%, transparent); }
+.код-блок { margin: .4em 0 .7em; border: 1px solid var(--рамка); border-radius: 8px; overflow: hidden; background: var(--фон); }
+.код-шапка { display: flex; justify-content: space-between; align-items: center; padding: .25rem .6rem; font-size: .72rem;
+  color: var(--тихий); border-bottom: 1px solid var(--рамка); font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; }
+.копировать-код { border: 0; background: none; color: var(--акцент); cursor: pointer; font: inherit; }
+.код-блок pre { margin: 0; padding: .6rem .7rem; overflow-x: auto; }
+.код-блок code { background: none; padding: 0; font-size: .84rem; white-space: pre; }
+
+/* появление новых сообщений */
+.сообщение.новое { animation: сообщение-появление .35s cubic-bezier(.2, .8, .3, 1); }
+.сообщение.моё.новое { animation-name: сообщение-появление-справа; }
+.сообщение.без-анимации { animation: none; }
+@keyframes сообщение-появление { from { opacity: 0; transform: translateY(8px) scale(.98); } }
+@keyframes сообщение-появление-справа { from { opacity: 0; transform: translate(10px, 6px) scale(.98); } }
+
+/* действия под ответом */
+.сообщение.ии { position: relative; }
+/* у последнего ответа кнопки видны всегда, у остальных — при наведении */
+.действия-сообщения { display: none; flex-wrap: wrap; gap: .25rem; margin-top: .45rem; }
+.сообщение.ии:hover .действия-сообщения, .сообщение.ии:focus-within .действия-сообщения,
+.сообщение.ии:last-child .действия-сообщения { display: flex; animation: сообщение-появление .2s ease; }
+@media (hover: none) { .действия-сообщения { display: flex; } }
+.кнопка-действия { display: inline-flex; align-items: center; gap: .3rem; padding: .18rem .55rem; border-radius: 999px;
+  border: 1px solid var(--рамка); background: none; color: var(--тихий); font: inherit; font-size: .74rem; cursor: pointer;
+  transition: color .15s, border-color .15s, background .15s; }
+.кнопка-действия:hover { color: var(--текст); border-color: var(--акцент); background: color-mix(in srgb, var(--акцент) 10%, transparent); }
+.панель-действия { margin-top: .55rem; padding: .65rem; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--акцент) 40%, var(--рамка));
+  background: color-mix(in srgb, var(--акцент) 5%, var(--панель-итог, var(--поверхность))); display: flex; flex-direction: column; gap: .4rem;
+  animation: сообщение-появление .25s ease; }
+.панель-действия-заголовок { font-size: .8rem; font-weight: 600; }
+.панель-действия input[type=text], .панель-действия select { font: inherit; font-size: .86rem; color: var(--текст); background: var(--фон);
+  border: 1px solid var(--рамка); border-radius: 7px; padding: .35rem .5rem; min-width: 0; }
+.панель-действия input[type=text]:focus, .панель-действия select:focus { outline: none; border-color: var(--акцент); }
+.кандидат { display: flex; align-items: center; gap: .45rem; }
+.кандидат input[type=text] { flex: 1; }
+.кандидат input[type=checkbox], .панель-действия .флажок-строка input { accent-color: var(--акцент); }
+.панель-действия .флажок-строка { font-size: .84rem; display: flex; gap: .4rem; align-items: center; }
+.панель-действия-низ { display: flex; flex-wrap: wrap; gap: .35rem; justify-content: flex-end; margin-top: .15rem; }
+.панель-действия-низ select:last-of-type { margin-right: auto; }
+.панель-действия .пусто { margin: 0; font-size: .84rem; color: var(--тихий); }
+@media (prefers-reduced-motion: reduce) { .сообщение.новое, .панель-действия { animation: none; } }
