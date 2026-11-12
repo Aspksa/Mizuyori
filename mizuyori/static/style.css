@@ -2932,3 +2932,54 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 
 .группы:empty { display: none; }
 #задач-нет, #заметок-нет { margin: 2rem auto; } #группы-задач { flex: none; } #вид-список #группы-задач:empty { display: none; }
+
+/* ===== Обмен между агентами: плитки-счётчики, значки, карточки событий ===== */
+.обмен-зн { width: 1em; height: 1em; flex: none; }
+.обмен-плитки { display: grid; grid-template-columns: repeat(4, 1fr); gap: .5rem; }
+.обмен-плитка {
+  --цв: var(--акцент); position: relative; overflow: hidden;
+  display: grid; grid-template-columns: auto 1fr; grid-template-areas: "з ч" "з и"; align-items: center; column-gap: .6rem;
+  padding: .6rem .7rem; text-align: left; font: inherit; color: var(--тихий); cursor: pointer;
+  border: 1px solid var(--рамка); border-radius: calc(var(--радиус) * .8);
+  background: color-mix(in srgb, var(--текст) 3%, transparent);
+  transition: transform .15s, border-color .2s, background .2s, box-shadow .25s;
+}
+.обмен-плитка.обмен-тип-работа { --цв: #f5a34b; } .обмен-плитка.обмен-тип-знание { --цв: #6aa9ff; } .обмен-плитка.обмен-тип-опыт { --цв: #f5c451; }
+.обмен-плитка-зн { grid-area: з; width: 2rem; height: 2rem; padding: .4rem; box-sizing: border-box; border-radius: 10px; color: var(--цв); background: color-mix(in srgb, var(--цв) 16%, transparent); transition: transform .25s cubic-bezier(.3,1.6,.5,1); }
+.обмен-плитка-число { grid-area: ч; font: 700 1.25rem/1 ui-monospace, Consolas, monospace; color: var(--текст); }
+.обмен-плитка-имя { grid-area: и; font-size: .72rem; letter-spacing: .04em; }
+.обмен-плитка.пустая .обмен-плитка-число { color: var(--тихий); }
+.обмен-плитка:hover { transform: translateY(-2px); border-color: var(--цв); }
+.обмен-плитка:hover .обмен-плитка-зн { transform: scale(1.12) rotate(-6deg); }
+.обмен-плитка[aria-checked="true"] { color: var(--текст); border-color: var(--цв); background: color-mix(in srgb, var(--цв) 14%, transparent); box-shadow: 0 8px 22px -10px var(--цв), inset 0 0 0 1px color-mix(in srgb, var(--цв) 55%, transparent); }
+.обмен-подпись { margin: -.2rem 0 0; font-size: .78rem; color: var(--тихий); }
+@media (max-width: 36rem) { .обмен-плитки { grid-template-columns: repeat(2, 1fr); } }
+
+.обмен-стрелка { display: inline-grid; place-items: center; }
+.обмен-стрелка .обмен-зн { width: 1.1rem; height: 1.1rem; }
+.обмен-кружок .агент-значок { width: .9rem; height: .9rem; }
+.обмен-поток .обмен-полоса i { box-shadow: 0 0 10px -2px currentColor; transition: width .6s ease; }
+
+.обмен-событие {
+  position: relative; border-radius: calc(var(--радиус) * .8); border: 1px solid var(--рамка); border-left-width: 3px;
+  background: color-mix(in srgb, var(--текст) 3%, transparent);
+  animation: обмен-вход .4s both; transition: transform .15s, box-shadow .25s, background .2s;
+}
+.обмен-событие:hover { transform: translateX(3px); background: color-mix(in srgb, var(--текст) 5%, transparent); box-shadow: 0 8px 24px -14px rgba(0,0,0,.6); }
+.обмен-метка { display: inline-flex; align-items: center; gap: .3rem; font-weight: 600; }
+.обмен-тип-работа .обмен-метка { background: color-mix(in srgb, #f5a34b 18%, transparent); color: #f5a34b; }
+.обмен-тип-знание .обмен-метка { background: color-mix(in srgb, #6aa9ff 18%, transparent); color: #6aa9ff; }
+.обмен-тип-опыт .обмен-метка { background: color-mix(in srgb, #f5c451 18%, transparent); color: #f5c451; }
+.обмен-метка .обмен-зн { width: .85rem; height: .85rem; }
+.обмен-статус { display: inline-flex; align-items: center; gap: .35rem; padding: .1rem .55rem; border-radius: 999px; background: color-mix(in srgb, #f5a34b 14%, transparent); }
+.обмен-статус::before { content: ""; width: .4rem; height: .4rem; border-radius: 50%; background: currentColor; animation: обмен-пульс 1.6s ease-in-out infinite; }
+.обмен-статус.да { background: color-mix(in srgb, #3ecf9a 14%, transparent); }
+.обмен-статус.да::before { animation: none; }
+@keyframes обмен-вход { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes обмен-пульс { 50% { opacity: .3; } }
+
+.обмен-пусто { display: flex; flex-direction: column; align-items: center; gap: .5rem; padding: 2.2rem 1.2rem; text-align: center; border: 1px dashed var(--рамка); border-radius: var(--радиус); color: var(--тихий); font-size: .85rem; }
+.обмен-пусто strong { color: var(--текст); font-size: 1rem; }
+.обмен-пусто span { max-width: 26rem; line-height: 1.45; }
+.обмен-пусто-зн { width: 3.4rem; height: 3.4rem; color: var(--акцент); filter: drop-shadow(0 0 10px color-mix(in srgb, var(--акцент) 50%, transparent)); animation: пустой-дыхание 3.2s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .обмен-событие, .обмен-статус::before, .обмен-пусто-зн { animation: none !important; } }
