@@ -1934,3 +1934,5 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .сезоны-окно .табель-выбор-часы input { width: 5rem; }
 .период-окно small, .сезоны-окно small { color: var(--тихий); font-size: .75rem; }
 .путевые-округление select { font: inherit; font-size: .82rem; color: var(--текст); background: var(--фон); border: 1px solid var(--рамка); border-radius: 6px; padding: .1rem .3rem; }
+.путевой-ввод:disabled { opacity: .75; border-style: dashed; }
+.путевой-ввод.посчитано::placeholder { color: color-mix(in srgb, var(--тихий) 85%, transparent); font-weight: 600; }
