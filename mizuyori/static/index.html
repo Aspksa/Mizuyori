@@ -94,6 +94,7 @@
       <span class="агенты-пульс" id="агенты-пульс" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
       <span class="агенты-итог" id="агенты-итог">—</span>
       <button class="ссылка" id="агенты-обмен" type="button">Обмен</button>
+      <button class="ссылка" id="агенты-поручения" type="button">Поручения <span class="счётчик" id="поручения-счёт" hidden></span></button>
       <button class="ссылка" id="агенты-доска" type="button">Доска <span class="счётчик" id="доска-счёт" hidden></span></button>
     </div>
     <div class="конвейер-лента">
@@ -295,6 +296,24 @@
       <button type="button" role="tab" data-вкладка="записки" aria-selected="false">Записки</button>
     </div>
     <div class="окно-тело агент-тело" id="агент-тело"></div>
+  </div>
+</div>
+
+<!-- Поручения агентам: цепочки шагов, проверка, подтверждение, шаблоны -->
+<div class="затемнение" id="окно-поручений" hidden>
+  <div class="окно поручения-окно" role="dialog" aria-modal="true" aria-labelledby="заголовок-поручений">
+    <div class="окно-шапка">
+      <h2 id="заголовок-поручений">Поручения агентам</h2>
+      <button class="кнопка-значок" id="закрыть-поручения" type="button" aria-label="Закрыть">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="виды поручения-вкладки" id="поручения-вкладки" role="tablist">
+      <button type="button" role="tab" data-вкладка="список" aria-selected="true">Поручения</button>
+      <button type="button" role="tab" data-вкладка="новое" aria-selected="false">Новое</button>
+      <button type="button" role="tab" data-вкладка="шаблоны" aria-selected="false">Шаблоны</button>
+    </div>
+    <div class="окно-тело" id="поручения-тело"></div>
   </div>
 </div>
 
@@ -674,6 +693,7 @@
 <script src="/static/deals.js" charset="utf-8"></script>
 <script src="/static/panel_fx.js"></script>
 <script src="/static/deals_fx.js"></script>
+<script src="/static/missions.js" charset="utf-8"></script>
 <script src="/static/brain.js" charset="utf-8"></script>
 <script src="/static/brain_list.js" charset="utf-8"></script>
 <script src="/static/soul.js" charset="utf-8"></script>
