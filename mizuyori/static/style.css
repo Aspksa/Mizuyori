@@ -2248,3 +2248,9 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .агент-заметки li.ревизия-пункт > span { grid-column: 1 / -1; }
 .агент-заметки li.ревизия-пункт > small { grid-column: 1; }
 .чат-ввод .кнопка-значок { flex: none; align-self: flex-end; }
+
+.ремонты-список { display: flex; flex-direction: column; gap: .5rem; margin-top: .4rem; }
+.ремонт-строка { padding: .5rem .7rem; border: 1px solid var(--рамка); border-radius: var(--скругление, 10px); font-size: .82rem; display: flex; flex-direction: column; gap: .2rem; }
+.ремонт-шапка { display: flex; gap: .7rem; align-items: baseline; flex-wrap: wrap; }
+.ремонт-шапка .ремонт-сумма { margin-left: auto; font-weight: 600; }
+.ремонт-материалы { color: var(--тихий); }
