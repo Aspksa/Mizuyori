@@ -1367,7 +1367,8 @@
       агенты = д.агенты.map((а) => {
         if (группа !== (а.группа || "Другие")) { if (группа !== null) место += 0.7; группа = а.группа || "Другие"; }
         const был = старые.get(а.ключ);
-        if (был && был.всего < а.всего) законченоАгентом.set(а.ключ, время);
+        if (был && был.всего < а.всего) { законченоАгентом.set(а.ключ, время); эффект(а.ключ, "конец"); }
+        else if (был && !был.работает && а.работает) эффект(а.ключ, "старт");
         const угол = -Math.PI / 2 - Math.PI / 6 + (место / всего) * Math.PI * 2;
         место += 1;
         return { ...а, угол, x: был?.x ?? 0, y: был?.y ?? 0, свет: был?.свет ?? 0 };
@@ -1377,6 +1378,108 @@
     } catch {
       таймерАгентов = setTimeout(загрузитьАгентов, 5000);
     }
+  }
+
+  // ---- Эффекты работы агентов: волны, искры, кометы по нитям, спутники, всплывающая подпись ----
+  const эффекты = [];            // { ключ, тип: "старт" | "конец", t0 }
+  function эффект(ключ, тип) {
+    if (эффекты.length > 40) эффекты.shift();
+    эффекты.push({ ключ, тип, t0: время });
+  }
+  const ДЛИТ = { старт: 1.4, конец: 3.4 };
+  const точкаНити = (а, м, t) => {
+    const mx = (а.x + м.x) / 2 * 0.7, my = (а.y + м.y) / 2 * 0.7;
+    return [(1 - t) ** 2 * а.x + 2 * (1 - t) * t * mx + t * t * м.x, (1 - t) ** 2 * а.y + 2 * (1 - t) * t * my + t * t * м.y];
+  };
+  const плавно = (t) => 1 - (1 - t) ** 3;
+
+  function нарисоватьЭффектыАгентов() {
+    const к = кисть, z = камера.z;
+    const прежний = к.globalCompositeOperation;
+    к.globalCompositeOperation = "lighter";
+    // «дыхание» кольца: каждый агент изредка посылает тихую волну
+    for (const а of агенты) {
+      const r0 = Math.max(16, 13 / z);
+      const ф = (время * 0.16 + хеш(а.ключ + "дых")) % 1;
+      к.strokeStyle = rgba(цвета.акцент, (1 - ф) * 0.16);
+      к.lineWidth = 1.2 / z;
+      к.beginPath(); к.arc(а.x, а.y, r0 + ф * 30, 0, Math.PI * 2); к.stroke();
+      if (а.работает) {                    // пока работает: спутники и пульсирующая аура
+        const пульс = 0.5 + 0.5 * Math.sin(время * 6);
+        const г = к.createRadialGradient(а.x, а.y, r0, а.x, а.y, r0 * (2.4 + пульс * 0.6));
+        г.addColorStop(0, rgba(цвета.акцент, 0.28)); г.addColorStop(1, rgba(цвета.акцент, 0));
+        к.fillStyle = г; к.beginPath(); к.arc(а.x, а.y, r0 * 3, 0, Math.PI * 2); к.fill();
+        for (let i = 0; i < 4; i++) {
+          const у = время * (i % 2 ? -3.2 : 3.6) + (i * Math.PI) / 2;
+          const R = r0 + 9 + (i % 2) * 5;
+          к.fillStyle = rgba(цвета.акцент, 0.95);
+          к.beginPath(); к.arc(а.x + Math.cos(у) * R, а.y + Math.sin(у) * R, 2.1 / Math.sqrt(z), 0, Math.PI * 2); к.fill();
+          for (let х = 1; х <= 5; х++) {   // хвост у спутника
+            к.fillStyle = rgba(цвета.акцент, 0.5 - х * 0.09);
+            const ух = у - х * 0.13 * (i % 2 ? -1 : 1);
+            к.beginPath(); к.arc(а.x + Math.cos(ух) * R, а.y + Math.sin(ух) * R, (2.1 - х * 0.25) / Math.sqrt(z), 0, Math.PI * 2); к.fill();
+          }
+        }
+      }
+    }
+    // разовые события
+    for (let н = эффекты.length - 1; н >= 0; н--) {
+      const э = эффекты[н];
+      const а = агенты.find((х) => х.ключ === э.ключ);
+      const возраст = время - э.t0;
+      if (!а || возраст > ДЛИТ[э.тип]) { эффекты.splice(н, 1); continue; }
+      const r0 = Math.max(16, 13 / z);
+      const t = возраст / ДЛИТ[э.тип];
+      if (э.тип === "старт") {                       // кольца сжимаются к значку
+        for (let i = 0; i < 2; i++) {
+          const т = Math.min(1, Math.max(0, t * 1.4 - i * 0.25));
+          к.strokeStyle = rgba(цвета.акцент, (1 - т) * 0.8);
+          к.lineWidth = (2.2 - т) / z;
+          к.beginPath(); к.arc(а.x, а.y, r0 + (1 - плавно(т)) * 60, 0, Math.PI * 2); к.stroke();
+        }
+        continue;
+      }
+      // конец: ударные волны
+      for (let i = 0; i < 3; i++) {
+        const т = Math.min(1, Math.max(0, (t - i * 0.12) / 0.7));
+        if (т <= 0 || т >= 1) continue;
+        к.strokeStyle = rgba(цвета.акцент, (1 - т) * 0.75);
+        к.lineWidth = (3 - 2 * т) / z;
+        к.beginPath(); к.arc(а.x, а.y, r0 + плавно(т) * (70 + i * 25), 0, Math.PI * 2); к.stroke();
+      }
+      // искры во все стороны
+      const искр = 18;
+      for (let i = 0; i < искр; i++) {
+        const угол = (i / искр) * Math.PI * 2 + хеш(э.ключ + i) * 0.6;
+        const сила = 0.55 + хеш(э.ключ + "с" + i) * 0.7;
+        const т = Math.min(1, возраст / 1.6);
+        if (т >= 1) break;
+        const d = r0 + плавно(т) * 62 * сила;
+        const x = а.x + Math.cos(угол) * d, y = а.y + Math.sin(угол) * d;
+        к.strokeStyle = rgba(цвета.акцент, (1 - т) * 0.9);
+        к.lineWidth = 1.6 / z;
+        к.beginPath(); к.moveTo(x, y); к.lineTo(x - Math.cos(угол) * 7 * (1 - т), y - Math.sin(угол) * 7 * (1 - т)); к.stroke();
+      }
+      // кометы по нитям к разделам и вспышка на подходе
+      for (const р of разделыАгента(а)) {
+        const м = р.метка;
+        const т = Math.min(1, возраст / 1.3);
+        const цвет = р.цвет || цвета.акцент;
+        for (let х = 0; х < 10; х++) {
+          const тх = Math.max(0, т - х * 0.028);
+          const [x, y] = точкаНити(а, м, тх);
+          к.fillStyle = rgba(цвет, (1 - х / 10) * 0.9 * (т >= 1 ? 0 : 1));
+          к.beginPath(); к.arc(x, y, (4.2 - х * 0.33) / Math.sqrt(z), 0, Math.PI * 2); к.fill();
+        }
+        if (возраст > 1.3) {
+          const т2 = Math.min(1, (возраст - 1.3) / 1.1);
+          к.strokeStyle = rgba(цвет, (1 - т2) * 0.8);
+          к.lineWidth = 2.2 / z;
+          к.beginPath(); к.arc(м.x, м.y, 14 + плавно(т2) * 38, 0, Math.PI * 2); к.stroke();
+        }
+      }
+    }
+    к.globalCompositeOperation = прежний;
   }
 
   function значокАгента(а) {
@@ -1437,6 +1540,8 @@
       }
     }
 
+    нарисоватьЭффектыАгентов();
+
     // значки
     for (const а of агенты) {
       const наведён = наведено?.тип === "агент" && наведено.объект === а;
@@ -1481,6 +1586,24 @@
       к.fillStyle = rgba(а.работает ? цвета.акцент : цвета.текст, а.работает ? 1 : 0.7);
       к.fillText(а.имя.toUpperCase(), sx, sy + Math.max(16 * камера.z, 13) + 8);
     }
+    // всплывающая подпись: что агент только что сделал
+    for (const э of эффекты) {
+      if (э.тип !== "конец") continue;
+      const а = агенты.find((х) => х.ключ === э.ключ);
+      const возраст = время - э.t0;
+      if (!а || возраст > 3.2) continue;
+      const [ax, ay] = вЭкран(а.x, а.y);
+      const текст = `${а.последнее_действие || "готово"}${а.последний_результат ? ` · ${а.последний_результат}` : ""}`.slice(0, 54);
+      const alpha = Math.min(1, возраст * 4) * Math.min(1, (3.2 - возраст) / 0.8);
+      к.font = "600 11px ui-monospace, Consolas, monospace";
+      к.textAlign = "center"; к.textBaseline = "middle";
+      const w = к.measureText(текст).width + 16, y = ay - Math.max(16 * камера.z, 13) - 22 - возраст * 6;
+      к.fillStyle = rgba(цвета.поверхность, 0.92 * alpha);
+      к.beginPath(); к.roundRect(ax - w / 2, y - 11, w, 22, 11); к.fill();
+      к.strokeStyle = rgba(цвета.акцент, 0.7 * alpha); к.lineWidth = 1; к.stroke();
+      к.fillStyle = rgba(цвета.акцент, alpha); к.fillText(текст, ax, y);
+    }
+    к.textAlign = "center"; к.textBaseline = "bottom";
     // подпись кольца
     const [sx, sy] = вЭкран(0, -радиусАгентов);
     к.fillStyle = rgba(цвета.акцент, 0.6);
