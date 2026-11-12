@@ -2597,3 +2597,20 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .рост-событие small { opacity: .65; font-size: .7rem; }
 .рост-событие p { margin: .05rem 0 0; font-size: .86rem; line-height: 1.35; }
 .рост-ещё { margin-top: .5rem; }
+
+/* Мозги → Список: общий поиск по знаниям и проверка знаний */
+.список-проверка { padding: .45rem .9rem; border-radius: 999px; border: 1px solid var(--рамка); background: transparent; color: inherit; cursor: pointer; }
+.список-проверка:hover:not(:disabled) { border-color: #e6d35f; color: #e6d35f; }
+.список-найденное, .список-аудит { max-width: 68rem; margin: 0 auto 1rem; border: 1px solid var(--рамка); border-radius: .8rem; padding: .7rem .9rem; }
+.список-найденное h4, .аудит-блок h4 { margin: 0 0 .4rem; }
+.найдено-ряд { display: grid; grid-template-columns: 9rem 7rem 1fr; gap: .6rem; width: 100%; text-align: left; padding: .35rem .5rem; border: 0; border-radius: .5rem; background: transparent; color: inherit; cursor: pointer; }
+.найдено-ряд:hover { background: color-mix(in srgb, #3ecf9a 8%, transparent); }
+.найдено-ряд small { opacity: .65; }
+.найдено-ряд.в-ошибка small { color: #f5a34b; }
+.аудит-шапка { display: flex; justify-content: space-between; align-items: center; margin-bottom: .5rem; }
+.аудит-пара { border-top: 1px dashed var(--рамка); padding: .45rem 0; display: grid; gap: .25rem; }
+.аудит-пара small { opacity: .6; }
+.аудит-запись { display: flex; justify-content: space-between; gap: .8rem; align-items: baseline; }
+.аудит-удалить { flex: none; padding: .15rem .6rem; border-radius: 999px; border: 1px solid var(--рамка); background: transparent; color: inherit; cursor: pointer; font-size: .78rem; }
+.аудит-удалить:hover:not(:disabled) { border-color: #ff7a7a; color: #ff7a7a; }
+@media (max-width: 640px) { .найдено-ряд { grid-template-columns: 1fr; gap: .1rem; } }
