@@ -2048,3 +2048,4 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .гсм-инфо { font-size: .82rem; color: var(--тихий); }
 .работа-шапка { min-width: 0; }
 .работа-содержимое > * { max-width: 100%; }
+.виды { min-width: 0; max-width: 100%; }
