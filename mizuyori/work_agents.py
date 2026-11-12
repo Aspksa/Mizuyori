@@ -16,7 +16,7 @@ import threading
 import time
 from datetime import date, timedelta
 
-from . import overseer, senses, agents, archive, documents, new_agents, printing, putevoy, reference, smeta, work
+from . import graph_tools, overseer, senses, agents, archive, documents, new_agents, printing, putevoy, reference, smeta, work
 
 журнал = logging.getLogger("mizuyori.агенты.работа")
 
@@ -576,6 +576,10 @@ def для_чата(база, настройки_ии: dict, текст: str) ->
         агент_поиска = кому if кому in ("снабженец", "склад", "юрист", "бухгалтер", "экономист") else "снабженец"
         по_смете = senses.найти_для_чата(запрос, агент_поиска)
         кому = кому or агент_поиска
+    if not по_смете:
+        по_смете = graph_tools.для_чата(база, текст)
+        if по_смете:
+            кому = кому or "цели"
     if not по_смете:
         try:
             по_смете = overseer.из_чата(база, настройки_ии, текст, кому)

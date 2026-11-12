@@ -17,7 +17,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from . import __version__, agents, ai, archive, documents, learning, memory, printing, putevoy, senses, smeta, soul, work, work_agents
+from . import __version__, agents, ai, archive, documents, graph_tools, learning, memory, printing, putevoy, senses, smeta, soul, work, work_agents
 from .config import (ВИД_ПО_УМОЛЧАНИЮ, ВНЕШНИЙ_ВИД, ИИ_ПО_УМОЛЧАНИЮ, МОЗГИ_ПО_УМОЛЧАНИЮ,
                      НеверныйВнешнийВид, атрибуты_html, проверить_внешний_вид, проверить_ии,
                      проверить_мозги, сохранить_настройки)
@@ -1136,6 +1136,32 @@ def создать_приложение(настройки: dict, база: Ба
                 пары[(а, б)] = round(п, 3)
         связи = [{"а": а, "б": б, "похожесть": п} for (а, б), п in sorted(пары.items(), key=lambda x: -x[1])]
         return {"доступно": True, "связи": связи, "модель": модель, "новых": новых}
+
+    # Функции графа: путь между точками, проверка, предложения связей.
+    @app.get("/api/brain/path")
+    def мозги_путь(а: str = Query("", alias="a"), б: str = Query("", alias="b")):
+        return graph_tools.путь(база, а, б)
+
+    @app.get("/api/brain/audit")
+    def мозги_проверка():
+        return graph_tools.аудит(база)
+
+    @app.get("/api/brain/suggest")
+    def мозги_предложения():
+        return graph_tools.предложить_связи(база, _ии())
+
+    class ДействиеГрафа(BaseModel):
+        действие: str
+        а: str = ""
+        б: str = ""
+        отношение: str = "связано с"
+
+    @app.post("/api/brain/apply")
+    def мозги_применить(д: ДействиеГрафа):
+        try:
+            return graph_tools.применить(база, д.действие, д.а, д.б, д.отношение)
+        except ValueError as ошибка:
+            return JSONResponse({"ошибка": str(ошибка)}, status_code=400)
 
     class НастройкиМозгов(BaseModel):
         мозги: dict
