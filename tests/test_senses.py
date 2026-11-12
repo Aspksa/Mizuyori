@@ -52,6 +52,80 @@ class УточнениеЗапроса(unittest.TestCase):
         self.assertEqual(senses.уточнить_запрос("цены на шины", "снабженец"), "цены на шины")
 
 
+class ПоискТехники(unittest.TestCase):
+    def test_русская_с_в_артикуле(self):
+        self.assertEqual(senses.исправить_раскладку_артикула("фильтр vic с111"), "фильтр vic c111")
+        self.assertEqual(senses.исправить_раскладку_артикула("масло для двигателя"), "масло для двигателя")  # слова без цифр целы
+        self.assertEqual(senses.ключ_артикула("C-111"), senses.ключ_артикула("с 111"))
+
+    def test_фильтр_без_контекста_становится_автомобильным(self):
+        self.assertEqual(senses.уточнить_запрос("фильтр", "снабженец"), "фильтр автомобильный")
+        self.assertEqual(senses.уточнить_запрос("фильтр для воды", "снабженец"), "фильтр для воды")
+
+    def test_несколько_запросов_для_запчасти(self):
+        з = senses.построить_запросы("фильтр vic c111", "снабженец")
+        self.assertGreaterEqual(len(з), 3)
+        self.assertEqual(з[0], "фильтр vic c111 автозапчасти артикул")
+        self.assertIn("site:farpost.ru", з[1])
+        self.assertTrue(any("C-111" in х for х in з))                 # артикул с дефисом
+        self.assertEqual(senses.построить_запросы("договор поставки", "юрист"), ["договор поставки"])
+        self.assertEqual(len(senses.построить_запросы("канцелярия", "снабженец")), 1)
+        self.assertIn("4tochki.ru", senses.построить_запросы("шины 265/65 R17", "снабженец")[1])
+
+    def test_подсказки_модели_добавляются(self):
+        з = senses.построить_запросы("масло 5W40", "снабженец", доп=["моторное масло 5W-40 синтетика"])
+        self.assertIn("моторное масло 5W-40 синтетика", з)
+
+    def test_цена_из_сниппета(self):
+        self.assertEqual(senses.цена_из_текста("Фильтр VIC C-111 — от 1 250 руб. в наличии"), "1 250 ₽")
+        self.assertEqual(senses.цена_из_текста("Цена 890 ₽"), "890 ₽")
+        self.assertEqual(senses.цена_из_текста("без цены"), "")
+
+    def test_магазин_с_артикулом_выше_википедии_и_воды(self):
+        запрос = "фильтр vic c111 автозапчасти артикул"
+        магазин = {"название": "VIC C-111 фильтр масляный", "ссылка": "https://www.exist.ru/x", "кратко": "от 450 руб."}
+        вики = {"название": "Фильтр — Википедия", "ссылка": "https://ru.wikipedia.org/wiki/F", "кратко": "..."}
+        вода = {"название": "Фильтры для воды", "ссылка": "https://aquaphor.ru/", "кратко": "очистка воды"}
+        self.assertGreater(senses.оценить(магазин, запрос), senses.оценить(вики, запрос))
+        self.assertGreater(senses.оценить(магазин, запрос), senses.оценить(вода, запрос))
+
+    def test_склейка_без_повторов_и_порядок(self):
+        def страница(*элементы):
+            return "<ol>" + "".join(f'<li class="b_algo"><h2><a href="{u}">{n}</a></h2><p>{k}</p></li>' for u, n, k in элементы) + "</ol>"
+        общий = страница(("https://ru.wikipedia.org/wiki/F", "Фильтр", "общее"), ("https://aquaphor.ru/", "Вода", "очистка воды"),
+                         ("https://www.exist.ru/x", "VIC C-111", "от 450 руб."))
+        магазины = страница(("https://www.exist.ru/x", "VIC C-111", "от 450 руб."), ("https://farpost.ru/y", "VIC C-111 Владивосток", "800 ₽"))
+
+        def получить(адрес):
+            if "duckduckgo" in адрес:
+                return "<html></html>"
+            return магазины if "site%3A" in адрес else общий
+        р, использованные = senses.искать_для_закупки("фильтр vic c111", "снабженец", получить=получить)
+        ссылки = [x["ссылка"] for x in р]
+        self.assertEqual(len(ссылки), len(set(ссылки)))                         # без повторов
+        self.assertIn("https://farpost.ru/y", ссылки)
+        self.assertTrue(ссылки.index("https://www.exist.ru/x") < ссылки.index("https://ru.wikipedia.org/wiki/F"))
+        self.assertGreaterEqual(len(использованные), 3)
+
+    def test_в_чате_видны_цена_и_метка_магазина(self):
+        from contextlib import contextmanager
+        from mizuyori import agents
+        старое = agents.работа, senses.искать_для_закупки
+
+        @contextmanager
+        def работа(*а, **к):
+            yield {}
+        agents.работа = работа
+        senses.искать_для_закупки = lambda *а, **к: ([{"название": "VIC C-111", "ссылка": "https://www.exist.ru/x", "кратко": "от 1 250 руб."}], [])
+        try:
+            _, сообщение = senses.найти_для_чата("фильтр vic с111", "снабженец")
+        finally:
+            agents.работа, senses.искать_для_закупки = старое
+        self.assertIn("**1 250 ₽**", сообщение)
+        self.assertIn("магазин запчастей", сообщение)
+        self.assertIn("vic c111", сообщение)                                    # раскладка исправлена в «искал»
+
+
 ДДГ_КАПЧА = "<html><body>anomaly: please complete the captcha</body></html>"
 БИНГ = ('<ol><li class="b_algo"><h2><a href="https://www.bing.com/ck/a?!&&p=1&u=a1' +
         base64.urlsafe_b64encode(b"https://shop.example/tires?a=1").decode().rstrip("=") +
