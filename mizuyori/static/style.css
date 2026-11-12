@@ -1882,4 +1882,10 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .путевой-ввод { width: 5.3rem; padding: .28rem .35rem; }
 .путевые-выписки { display: flex; flex-wrap: wrap; gap: .3rem .7rem; align-items: center; font-size: .85rem; color: var(--тихий); }
 .путевые-выписки .ссылка.выбрано { font-weight: 700; text-decoration: underline; }
-.работа-таблица.путевые td small.путевой-ошибка { max-width: 11rem; margin-left: auto; white-space: normal; }
+.работа-таблица.путевые td small.путевой-причина { max-width: 11rem; margin-left: auto; white-space: normal; color: #f0a020; }
+.работа-поиск-обёртка { position: relative; display: inline-flex; }
+.работа-поиск-обёртка .работа-поиск { padding-right: 1.8rem; }
+.работа-сброс { position: absolute; right: .35rem; top: 50%; transform: translateY(-50%); border: 0; background: none; color: var(--тихий);
+  font-size: 1.1rem; cursor: pointer; line-height: 1; }
+.работа-сброс[hidden] { display: none; }
+.работа-сброс:hover { color: var(--текст); }
