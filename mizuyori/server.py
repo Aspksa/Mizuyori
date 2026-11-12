@@ -18,7 +18,7 @@ from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from . import paths
-from . import (__version__, agent_profiles, agents, ai, archive, audit, browser_fetch, documents, evolve, housekeeping, graph_tools, learning, mcp_client, memory, memory_plus, missions, printing, putevoy,
+from . import (__version__, agent_profiles, chat_delegate, agents, ai, archive, audit, browser_fetch, documents, evolve, housekeeping, graph_tools, learning, mcp_client, memory, memory_plus, missions, printing, putevoy,
                search_eval, senses, smeta, soul, tools, usage, work, work_agents)
 from .config import (ВИД_ПО_УМОЛЧАНИЮ, ВНЕШНИЙ_ВИД, ИИ_ПО_УМОЛЧАНИЮ, МОЗГИ_ПО_УМОЛЧАНИЮ,
                      НеверныйВнешнийВид, атрибуты_html, проверить_внешний_вид, проверить_ии,
@@ -206,6 +206,12 @@ def создать_приложение(настройки: dict, база: Ба
     def чат():
         return {"сообщения": база.сообщения(), **_метка_ии()}
 
+    @app.get("/api/chat/last")
+    def последнее_сообщение():
+        """Номер последнего сообщения: окно чата сверяет его, чтобы подтянуть итоги поручений, пришедшие без вопроса."""
+        сообщения_ = база.сообщения(1)
+        return {"id": сообщения_[-1]["id"] if сообщения_ else 0}
+
     @app.post("/api/chat")
     def написать(сообщение: Текст):
         """Ответ идёт потоком: строки JSON по одной на строку.
@@ -272,6 +278,8 @@ def создать_приложение(настройки: dict, база: Ба
                 learning.запомнить_обмен(агент_работы, текст, ответ)
             if сообщение_печати:      # итог печати — от системы, а не со слов ИИ
                 ответ = f"{ответ}\n\n{сообщение_печати}".strip()
+            elif chat_delegate.ложное_обещание(ответ):
+                ответ += chat_delegate.ПРИМЕЧАНИЕ_БЕЗ_ДЕЛА      # «передала» без реального запуска — честно предупреждаем
             yield строка({"ответ": база.добавить_сообщение("ии", ответ or "…", мысль)})
             # Память и сводка — в фоне, чтобы не задерживать ответ
             threading.Thread(target=lambda *а: (ai.установить_приоритет("поручение"), memory.после_ответа(*а)),
@@ -781,6 +789,8 @@ def создать_приложение(настройки: dict, база: Ба
     housekeeping.запустить(база, lambda: int(настройки["агенты"].get("хранить_дней", 180)), paths.ПАПКА_ЛОГОВ)
     missions.заполнить_готовые()
     agent_profiles.заполнить()
+    chat_delegate.подключить(база)
+    chat_delegate.НАСТРОЙКИ = настройки["агенты"]
     printing.НАСТРОЙКИ = настройки["печать"]
     learning.НАСТРОЙКИ = настройки["агенты"]
     documents.НАСТРОЙКИ = настройки["агенты"]

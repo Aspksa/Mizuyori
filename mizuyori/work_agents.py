@@ -16,7 +16,7 @@ import threading
 import time
 from datetime import date, timedelta
 
-from . import graph_tools, overseer, senses, agents, archive, documents, new_agents, printing, putevoy, reference, smeta, work
+from . import chat_delegate, graph_tools, overseer, senses, agents, archive, documents, new_agents, printing, putevoy, reference, smeta, work
 
 журнал = logging.getLogger("mizuyori.агенты.работа")
 
@@ -593,6 +593,15 @@ def для_чата(база, настройки_ии: dict, текст: str) ->
             кому = "смотрящий"
             печать, сообщение = по_смете
             по_смете = None
+    if not по_смете and not сообщение:
+        try:
+            передано = chat_delegate.из_чата(база, настройки_ии, текст, прошлые, кому)
+        except Exception:
+            журнал.exception("Передача из чата не удалась")
+            передано = None
+        if передано:
+            печать, сообщение = передано
+            кому = "смотрящий"
     if по_смете:
         кому = кому or "инженер"
         печать, сообщение = по_смете
