@@ -971,6 +971,14 @@ def создать_приложение(настройки: dict, база: Ба
     def архив_комплект(did: int):
         return _архив(lambda: archive.комплект(база, did))
 
+    @app.get("/api/archive/procurement/{did}/zip")
+    def архив_комплект_zip(did: int):
+        from fastapi.responses import Response
+        from urllib.parse import quote
+        имя, данные = _архив(lambda: archive.комплект_zip(база, did))
+        return Response(данные, media_type="application/zip",
+                        headers={"Content-Disposition": f"attachment; filename*=UTF-8''{quote(имя)}"})
+
     @app.post("/api/archive/procurement/{did}")
     def архив_статус_закупки(did: int, з: ЗакупкаЗапрос):
         return _архив(lambda: archive.задать_закупку(база, did, з.статус))
