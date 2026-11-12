@@ -66,11 +66,13 @@ class ПоискТехники(unittest.TestCase):
         з = senses.построить_запросы("фильтр vic c111", "снабженец")
         self.assertGreaterEqual(len(з), 3)
         self.assertEqual(з[0], "фильтр vic c111 автозапчасти артикул")
-        self.assertIn("site:farpost.ru", з[1])
+        self.assertTrue(any("site:farpost.ru" in х for х in з))
         self.assertTrue(any("C-111" in х for х in з))                 # артикул с дефисом
         self.assertEqual(senses.построить_запросы("договор поставки", "юрист"), ["договор поставки"])
-        self.assertEqual(len(senses.построить_запросы("канцелярия", "снабженец")), 1)
-        self.assertIn("4tochki.ru", senses.построить_запросы("шины 265/65 R17", "снабженец")[1])
+        канцелярия = senses.построить_запросы("канцелярия", "снабженец")
+        self.assertEqual(len(канцелярия), 2)                                   # обычный + с Приморским краем
+        self.assertIn("Владивосток Приморский край", канцелярия[1])
+        self.assertTrue(any("4tochki.ru" in х for х in senses.построить_запросы("шины 265/65 R17", "снабженец")))
 
     def test_подсказки_модели_добавляются(self):
         з = senses.построить_запросы("масло 5W40", "снабженец", доп=["моторное масло 5W-40 синтетика"])
@@ -124,6 +126,39 @@ class ПоискТехники(unittest.TestCase):
         self.assertIn("**1 250 ₽**", сообщение)
         self.assertIn("магазин запчастей", сообщение)
         self.assertIn("vic c111", сообщение)                                    # раскладка исправлена в «искал»
+
+
+class ПриоритетПриморья(unittest.TestCase):
+    def test_региональный_запрос_только_снабжению_и_без_дубля(self):
+        self.assertTrue(any("Владивосток Приморский край" in з for з in senses.построить_запросы("фильтр vic c111", "снабженец")))
+        self.assertFalse(any("Приморский край" in з for з in senses.построить_запросы("срок договора", "юрист")))
+        self.assertEqual(len([з for з in senses.построить_запросы("масло 5W40 во Владивостоке", "снабженец") if "Приморский край" in з]), 0)
+
+    def test_местное_выше(self):
+        запрос = "фильтр vic c111 автозапчасти артикул"
+        местный = {"название": "VIC C-111 Владивосток", "ссылка": "https://farpost.ru/vladivostok/x", "кратко": "800 ₽"}
+        дальний = {"название": "VIC C-111", "ссылка": "https://www.exist.ru/x", "кратко": "от 450 руб."}
+        self.assertTrue(senses.из_приморья(местный))
+        self.assertFalse(senses.из_приморья(дальний))
+        self.assertGreater(senses.оценить(местный, запрос), senses.оценить(дальний, запрос))
+        self.assertTrue(senses.из_приморья({"название": "Шины", "ссылка": "https://a.ru", "кратко": "самовывоз Уссурийск"}))
+
+    def test_метка_в_ответе_чата(self):
+        from contextlib import contextmanager
+        from mizuyori import agents
+        старое = agents.работа, senses.искать_для_закупки
+
+        @contextmanager
+        def работа(*а, **к):
+            yield {}
+        agents.работа = работа
+        senses.искать_для_закупки = lambda *а, **к: ([{"название": "Фильтр", "ссылка": "https://farpost.ru/vladivostok/x", "кратко": "самовывоз"}], [])
+        try:
+            _, сообщение = senses.найти_для_чата("фильтр vic c111", "снабженец")
+        finally:
+            agents.работа, senses.искать_для_закупки = старое
+        self.assertIn("📍 Приморье", сообщение)
+        self.assertIn("Приоритет — Приморский край", сообщение)
 
 
 ДДГ_КАПЧА = "<html><body>anomaly: please complete the captcha</body></html>"
