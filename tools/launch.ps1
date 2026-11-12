@@ -27,6 +27,18 @@ $env:PIP_DISABLE_PIP_VERSION_CHECK = '1'
 
 function Сообщить([string]$текст) { Write-Host "[Mizuyori] $текст" }
 
+# Автообновление: если папка — клон git, подтягиваем свежую версию (только «быстрая перемотка», без конфликтов).
+# Отключить: задать переменную окружения MIZUYORI_NO_UPDATE=1.
+if (-not $env:MIZUYORI_NO_UPDATE -and (Test-Path -LiteralPath (Join-Path $root '.git')) -and (Get-Command git -ErrorAction SilentlyContinue)) {
+    try {
+        $старое = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
+        $итог = & git -C $root pull --ff-only --quiet 2>&1
+        if ($LASTEXITCODE -eq 0) { Сообщить 'Версия проверена (git pull).' }
+        else { Сообщить 'Автообновление пропущено (есть локальные изменения или нет сети).' }
+        $ErrorActionPreference = $старое
+    } catch { }
+}
+
 function Ошибка([string]$текст) {
     Write-Host ''
     Write-Host "[Mizuyori] ОШИБКА: $текст" -ForegroundColor Red
