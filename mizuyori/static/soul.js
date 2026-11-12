@@ -527,6 +527,7 @@
       к.strokeStyle = цв(0.35 * (1 - ф)); к.lineWidth = 1.5; к.stroke();
     }
 
+    нарисоватьРукава(cx, cy, Rд, е);
     нарисоватьУчёбуВокругЯдра(cx, cy, Rд, е);
     нарисоватьКометы(dt, cx, cy, Rд);
     нарисоватьПодписиЗвёзд(звёзды, е);
@@ -635,15 +636,73 @@
 
   // ---- Звёзды вместо орбит -------------------------------------------------------------------
 
-  // фон: мелкие мерцающие звёзды
-  const фон = Array.from({ length: 110 }, (_, i) => ({ x: (Math.sin(i * 12.9898) * 43758.5453) % 1, y: (Math.sin(i * 78.233) * 12345.6789) % 1,
-    р: 0.4 + ((i * 7) % 10) / 10 * 1.1, ф: i * 0.9 }));
+  // фон: три слоя звёзд с параллаксом, полоса Млечного Пути, туманности, спиральные рукава у ядра, падающие звёзды
+  const сл = (n, k) => Array.from({ length: n }, (_, i) => {
+    const у = Math.sin((i + k * 97) * 12.9898) * 43758.5453, х = Math.sin((i + k * 53) * 78.233) * 12345.6789;
+    return { x: у - Math.floor(у), y: х - Math.floor(х), р: 0.3 + ((i * 7 + k) % 10) / 10, ф: i * 0.9 + k };
+  });
+  const СЛОИ = [{ звёзды: сл(70, 1), скорость: 1.5, яркость: 0.5 }, { звёзды: сл(45, 2), скорость: 4, яркость: 0.75 }, { звёзды: сл(24, 3), скорость: 9, яркость: 1 }];
+  const ПОЛОСА = Array.from({ length: 260 }, (_, i) => {
+    const у = Math.sin(i * 91.7) * 9631.31, х = Math.sin(i * 17.3) * 4321.97, ш_ = Math.sin(i * 5.1) * 777.7;
+    return { t: у - Math.floor(у), ш: (х - Math.floor(х) - 0.5) + (ш_ - Math.floor(ш_) - 0.5), ф: i };
+  });
   function нарисоватьФоновыеЗвёзды() {
-    for (const з of фон) {
-      const x = Math.abs(з.x) * ширина, y = Math.abs(з.y) * высота;
-      к.fillStyle = `rgba(255,255,255,${0.12 + 0.28 * (Math.sin(время * 0.8 + з.ф) + 1) / 2})`;
-      к.beginPath(); к.arc(x, y, з.р, 0, Math.PI * 2); к.fill();
+    // туманности по цветам разделов
+    k_туманность(0.22, 0.28, "#6aa9ff", 0.14);
+    k_туманность(0.2, 0.72, "#3ecf9a", 0.12);
+    k_туманность(0.82, 0.74, "#f5a34b", 0.11);
+    // Млечный Путь: полоса мелких звёзд по диагонали
+    к.save(); к.translate(ширина / 2, высота / 2); к.rotate(-0.42);
+    const длина = Math.hypot(ширина, высота);
+    for (const з of ПОЛОСА) {
+      к.fillStyle = `rgba(200,225,255,${0.05 + 0.22 * (Math.sin(время * 0.7 + з.ф) + 1) / 2 * (1 - Math.abs(з.ш)) * 1.6})`;
+      к.fillRect((з.t - 0.5) * длина, з.ш * высота * 0.2, 1.2, 1.2);
     }
+    к.restore();
+    // три слоя: чем ближе слой, тем быстрее плывёт
+    for (const слой_ of СЛОИ) {
+      const сдвиг = (время * слой_.скорость) % ширина;
+      for (const з of слой_.звёзды) {
+        const x = ((з.x * ширина - сдвиг) % ширина + ширина) % ширина, y = з.y * высота;
+        к.fillStyle = `rgba(255,255,255,${слой_.яркость * (0.15 + 0.3 * (Math.sin(время * 0.9 + з.ф) + 1) / 2)})`;
+        к.beginPath(); к.arc(x, y, з.р * (0.6 + слой_.яркость), 0, Math.PI * 2); к.fill();
+      }
+    }
+    // падающие звёзды
+    if (!безАнимаций()) {
+      падение -= 1 / 60;
+      if (падение <= 0) { падение = 6 + Math.random() * 9; падающие.push({ x: Math.random() * ширина, y: Math.random() * высота * 0.5, t: 0 }); }
+      for (let i = падающие.length - 1; i >= 0; i--) {
+        const п = падающие[i]; п.t += 1 / 60 / 0.9;
+        if (п.t >= 1) { падающие.splice(i, 1); continue; }
+        const x = п.x + п.t * 260, y = п.y + п.t * 120;
+        const г = к.createLinearGradient(x - 70, y - 32, x, y);
+        г.addColorStop(0, "rgba(255,255,255,0)"); г.addColorStop(1, `rgba(255,255,255,${0.85 * (1 - п.t)})`);
+        к.strokeStyle = г; к.lineWidth = 1.6; к.beginPath(); к.moveTo(x - 70, y - 32); к.lineTo(x, y); к.stroke();
+      }
+    }
+  }
+  let падение = 3; const падающие = [];
+  function k_туманность(fx, fy, ц, а) {
+    const x = fx * ширина + Math.sin(время * 0.05 + fx * 9) * 18, y = fy * высота + Math.cos(время * 0.04 + fy * 7) * 14;
+    const р = Math.min(ширина, высота) * 0.42;
+    const г = к.createRadialGradient(x, y, 0, x, y, р);
+    г.addColorStop(0, цв(а, rgb(ц))); г.addColorStop(0.6, цв(а * 0.35, rgb(ц))); г.addColorStop(1, цв(0, rgb(ц)));
+    к.fillStyle = г; к.fillRect(x - р, y - р, р * 2, р * 2);
+  }
+  // спиральные рукава вокруг ядра — как у галактики
+  function нарисоватьРукава(cx, cy, Rд, е) {
+    if (е < 0.3) return;
+    к.globalCompositeOperation = "lighter";
+    for (let рук = 0; рук < 2; рук++) {
+      for (let i = 0; i < 46; i++) {
+        const t = i / 46, угол = время * 0.06 + рук * Math.PI + t * 4.2;
+        const р = Rд * (1.3 + t * 2.6) * е;
+        к.fillStyle = цв((1 - t) * 0.5 * е, цвет);
+        к.beginPath(); к.arc(cx + Math.cos(угол) * р, cy + Math.sin(угол) * р * 0.72, 0.8 + (1 - t) * 1.3, 0, Math.PI * 2); к.fill();
+      }
+    }
+    к.globalCompositeOperation = "source-over";
   }
 
   // сектор неба для каждого раздела (углы: 0 — вправо, по часовой, y вниз)
@@ -681,13 +740,36 @@
         const г = к.createRadialGradient(з.x, з.y, 0, з.x, з.y, размер * 3.2);
         г.addColorStop(0, цв(0.5 * мерц * ярко, rgb(о.цвет))); г.addColorStop(1, цв(0, rgb(о.цвет)));
         к.fillStyle = г; к.beginPath(); к.arc(з.x, з.y, размер * 3.2, 0, Math.PI * 2); к.fill();
+        if (з.i % 3 === 0) {                                       // дифракционные лучи у ярких
+          к.strokeStyle = цв(0.35 * мерц * ярко, rgb(о.цвет)); к.lineWidth = 1;
+          к.beginPath(); к.moveTo(з.x - размер * 3.2, з.y); к.lineTo(з.x + размер * 3.2, з.y); к.moveTo(з.x, з.y - размер * 3.2); к.lineTo(з.x, з.y + размер * 3.2); к.stroke();
+        }
+        if (мышь && Math.hypot(мышь.x - з.x, мышь.y - з.y) < 16) {
+          к.strokeStyle = цв(0.9, rgb(о.цвет)); к.lineWidth = 1.4; к.beginPath(); к.arc(з.x, з.y, размер + 7, 0, Math.PI * 2); к.stroke();
+        }
         искра4(з.x, з.y, размер * (0.9 + 0.15 * мерц), "#ffffff", 0.95 * ярко);
         искра4(з.x, з.y, размер * 0.7, о.цвет, 0.9 * ярко);
       }
     }
   }
+  const НАЗВАНИЯ_СОЗВЕЗДИЙ = { черты: "Созвездие черт", ценности: "Созвездие ценностей", границы: "Созвездие границ" };
   function нарисоватьПодписиЗвёзд(звёзды, е) {
     видимыеСлова = [];
+    // название созвездия: над центром его звёзд, с векторным значком и числом звёзд
+    for (const о of ОРБИТЫ) {
+      const свои = звёзды.filter((з) => з.раздел === о.раздел);
+      if (!свои.length) continue;
+      const mx = свои.reduce((c, з) => c + з.x, 0) / свои.length, my = свои.reduce((c, з) => c + з.y, 0) / свои.length;
+      const вынос = Math.hypot(mx - ширина / 2, my - высота / 2) || 1;
+      const x = Math.max(70, Math.min(ширина - 70, mx + (mx - ширина / 2) / вынос * 100)), y = Math.max(24, Math.min(высота - 24, my + (my - высота / 2) / вынос * 100));
+      const ярко = (подсвечено ? (подсвечено === о.раздел ? 1 : 0.35) : 0.85) * е;
+      к.font = "700 10.5px ui-monospace, Consolas, monospace"; к.textAlign = "center"; к.textBaseline = "middle";
+      к.fillStyle = цв(ярко, rgb(о.цвет));
+      к.fillText(`${НАЗВАНИЯ_СОЗВЕЗДИЙ[о.раздел].toUpperCase()} · ${свои.length}`, x + 9, y);
+      к.save(); к.translate(x - к.measureText(`${НАЗВАНИЯ_СОЗВЕЗДИЙ[о.раздел].toUpperCase()} · ${свои.length}`).width / 2 - 8, y - 7);
+      к.scale(14 / 24, 14 / 24); к.lineWidth = 2.2; к.lineCap = "round"; к.lineJoin = "round"; к.strokeStyle = цв(ярко, rgb(о.цвет));
+      к.stroke(new Path2D(ПУТИ[ПОДПИСИ[о.раздел]] || "")); к.restore();
+    }
     к.font = "500 11px system-ui, 'Segoe UI', sans-serif"; к.textAlign = "center"; к.textBaseline = "top";
     for (const з of звёзды) {
       const ярко = (подсвечено ? (подсвечено === з.раздел ? 1 : 0.3) : 1) * е;
@@ -757,7 +839,7 @@
   function подсказкаСлова() {
     if (!мышь || узлыВажного.some((у) => у.над)) return;
     const в = [...видимыеСлова].reverse().find((с) => Math.abs(мышь.x - с.x) < с.ш / 2 && Math.abs(мышь.y - с.y) < с.в / 2);
-    if (!в || в.с.полный === в.с.текст) return;
+    if (!в) return;
     к.font = `600 13px system-ui, "Segoe UI", sans-serif`;
     const ш = Math.min(ширина - 16, к.measureText(в.с.полный).width + 24);
     const x = Math.max(8, Math.min(ширина - ш - 8, в.x - ш / 2)), y = в.y - 36;
@@ -766,5 +848,7 @@
     к.strokeStyle = цв(0.9, rgb(в.с.о.цвет)); к.stroke();
     к.fillStyle = "#fff"; к.textAlign = "center"; к.textBaseline = "middle";
     к.fillText(в.с.полный, x + ш / 2, y + 13.5);
+    к.font = "500 10px ui-monospace, Consolas, monospace"; к.fillStyle = цв(0.9, rgb(в.с.о.цвет));
+    к.fillText(ПОДПИСИ[в.с.раздел].toUpperCase(), x + ш / 2, y - 7);
   }
 }

@@ -2569,3 +2569,9 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .учёба-легенда { display: flex; gap: .9rem; font-size: .72rem; margin: .2rem 0 .6rem; }
 .учёба-легенда span::before { content: ""; display: inline-block; width: .55rem; height: .55rem; border-radius: 2px; margin-right: .3rem; background: currentColor; }
 .л-душа { color: #f5c451; } .л-приём { color: #3ecf9a; } .л-ошибка { color: #f5a34b; }
+
+.подсказка-уровень { display: flex; align-items: center; gap: .4rem; font-size: .75rem; margin: .25rem 0; }
+.подсказка-уровень i { flex: 1; height: 5px; border-radius: 3px; background: rgba(255,255,255,.12); overflow: hidden; }
+.подсказка-уровень u { display: block; height: 100%; background: var(--акцент, #3ecf9a); border-radius: 3px; text-decoration: none; }
+.подсказка-неделя { display: flex; align-items: flex-end; gap: 3px; height: 24px; margin: .2rem 0; }
+.подсказка-неделя i { width: 9px; background: var(--акцент, #3ecf9a); opacity: .55; border-radius: 2px 2px 0 0; }
