@@ -2229,3 +2229,10 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .анализ-таблица { display: grid; gap: .5rem; }
 .анализ-вид { flex: none; min-height: 2.5rem; overflow: visible; }
 .работа-содержимое > * { flex-shrink: 0; }
+
+/* Активность агента за неделю */
+.агент-неделя { display: inline-flex; align-items: flex-end; gap: 2px; height: 14px; flex: none; }
+.агент-неделя i { display: block; width: 3px; border-radius: 1px; background: color-mix(in srgb, var(--акцент) 45%, transparent); transition: height .4s ease; }
+.агент-неделя i.сегодня { background: var(--акцент); }
+.агент-уровень .агент-неделя { height: 18px; } .агент-уровень .агент-неделя i { width: 4px; }
+.агент-строка-имени { display: flex; align-items: center; justify-content: space-between; gap: .4rem; min-width: 0; }

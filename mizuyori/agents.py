@@ -14,7 +14,7 @@ import logging
 import threading
 import time
 from contextlib import contextmanager
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 журнал = logging.getLogger("mizuyori.агенты")
 
@@ -236,6 +236,8 @@ def сводка() -> dict:
         начато = dict(_начато)
     сегодня = date.today().isoformat()
     стат: dict[str, dict] = {}
+    неделя: dict[str, list[int]] = {}
+    письма: list[dict] = []
     заметок: dict[str, int] = {}
     записок: dict[str, int] = {}
     if _база:
@@ -244,6 +246,15 @@ def сводка() -> dict:
                     "SELECT агент, COUNT(*), SUM(польза), SUM(CASE WHEN создано >= ? THEN 1 ELSE 0 END), "
                     "MAX(id) FROM агент_история GROUP BY агент", (сегодня,)).fetchall():
                 стат[с[0]] = {"всего": с[1], "опыт": с[2] or 0, "сегодня": с[3] or 0, "последний_id": с[4]}
+            дни = [(date.today() - timedelta(days=6 - i)).isoformat() for i in range(7)]
+            for агент_, день, н in связь.execute(
+                    "SELECT агент, substr(создано, 1, 10), COUNT(*) FROM агент_история WHERE создано >= ? GROUP BY 1, 2",
+                    (дни[0],)).fetchall():
+                неделя.setdefault(агент_, [0] * 7)
+                if день in дни:
+                    неделя[агент_][дни.index(день)] = н
+            письма = [dict(с) for с in связь.execute(
+                "SELECT id, от, кому, текст FROM доска ORDER BY id DESC LIMIT 6").fetchall()]
             for с in связь.execute("SELECT агент, COUNT(*) FROM агент_заметки GROUP BY агент").fetchall():
                 заметок[с[0]] = с[1]
             for с in связь.execute("SELECT кому, COUNT(*) FROM доска WHERE прочитано = 0 GROUP BY кому").fetchall():
@@ -270,9 +281,11 @@ def сводка() -> dict:
                      "последний": п.get("создано", ""), "секунд": п.get("секунд"),
                      "последнее_действие": п.get("действие", ""), "последний_результат": п.get("результат", ""),
                      "ошибка": п.get("результат", "")[8:] if п and not п.get("успех") else "",
+                     "неделя": неделя.get(а["ключ"], [0] * 7),
                      "заметок": заметок.get(а["ключ"], 0), "записок": записок.get(а["ключ"], 0)})
     return {"агенты": итог,
             "работают": sum(1 for а in итог if а["работает"]),
             "сегодня": sum(а["сегодня"] for а in итог),
             "записок": sum(записок.values()),
+            "письма": письма,
             "время": datetime.now().isoformat(timespec="seconds")}
