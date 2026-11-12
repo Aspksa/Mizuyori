@@ -438,10 +438,9 @@
       $("выбран-день-текст").textContent = `Задачи на ${длиннаяДата(выбранныйДень)}`;
       $("задача-срок").value = выбранныйДень;
       открытьВкладку("задачи");
-      // На узком экране «Дела» ниже календаря — прокручиваем к ним
-      if (matchMedia("(max-width: 64rem)").matches) {
-        $("дела-задачи").closest(".дела").scrollIntoView({ behavior: безАнимаций() ? "auto" : "smooth", block: "start" });
-      }
+      // Клик по дню в календаре на главной — переходим к делам этого дня
+      document.dispatchEvent(new CustomEvent("mizuyori:вид-дел", { detail: "список" }));
+      if (location.hash !== "#дела" && decodeURIComponent(location.hash) !== "#дела") location.hash = "#дела";
     } else {
       $("задача-срок").value = "";
     }
@@ -670,28 +669,9 @@
     }
   });
 
-  // ---- Развернуть «Дела» на всю главную ----
-
-  function развернуть(да) {
-    const главная = document.querySelector("main.главная");
-    главная.classList.toggle("дела-развёрнуты", да);
-    const кнопка = $("дела-развернуть");
-    кнопка.setAttribute("aria-pressed", String(да));
-    кнопка.title = да ? "Свернуть" : "Развернуть";
-    кнопка.setAttribute("aria-label", да ? "Свернуть дела" : "Развернуть дела");
-    запомнить("дела.развёрнуты", да);
-  }
-  $("дела-развернуть").addEventListener("click", () =>
-    развернуть(!document.querySelector("main.главная").classList.contains("дела-развёрнуты")));
-  // Esc — свернуть обратно (если не открыто окно и не идёт правка)
-  document.addEventListener("keydown", (событие) => {
-    if (событие.key !== "Escape" || правка !== null) return;
-    if (!document.querySelector("main.главная").classList.contains("дела-развёрнуты")) return;
-    if (!$("окно-настроек").hidden || !$("окно-списков").hidden) return;
-    if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) return;
-    развернуть(false);
-  });
-  if (вспомнить("дела.развёрнуты", false)) развернуть(true);
+  // ---- Обновить по просьбе других экранов (доска, неделя, цели) ----
+  document.addEventListener("mizuyori:обновить-задачи", () => загрузитьЗадачи());
+  document.addEventListener("mizuyori:экран", (с) => { if (с.detail === "дела") загрузитьЗадачи(); });
 
   // ---- Переход из «Мозгов»: открыть задачу, заметку или чат ----
 
@@ -714,7 +694,6 @@
       const заметка = заметки.find((з) => з.id === ид);
       if (заметка) открытьРедактор(заметка);
     } else {
-      развернуть(false);   // чат спрятан, пока «Дела» развёрнуты
       $("чат-поле").focus();
     }
   });

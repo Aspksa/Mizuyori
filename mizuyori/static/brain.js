@@ -1742,7 +1742,7 @@
       return;
     }
     const тип = выбран.тип === "задача" ? "задача" : выбран.тип === "заметка" ? "заметка" : "чат";
-    location.hash = "#главная";
+    location.hash = тип === "чат" ? "#главная" : "#дела";
     document.dispatchEvent(new CustomEvent("mizuyori:открыть", { detail: { тип, ид: выбран.ид } }));
   });
 

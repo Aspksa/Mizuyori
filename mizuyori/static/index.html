@@ -21,6 +21,10 @@
       <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg>
       <span>Главная</span>
     </a>
+    <a href="#дела" data-экран="дела">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></svg>
+      <span>Дела</span>
+    </a>
     <a href="#мозги" data-экран="мозги">
       <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.5"/><circle cx="5" cy="6" r="1.6"/><circle cx="19" cy="6" r="1.6"/><circle cx="5" cy="18" r="1.6"/><circle cx="19" cy="18" r="1.6"/><path d="M6.3 7l3.7 3.4M17.7 7L14 10.4M6.3 17l3.7-3.4M17.7 17L14 13.6"/></svg>
       <span>Мозги</span>
@@ -73,75 +77,152 @@
     </form>
   </section>
 
-  <!-- Справа: Дела — задачи и заметки -->
-  <aside class="панель дела" aria-label="Дела">
-    <div class="панель-шапка">
-      <h2>Дела</h2>
+</main>
+
+<!-- Экран «Дела»: список, доска, неделя, цели -->
+<section class="экран-дел" id="экран-дела" aria-label="Дела" hidden>
+  <div class="дела-шапка">
+    <h1>Дела</h1>
+    <div class="прогресс-дня" id="прогресс-дня" title="Сделано сегодня">
+      <svg viewBox="0 0 36 36" aria-hidden="true"><circle class="фон-кольца" cx="18" cy="18" r="15"/><circle class="кольцо" id="прогресс-кольцо" cx="18" cy="18" r="15"/></svg>
+      <span id="прогресс-текст"></span>
+    </div>
+    <span class="растяжка"></span>
+    <div class="виды" id="виды-дел" role="tablist" aria-label="Вид">
+      <button type="button" role="tab" data-вид="список">☰ Список</button>
+      <button type="button" role="tab" data-вид="доска">▥ Доска</button>
+      <button type="button" role="tab" data-вид="неделя">▦ Неделя</button>
+      <button type="button" role="tab" data-вид="цели">🎯 Цели</button>
+      <button type="button" role="tab" data-вид="заметки">✎ Заметки</button>
+    </div>
+  </div>
+
+  <div class="дела-вид" id="вид-список">
+    <aside class="панель дела" aria-label="Дела">
+      <div class="панель-шапка">
+        <h2>Дела</h2>
+      </div>
+      <div class="вкладки" role="tablist">
+        <button type="button" role="tab" id="вкладка-задачи" aria-controls="дела-задачи" aria-selected="true">Задачи <span class="счёт" id="счёт-задач"></span></button>
+        <button type="button" role="tab" id="вкладка-заметки" aria-controls="дела-заметки" aria-selected="false">Заметки <span class="счёт" id="счёт-заметок"></span></button>
+      </div>
+
+      <div class="дела-раздел" id="дела-задачи" role="tabpanel" aria-labelledby="вкладка-задачи">
+        <div class="фильтры">
+          <div class="фишки" id="фильтры-списков" role="radiogroup" aria-label="Список задач"></div>
+          <button class="кнопка-значок малая" id="открыть-списки" type="button" aria-label="Настроить списки" title="Настроить списки">
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10M4 12h7M4 18h10M17 15l2 2 3-4"/><circle cx="18" cy="6" r="2"/></svg>
+          </button>
+        </div>
+
+        <div class="выбран-день" id="выбран-день" hidden>
+          <span id="выбран-день-текст"></span>
+          <button class="кнопка-значок малая" id="сбросить-день" type="button" aria-label="Показать все дни" title="Показать все дни">
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </div>
+
+        <form class="добавление" id="задача-форма">
+          <div class="строка-ввода">
+            <input id="задача-поле" type="text" maxlength="2000" placeholder="Новая задача…" autocomplete="off" aria-label="Новая задача">
+            <button class="кнопка главная" type="submit">Добавить</button>
+          </div>
+          <div class="строка-опций">
+            <input id="задача-срок" type="date" aria-label="Срок">
+            <select id="задача-список" aria-label="Список"></select>
+          </div>
+        </form>
+
+        <div class="группы" id="группы-задач"></div>
+        <p class="пустой-список" id="задач-нет" hidden></p>
+        <div class="дела-низ" id="задачи-низ" hidden>
+          <span id="задач-осталось"></span>
+          <button class="ссылка" id="привязать-цели" type="button" title="ИИ разложит задачи по вашим целям">🎯 К целям</button>
+          <button class="ссылка" id="убрать-выполненные" type="button">Убрать выполненные</button>
+        </div>
+      </div>
+
+      <div class="дела-раздел" id="дела-заметки" role="tabpanel" aria-labelledby="вкладка-заметки" hidden>
+        <div id="заметки-список-вид">
+          <button class="кнопка второстепенная во-всю" id="новая-заметка" type="button">+ Новая заметка</button>
+          <ul class="список заметки" id="список-заметок"></ul>
+          <p class="пустой-список" id="заметок-нет" hidden>Заметок нет</p>
+        </div>
+        <form class="редактор" id="заметка-редактор" hidden>
+          <textarea id="заметка-поле" maxlength="20000" placeholder="Текст заметки. Первая строка — заголовок." aria-label="Текст заметки"></textarea>
+          <div class="редактор-кнопки">
+            <button class="кнопка второстепенная опасная" id="заметка-удалить" type="button">Удалить</button>
+            <span class="растяжка"></span>
+            <button class="кнопка второстепенная" id="заметка-отмена" type="button">Отмена</button>
+            <button class="кнопка главная" type="submit">Сохранить</button>
+          </div>
+        </form>
+      </div>
+      <p class="ошибка-дел" id="дела-ошибка" hidden></p>
+    </aside>
+  </div>
+
+  <div class="дела-вид" id="вид-доска" hidden>
+    <div class="фишки-видов" id="доска-фильтры"></div>
+    <div class="доска" id="доска"></div>
+  </div>
+
+  <div class="дела-вид" id="вид-неделя" hidden>
+    <div class="неделя-шапка">
+      <div class="фишки-видов" id="неделя-фильтры"></div>
       <span class="растяжка"></span>
-      <button class="кнопка-значок малая" id="дела-развернуть" type="button" aria-label="Развернуть дела" aria-pressed="false" title="Развернуть">
-        <svg class="значок-развернуть" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
-        <svg class="значок-свернуть" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/></svg>
+      <button class="кнопка-значок малая" id="неделя-назад" type="button" aria-label="Предыдущая неделя">
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+      </button>
+      <button class="кнопка второстепенная малая" id="неделя-сегодня" type="button">Эта неделя</button>
+      <span class="неделя-даты" id="неделя-даты"></span>
+      <button class="кнопка-значок малая" id="неделя-вперёд" type="button" aria-label="Следующая неделя">
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
       </button>
     </div>
-    <div class="вкладки" role="tablist">
-      <button type="button" role="tab" id="вкладка-задачи" aria-controls="дела-задачи" aria-selected="true">Задачи <span class="счёт" id="счёт-задач"></span></button>
-      <button type="button" role="tab" id="вкладка-заметки" aria-controls="дела-заметки" aria-selected="false">Заметки <span class="счёт" id="счёт-заметок"></span></button>
+    <div class="неделя" id="неделя"></div>
+  </div>
+
+  <div class="дела-вид" id="вид-цели" hidden>
+    <div class="цели-сетка" id="цели-сетка"></div>
+  </div>
+</section>
+
+<!-- Окно правки задачи (доска, неделя, цели) -->
+<div class="затемнение" id="окно-задачи" hidden>
+  <form class="окно узкое" id="форма-задачи" role="dialog" aria-modal="true" aria-labelledby="заголовок-задачи">
+    <div class="окно-шапка">
+      <h2 id="заголовок-задачи">Задача</h2>
+      <button class="кнопка-значок" id="закрыть-задачу" type="button" aria-label="Закрыть">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
     </div>
-
-    <div class="дела-раздел" id="дела-задачи" role="tabpanel" aria-labelledby="вкладка-задачи">
-      <div class="фильтры">
-        <div class="фишки" id="фильтры-списков" role="radiogroup" aria-label="Список задач"></div>
-        <button class="кнопка-значок малая" id="открыть-списки" type="button" aria-label="Настроить списки" title="Настроить списки">
-          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10M4 12h7M4 18h10M17 15l2 2 3-4"/><circle cx="18" cy="6" r="2"/></svg>
-        </button>
-      </div>
-
-      <div class="выбран-день" id="выбран-день" hidden>
-        <span id="выбран-день-текст"></span>
-        <button class="кнопка-значок малая" id="сбросить-день" type="button" aria-label="Показать все дни" title="Показать все дни">
-          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
-        </button>
-      </div>
-
-      <form class="добавление" id="задача-форма">
-        <div class="строка-ввода">
-          <input id="задача-поле" type="text" maxlength="2000" placeholder="Новая задача…" autocomplete="off" aria-label="Новая задача">
-          <button class="кнопка главная" type="submit">Добавить</button>
+    <div class="окно-тело поля-задачи">
+      <textarea id="задача-текст-окна" rows="2" maxlength="2000" aria-label="Текст задачи"></textarea>
+      <label class="поле-название" for="задача-срок-окна">Срок</label>
+      <div class="строка-опций">
+        <input id="задача-срок-окна" type="date">
+        <div class="быстрые-сроки" id="быстрые-сроки">
+          <button type="button" class="фишка" data-дней="0">Сегодня</button>
+          <button type="button" class="фишка" data-дней="1">Завтра</button>
+          <button type="button" class="фишка" data-дней="выходные">Выходные</button>
+          <button type="button" class="фишка" data-дней="">Без срока</button>
         </div>
-        <div class="строка-опций">
-          <input id="задача-срок" type="date" aria-label="Срок">
-          <select id="задача-список" aria-label="Список"></select>
-        </div>
-      </form>
-
-      <div class="группы" id="группы-задач"></div>
-      <p class="пустой-список" id="задач-нет" hidden></p>
-      <div class="дела-низ" id="задачи-низ" hidden>
-        <span id="задач-осталось"></span>
-        <button class="ссылка" id="привязать-цели" type="button" title="ИИ разложит задачи по вашим целям">🎯 К целям</button>
-        <button class="ссылка" id="убрать-выполненные" type="button">Убрать выполненные</button>
       </div>
+      <label class="поле-название" for="задача-список-окна">Список</label>
+      <select id="задача-список-окна"></select>
+      <label class="поле-название" for="задача-цель-окна">Цель</label>
+      <select id="задача-цель-окна"></select>
+      <label class="флажок-строка"><input type="checkbox" id="задача-готово-окна"> Выполнена</label>
     </div>
-
-    <div class="дела-раздел" id="дела-заметки" role="tabpanel" aria-labelledby="вкладка-заметки" hidden>
-      <div id="заметки-список-вид">
-        <button class="кнопка второстепенная во-всю" id="новая-заметка" type="button">+ Новая заметка</button>
-        <ul class="список заметки" id="список-заметок"></ul>
-        <p class="пустой-список" id="заметок-нет" hidden>Заметок нет</p>
-      </div>
-      <form class="редактор" id="заметка-редактор" hidden>
-        <textarea id="заметка-поле" maxlength="20000" placeholder="Текст заметки. Первая строка — заголовок." aria-label="Текст заметки"></textarea>
-        <div class="редактор-кнопки">
-          <button class="кнопка второстепенная опасная" id="заметка-удалить" type="button">Удалить</button>
-          <span class="растяжка"></span>
-          <button class="кнопка второстепенная" id="заметка-отмена" type="button">Отмена</button>
-          <button class="кнопка главная" type="submit">Сохранить</button>
-        </div>
-      </form>
+    <div class="окно-низ">
+      <button class="кнопка второстепенная опасная" id="удалить-задачу-окна" type="button">Удалить</button>
+      <span class="растяжка"></span>
+      <button class="кнопка второстепенная" id="отмена-задачи" type="button">Отмена</button>
+      <button class="кнопка главная" type="submit">Сохранить</button>
     </div>
-    <p class="ошибка-дел" id="дела-ошибка" hidden></p>
-  </aside>
-</main>
+  </form>
+</div>
 
 <!-- Экран «Мозги»: всё, что знает Mizuyori, в виде живого графа -->
 <section class="мозги" id="экран-мозги" aria-label="Мозги" hidden>
@@ -394,6 +475,7 @@
 <script src="/static/clock.js" charset="utf-8"></script>
 <script src="/static/chat.js" charset="utf-8"></script>
 <script src="/static/tasks.js" charset="utf-8"></script>
+<script src="/static/deals.js" charset="utf-8"></script>
 <script src="/static/brain.js" charset="utf-8"></script>
 <script src="/static/ai-settings.js" charset="utf-8"></script>
 </body>

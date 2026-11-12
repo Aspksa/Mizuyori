@@ -178,8 +178,8 @@ main.главная {
   flex: 1;
   min-height: 0;
   display: grid;
-  /* «Дела» шире: часы и календарь — уже, чат — гибкий */
-  grid-template-columns: minmax(14rem, 16.5rem) minmax(0, 1fr) minmax(22rem, 30rem);
+  /* Главная: слева часы и календарь, справа чат («Дела» — отдельный экран) */
+  grid-template-columns: minmax(15rem, 18rem) minmax(0, 1fr);
   gap: calc(1rem * var(--п));
   padding: calc(1rem * var(--п));
 }
@@ -638,7 +638,6 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
   main.главная { grid-template-columns: minmax(15rem, 17rem) minmax(0, 1fr); }
   .колонка { min-width: 0; }
   .чат { min-height: 32rem; }
-  .дела { grid-column: 1 / -1; min-height: 24rem; }
 }
 @media (max-width: 44rem) {
   main.главная { grid-template-columns: minmax(0, 1fr); }
@@ -1182,24 +1181,56 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .упоминание { color: var(--тихий); font-size: .82rem; }
 .карточка-узла .ссылка { color: var(--акцент); }
 
-/* ---- Дела: развёрнуты на всю главную -------------------------------------- */
-#дела-развернуть .значок-свернуть { display: none; }
-#дела-развернуть[aria-pressed="true"] .значок-развернуть { display: none; }
-#дела-развернуть[aria-pressed="true"] .значок-свернуть { display: block; }
+/* =====================================================================
+   ЭКРАН «ДЕЛА»
+   ===================================================================== */
 
-main.главная.дела-развёрнуты { grid-template-columns: minmax(0, 1fr); }
-main.главная.дела-развёрнуты > .колонка,
-main.главная.дела-развёрнуты > .чат { display: none; }
-main.главная.дела-развёрнуты > .дела { grid-column: 1 / -1; animation: развернуть .25s ease-out; }
-@keyframes развернуть { from { opacity: .4; transform: scale(.985); } }
+.экран-дел {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(.8rem * var(--п));
+  padding: calc(1rem * var(--п));
+}
+.экран-дел[hidden] { display: none; }
+@media (max-width: 64rem) { .экран-дел { flex: none; min-height: calc(100dvh - 3.8rem); } }
 
-/* в развёрнутом виде группы задач — карточками в несколько колонок */
-.дела-развёрнуты .дела .вкладки,
-.дела-развёрнуты .дела .фильтры,
-.дела-развёрнуты .дела .выбран-день,
-.дела-развёрнуты .дела .добавление { max-width: 56rem; width: 100%; }
-.дела-развёрнуты .дела .вкладки { margin-left: calc(.75rem * var(--п)); }
-.дела-развёрнуты .группы {
+.дела-шапка { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.дела-шапка h1 { margin: 0; font-size: 1.6rem; font-weight: 700; }
+.прогресс-дня { display: flex; align-items: center; gap: .5rem; color: var(--тихий); font-size: .9rem; }
+.прогресс-дня svg { width: 2.2rem; height: 2.2rem; transform: rotate(-90deg); }
+.фон-кольца { fill: none; stroke: var(--рамка); stroke-width: 4; }
+.кольцо { fill: none; stroke: var(--акцент); stroke-width: 4; stroke-linecap: round; transition: stroke-dasharray .6s ease; }
+.прогресс-дня.всё { color: var(--акцент); font-weight: 600; }
+.прогресс-дня.всё svg { animation: пульс-кольца 1.6s ease-in-out 2; }
+@keyframes пульс-кольца { 50% { transform: rotate(-90deg) scale(1.15); } }
+
+.виды {
+  display: flex; gap: .2rem; padding: .2rem;
+  border: 1px solid var(--рамка); border-radius: calc(var(--радиус) * .8); background: var(--панель);
+  overflow-x: auto; scrollbar-width: none;
+}
+.виды::-webkit-scrollbar { display: none; }
+.виды button {
+  flex: none; padding: calc(.4rem * var(--п)) .85rem; border: 0; border-radius: calc(var(--радиус) * .6);
+  background: transparent; color: var(--тихий); font: inherit; font-size: .9rem; cursor: pointer; white-space: nowrap;
+}
+.виды button:hover { color: var(--текст); }
+.виды button[aria-selected="true"] { background: var(--акцент); color: var(--на-акценте); font-weight: 600; }
+
+.дела-вид { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: calc(.7rem * var(--п)); }
+.дела-вид[hidden] { display: none; }
+
+/* ---- Список: прежняя панель, но просторно ---------------------------------- */
+#вид-список > .дела { flex: 1; min-height: 0; }
+#вид-список .дела > .панель-шапка,
+#вид-список .дела > .вкладки { display: none; }
+#вид-список .дела-раздел { padding-top: calc(1rem * var(--п)); }
+#вид-список .фильтры,
+#вид-список .выбран-день,
+#вид-список .добавление { max-width: 56rem; width: 100%; }
+#вид-список .группы {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
   align-content: start;
@@ -1207,14 +1238,183 @@ main.главная.дела-развёрнуты > .дела { grid-column: 1 /
   margin: 0;
   padding: .1rem;
 }
-.дела-развёрнуты .группа {
+#вид-список .группа {
   margin: 0;
   padding: calc(.6rem * var(--п)) calc(.75rem * var(--п));
   border: 1px solid var(--рамка);
   border-radius: var(--радиус);
   background: var(--фон-итог);
 }
-.дела-развёрнуты .группа + .группа { margin-top: 0; }
-.дела-развёрнуты .заметки { display: grid; grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr)); gap: calc(.7rem * var(--п)); }
-.дела-развёрнуты #новая-заметка { max-width: 20rem; }
-.дела-развёрнуты .редактор { max-width: 56rem; }
+#вид-список .группа + .группа { margin-top: 0; }
+#вид-список .заметки { display: grid; grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr)); gap: calc(.7rem * var(--п)); }
+#вид-список #новая-заметка { max-width: 20rem; }
+#вид-список .редактор { max-width: 56rem; }
+
+/* ---- Фильтр списков над доской и неделей ---------------------------------- */
+.фишки-видов { display: flex; gap: .35rem; flex-wrap: wrap; }
+.неделя-шапка { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; }
+.неделя-даты { min-width: 12rem; text-align: center; font-weight: 600; }
+
+/* ---- Колонки доски и недели ------------------------------------------------ */
+.доска, .неделя {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: calc(.75rem * var(--п));
+  overflow-x: auto;
+  padding-bottom: .4rem;
+  align-items: stretch;
+}
+.колонка {
+  flex: 0 0 17.5rem;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--панель);
+  -webkit-backdrop-filter: var(--размытие);
+  backdrop-filter: var(--размытие);
+  border: 1px solid var(--рамка);
+  border-radius: var(--радиус);
+  transition: border-color .15s, background-color .15s, transform .15s;
+}
+.неделя .колонка { flex: 1 0 11.5rem; }
+.колонка.над { border-color: var(--акцент); background: color-mix(in srgb, var(--акцент) 10%, var(--панель-итог)); transform: translateY(-2px); }
+.колонка-шапка {
+  display: flex; align-items: center; gap: .4rem;
+  padding: calc(.65rem * var(--п)) .55rem calc(.5rem * var(--п)) .85rem;
+  border-bottom: 1px solid var(--рамка);
+}
+.колонка-название { font-weight: 700; font-size: .92rem; text-transform: capitalize; }
+.колонка-подпись { color: var(--тихий); font-size: .82rem; }
+.колонка-шапка .счёт { margin-right: auto; background: color-mix(in srgb, var(--текст) 12%, transparent); }
+.колонка-шапка .счёт:empty { display: inline-block; visibility: hidden; }
+.колонка.просроченная .колонка-название { color: #e5534b; }
+.колонка.сегодняшняя { border-color: color-mix(in srgb, var(--акцент) 60%, var(--рамка)); }
+.колонка.сегодняшняя .колонка-название { color: var(--акцент); }
+.колонка.прошедшая { opacity: .7; }
+.колонка.выходная .колонка-название { color: color-mix(in srgb, var(--акцент) 70%, var(--текст)); }
+.колонка.выполненная .карточка-дела { opacity: .75; }
+.колонка-список {
+  flex: 1; min-height: 4rem; overflow-y: auto;
+  display: flex; flex-direction: column; gap: calc(.45rem * var(--п));
+  padding: calc(.6rem * var(--п));
+}
+.колонка-пусто {
+  flex: 1; display: flex; align-items: center; justify-content: center; min-height: 4rem;
+  border: 1.5px dashed var(--рамка); border-radius: calc(var(--радиус) * .7);
+  color: var(--тихий); font-size: .82rem;
+}
+.быстрая-задача { padding: .5rem .6rem 0; }
+.быстрая-задача[hidden] { display: none; }
+.быстрая-задача input { width: 100%; }
+
+/* ---- Карточка задачи на доске ---------------------------------------------- */
+.карточка-дела {
+  position: relative;
+  display: flex; align-items: flex-start; gap: .55rem;
+  padding: calc(.6rem * var(--п)) .65rem calc(.6rem * var(--п)) .8rem;
+  border: 1px solid var(--рамка);
+  border-radius: calc(var(--радиус) * .75);
+  background: var(--фон-итог);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .15);
+  cursor: grab;
+  transition: transform .15s, box-shadow .15s, border-color .15s, opacity .2s;
+}
+.карточка-дела::before {
+  content: ""; position: absolute; left: 0; top: .5rem; bottom: .5rem; width: 3px; border-radius: 2px;
+  background: var(--цвет-списка, transparent);
+}
+.карточка-дела:hover { transform: translateY(-2px); box-shadow: 0 .5rem 1.2rem rgba(0, 0, 0, .28); border-color: color-mix(in srgb, var(--акцент) 40%, var(--рамка)); }
+.карточка-дела:active { cursor: grabbing; }
+.карточка-дела.тащат { opacity: .35; transform: rotate(-2deg); }
+.тело-карточки { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .2rem; }
+.тело-карточки .мета { font-size: .76rem; }
+.карточка-дела.выполняется { animation: уезжает .45s ease-in forwards; animation-delay: .25s; }
+@keyframes уезжает { to { opacity: 0; transform: translateX(1.5rem) scale(.96); } }
+
+/* ---- Цели ------------------------------------------------------------------ */
+.цели-сетка {
+  flex: 1; min-height: 0; overflow-y: auto;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+  align-content: start; gap: calc(1rem * var(--п)); padding: .1rem;
+}
+.цели-подсказка {
+  grid-column: 1 / -1;
+  display: flex; align-items: center; gap: .8rem; flex-wrap: wrap;
+  color: var(--тихий); font-size: .9rem;
+}
+.карточка-цели {
+  display: flex; flex-direction: column; gap: calc(.7rem * var(--п));
+  padding: calc(1rem * var(--п));
+  background: var(--панель);
+  -webkit-backdrop-filter: var(--размытие);
+  backdrop-filter: var(--размытие);
+  border: 1px solid var(--рамка);
+  border-radius: var(--радиус);
+  transition: transform .15s, box-shadow .15s;
+}
+.карточка-цели:hover { transform: translateY(-2px); box-shadow: 0 .6rem 1.6rem rgba(0, 0, 0, .25); }
+.карточка-цели.достигнута { border-color: color-mix(in srgb, var(--акцент) 55%, var(--рамка)); }
+.карточка-цели.отменена { opacity: .55; }
+.цель-шапка { display: flex; gap: .8rem; align-items: flex-start; }
+.цель-заголовок { flex: 1; min-width: 0; }
+.цель-заголовок h3 { margin: 0; font-size: 1.1rem; color: var(--заголовок); overflow-wrap: anywhere; }
+.цель-зачем { margin: .25rem 0 0; color: var(--тихий); font-size: .88rem; }
+.статус-цели {
+  display: inline-block; margin-top: .4rem; padding: .05rem .5rem;
+  border: 1px solid var(--рамка); border-radius: 1rem; font-size: .74rem; color: var(--тихий);
+}
+.достигнута .статус-цели { color: var(--акцент); border-color: var(--акцент); }
+.прогресс-цели { position: relative; flex: none; width: 4rem; height: 4rem; }
+.кольцо-цели { width: 100%; height: 100%; transform: rotate(-90deg); }
+.кольцо-цели .фон-кольца, .кольцо-цели .кольцо { stroke-width: 6; }
+.прогресс-цели span {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font: 600 .85rem ui-monospace, Consolas, monospace;
+}
+.шаги { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .15rem; }
+.шаги li { display: flex; align-items: flex-start; gap: .5rem; padding: .25rem 0; }
+.шаги li .флажок-задачи { margin-top: .1rem; }
+.текст-шага {
+  flex: 1; min-width: 0; display: flex; justify-content: space-between; gap: .5rem;
+  padding: 0; border: 0; background: none; color: var(--текст); font: inherit; text-align: left; cursor: pointer;
+}
+.текст-шага:hover .текст-задачи { color: var(--акцент); }
+.шаги li.готово .текст-задачи { background-size: 100% 1.5px; color: var(--тихий); }
+.срок-шага { flex: none; color: var(--тихий); font-size: .78rem; }
+.пусто-шагов { color: var(--тихий); font-size: .88rem; }
+.новый-шаг input { width: 100%; }
+.цель-кнопки { display: flex; justify-content: space-between; gap: .5rem; margin-top: auto; }
+.ссылка.тихая { color: var(--тихий); }
+.ссылка.тихая:hover { color: #e5534b; }
+.новая-цель { border-style: dashed; }
+.новая-цель h3 { margin: 0; color: var(--тихий); font-size: 1.05rem; }
+.новая-цель input { width: 100%; }
+
+/* ---- Окно правки задачи ---------------------------------------------------- */
+.поля-задачи { display: flex; flex-direction: column; gap: .45rem; }
+.поля-задачи .поле-название { margin: .4rem 0 0; }
+.поля-задачи textarea { resize: vertical; min-height: 3.2rem; font-size: 1.02rem; }
+.поля-задачи select { width: 100%; padding: calc(.45rem * var(--п) + .05rem) .6rem; font-size: .92rem; }
+.поля-задачи .строка-опций { flex-wrap: wrap; align-items: center; }
+.поля-задачи .строка-опций input[type=date] { flex: 0 0 auto; }
+.быстрые-сроки { display: flex; gap: .3rem; flex-wrap: wrap; }
+.поля-задачи .флажок-строка { margin-top: .6rem; }
+
+/* ---- Всплывающее сообщение -------------------------------------------------- */
+.тост {
+  position: fixed; left: 50%; bottom: 1.5rem; z-index: 200;
+  transform: translate(-50%, 1rem); opacity: 0; pointer-events: none;
+  padding: .6rem 1rem; border-radius: calc(var(--радиус) * .8);
+  background: var(--текст); color: var(--фон); font-size: .9rem; box-shadow: 0 .5rem 1.5rem rgba(0, 0, 0, .35);
+  transition: opacity .2s, transform .2s;
+}
+.тост.виден { opacity: 1; transform: translate(-50%, 0); }
+
+@media (max-width: 44rem) {
+  .колонка { flex-basis: 85vw; }
+  .неделя .колонка { flex: 0 0 75vw; }
+  .дела-шапка h1 { font-size: 1.3rem; }
+  .цели-сетка { grid-template-columns: 1fr; }
+  #вид-список .группы { grid-template-columns: 1fr; }
+}
