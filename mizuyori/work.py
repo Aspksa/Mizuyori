@@ -1874,6 +1874,8 @@ def подключить(app, база) -> None:
 
     @app.put("/api/work/timesheet")
     def отметить_день(о: Отметка):
+        from . import overseer
+        overseer.правка_табеля(о.сотрудник_id, о.день, о.код)
         _ошибка(отметить, база, о.сотрудник_id, о.день, о.код, о.часы)
         return {"ок": True}
 
@@ -1905,10 +1907,16 @@ def подключить(app, база) -> None:
 
     @app.patch("/api/work/{entity}/{item_id}")
     def изменить_запись(entity: str, item_id: int, данные: dict):
+        if entity in ("записки", "notes", "memos"):
+            from . import overseer
+            overseer.правка_записки(item_id, данные)
         return _ошибка(изменить, база, _вид(entity), item_id, данные)
 
     @app.delete("/api/work/{entity}/{item_id}")
     def удалить_запись(entity: str, item_id: int):
+        if entity in ("записки", "notes", "memos"):
+            from . import overseer
+            overseer.правка_записки(item_id, None, удалена=True)
         if not удалить(база, _вид(entity), item_id):
             raise StarletteHTTPException(404, "Запись не найдена.")
         return {"удалено": item_id}
