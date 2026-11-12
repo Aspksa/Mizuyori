@@ -160,3 +160,25 @@ class Поручения(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ТестФайрвол(unittest.TestCase):
+    def test_отпечаток_привязан_к_шагу(self):
+        a = tools.отпечаток("снабженец", "поиск", "найти фильтр")
+        self.assertEqual(a, tools.отпечаток("снабженец", "поиск", "найти фильтр"))
+        self.assertNotEqual(a, tools.отпечаток("снабженец", "поиск", "найти шины"))
+        self.assertNotEqual(a, tools.отпечаток("склад", "поиск", "найти фильтр"))
+
+    def test_аргументы(self):
+        self.assertFalse(tools.проверить_аргументы("   ")[0])
+        self.assertFalse(tools.проверить_аргументы("a" * 2001)[0])
+        self.assertFalse(tools.проверить_аргументы("a\x00b")[0])
+        self.assertTrue(tools.проверить_аргументы("фильтр VIC C-111")[0])
+
+    def test_поиск_только_закупщикам(self):
+        self.assertTrue(tools.разрешён("поиск", "снабженец")[0])
+        ок, причина = tools.разрешён("поиск", "кадровик")
+        self.assertFalse(ок)
+        self.assertIn("нельзя", причина)
+        with self.assertRaises(PermissionError):
+            tools.вызвать("поиск", {"описание": "x", "агент": "кадровик"})

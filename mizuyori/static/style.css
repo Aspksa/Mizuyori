@@ -3087,3 +3087,12 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .кач-хорошо { fill: #3fa66b; } .кач-средне { fill: #e0a43a; } .кач-плохо { fill: #d9534f; }
 .предложение.принято { border-left-color: #3fa66b; } .предложение.отклонено, .предложение.не_прошло_проверку { border-left-color: #d9534f; opacity: .75; }
 .предложение small { color: var(--приглушённый, #888); }
+
+/* Временная шкала поручения */
+.шкала { list-style: none; margin: .4rem 0 .6rem; padding: 0; display: flex; flex-direction: column; gap: .3rem; font-size: .8rem; }
+.шкала li { display: grid; grid-template-columns: 9rem 1fr auto; gap: .5rem; align-items: center; }
+.шкала-имя { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.шкала-полоса { display: flex; height: .55rem; border-radius: 99px; background: color-mix(in srgb, var(--текст) 8%, transparent); overflow: hidden; }
+.шкала-работа { background: #3fa66b; } .шкала-ждал { background: #e0a43a; }
+.шкала-текст { color: var(--приглушённый, #888); white-space: nowrap; } .шкала-текст.повтор { color: #d9534f; }
+@media (max-width: 560px) { .шкала li { grid-template-columns: 6rem 1fr; } .шкала-текст { grid-column: 1 / -1; } }

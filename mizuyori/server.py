@@ -1008,8 +1008,8 @@ def создать_приложение(настройки: dict, база: Ба
         return _поручение(lambda: missions.запустить(mission_id, dict(_ии())))
 
     @app.post("/api/missions/{mission_id}/confirm")
-    def подтвердить_поручение(mission_id: int):
-        return _поручение(lambda: missions.подтвердить(mission_id, dict(_ии())))
+    def подтвердить_поручение(mission_id: int, отпечаток: str = Query("", max_length=40)):
+        return _поручение(lambda: missions.подтвердить(mission_id, dict(_ии()), отпечаток))
 
     @app.post("/api/missions/{mission_id}/reject")
     def отклонить_поручение(mission_id: int):
