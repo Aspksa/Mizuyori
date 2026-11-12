@@ -1970,3 +1970,81 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
   border: 1px solid var(--рамка);
   border-radius: var(--радиус-малый, 8px);
 }
+
+/* ГСМ → Анализ движения ГСМ */
+.гсм-период { display: grid; gap: .55rem; padding: .7rem .8rem; background: var(--поверхность); border: 1px solid var(--рамка); border-radius: var(--радиус); max-width: 46rem; }
+.гсм-быстрые, .гсм-год { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }
+.гсм-год strong { min-width: 3.4rem; text-align: center; font-size: 1.05rem; }
+.гсм-год .гсм-быстрая { margin-left: auto; }
+.гсм-быстрая { font: inherit; font-size: .84rem; padding: .32rem .7rem; color: var(--тихий); background: transparent; border: 1px solid var(--рамка); border-radius: 999px; cursor: pointer; }
+.гсм-быстрая:hover { color: var(--текст); border-color: var(--акцент); }
+.гсм-быстрая.выбрано { color: var(--на-акценте); background: var(--акцент); border-color: var(--акцент); font-weight: 600; }
+.гсм-сетка { display: grid; grid-template-columns: repeat(6, 1fr); gap: .3rem; }
+.гсм-месяц { position: relative; font: inherit; font-size: .88rem; padding: .5rem .2rem; color: var(--текст); background: var(--фон); border: 1px solid var(--рамка); border-radius: 8px; cursor: pointer; }
+.гсм-месяц:hover { border-color: var(--акцент); }
+.гсм-месяц.выбрано { background: color-mix(in srgb, var(--акцент) 22%, var(--фон)); border-color: var(--акцент); font-weight: 600; }
+.гсм-месяц.начало.конец, .гсм-месяц.ожидает { background: var(--акцент); color: var(--на-акценте); }
+.гсм-точка { position: absolute; top: 4px; right: 5px; width: 6px; height: 6px; border-radius: 50%; background: var(--акцент); }
+.гсм-месяц.выбрано .гсм-точка { background: currentColor; }
+.гсм-подсказка-периода { color: var(--тихий); font-size: .78rem; }
+
+.гсм-кпи { display: grid; grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr)); gap: .6rem; }
+.гсм-итог { display: grid; gap: .1rem; padding: .65rem .8rem; background: var(--поверхность); border: 1px solid var(--рамка); border-radius: var(--радиус); border-left-width: 3px; }
+.гсм-итог small { color: var(--тихий); font-size: .76rem; text-transform: uppercase; letter-spacing: .04em; }
+.гсм-итог strong { font-size: 1.3rem; line-height: 1.2; }
+.гсм-итог span { color: var(--тихий); font-size: .76rem; }
+.гсм-итог.плохо { border-left-color: #e5534b; } .гсм-итог.плохо strong { color: #ef6b63; }
+.гсм-итог.хорошо { border-left-color: #3fb27f; } .гсм-итог.хорошо strong { color: #4cc58f; }
+.гсм-баланс { margin: 0; font-size: .85rem; color: var(--тихий); }
+.гсм-предупреждения { display: flex; flex-direction: column; gap: .2rem; }
+.гсм-пред { font-size: .82rem; color: #f0a020; }
+.гсм-предупреждения:empty { display: none; }
+
+.гсм-машины { display: grid; gap: .7rem; }
+.гсм-машина { display: grid; gap: .6rem; padding: .8rem .9rem; background: var(--поверхность); border: 1px solid var(--рамка); border-radius: var(--радиус); }
+.гсм-машина-шапка { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .9rem; }
+.гсм-машина-имя { display: grid; min-width: 12rem; margin-right: auto; }
+.гсм-машина-имя strong { font-size: 1.02rem; }
+.гсм-машина small, .гсм-итог small { display: block; }
+.гсм-машина-имя small { color: var(--тихий); font-size: .78rem; }
+.гсм-сезон { display: grid; gap: .1rem; }
+.гсм-сезон small { color: var(--тихий); font-size: .72rem; }
+.гсм-сезон select { font: inherit; font-size: .85rem; color: var(--текст); background: var(--фон); border: 1px solid var(--рамка); border-radius: 8px; padding: .28rem .4rem; }
+.гсм-норма { font-size: .84rem; color: var(--тихий); padding: .25rem .6rem; border: 1px dashed var(--рамка); border-radius: 999px; }
+.гсм-статус { font-size: .84rem; font-weight: 600; padding: .28rem .7rem; border-radius: 999px; border: 1px solid var(--рамка); }
+.гсм-статус.плохо { color: #ef6b63; background: rgba(229, 83, 75, .12); border-color: rgba(229, 83, 75, .45); }
+.гсм-статус.хорошо { color: #4cc58f; background: rgba(63, 178, 127, .12); border-color: rgba(63, 178, 127, .45); }
+.гсм-статус.ровно { color: var(--текст); }
+.гсм-статус.нет { color: var(--тихий); font-weight: 500; }
+.гсм-блоки { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: .6rem; }
+.гсм-блок { padding: .55rem .65rem .65rem; background: var(--фон); border: 1px solid var(--рамка); border-radius: 10px; }
+.гсм-блок h4 { margin: 0 0 .4rem; font-size: .74rem; font-weight: 600; color: var(--тихий); text-transform: uppercase; letter-spacing: .05em; }
+.гсм-поля { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .45rem .6rem; }
+.гсм-поле { display: grid; gap: .15rem; align-content: start; min-width: 0; }
+.гсм-поле small { color: var(--тихий); font-size: .72rem; line-height: 1.15; }
+.гсм-поле strong { font-size: .95rem; padding: .3rem 0; }
+.гсм-поле strong:empty::after { content: "—"; color: var(--тихий); font-weight: 400; }
+.гсм-поле .путевой-ввод { width: 100%; box-sizing: border-box; padding: .35rem .45rem; }
+.путевой-ввод.перенесено { font-style: italic; color: var(--тихий); }
+.гсм-полоса { display: grid; gap: .25rem; }
+.гсм-полоса-ряд { display: grid; grid-template-columns: 2.6rem 1fr; align-items: center; gap: .5rem; }
+.гсм-полоса-ряд small { color: var(--тихий); font-size: .72rem; }
+.гсм-полоса-дорожка { height: 8px; background: var(--фон); border-radius: 999px; overflow: hidden; }
+.гсм-полоса-линия { display: block; height: 100%; border-radius: 999px; transition: width .35s ease; background: var(--тихий); }
+.гсм-полоса-линия.факт { background: var(--акцент); }
+.гсм-полоса-линия.факт.плохо { background: #e5534b; }
+.гсм-полоса-линия.факт.хорошо { background: #3fb27f; }
+.гсм-машина .путевой-ошибка:empty, .гсм-машина .путевой-причина:empty { display: none; }
+.гсм-машина .путевой-причина { color: #f0a020; font-size: .78rem; }
+.гсм-по-месяцам summary { cursor: pointer; font-size: .84rem; color: var(--тихий); }
+.гсм-по-месяцам table { margin-top: .4rem; }
+.гсм-по-месяцам .пусто-месяц { color: var(--тихий); }
+.перерасход { color: #ef6b63; } .экономия { color: #4cc58f; }
+@media (max-width: 640px) {
+  .гсм-сетка { grid-template-columns: repeat(4, 1fr); }
+  .гсм-блоки { grid-template-columns: 1fr; }
+  .гсм-машина-имя { min-width: 100%; }
+}
+.гсм-инфо { font-size: .82rem; color: var(--тихий); }
+.работа-шапка { min-width: 0; }
+.работа-содержимое > * { max-width: 100%; }
