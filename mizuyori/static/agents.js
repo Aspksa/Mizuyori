@@ -218,7 +218,46 @@
     $("доска-счёт").hidden = !данные.записок;
     $("доска-счёт").textContent = данные.записок || "";
     if (!кадр) кадр = requestAnimationFrame(рисовать);
+    подогнать();
   }
+
+  // Подгонка плиток под размер панели: без полосы прокрутки подбираем число колонок и высоту плитки так, чтобы поместились все
+  const лента = ряд.closest(".конвейер-лента");
+  let подгонка = 0;
+  function подогнать() {
+    cancelAnimationFrame(подгонка);
+    подгонка = requestAnimationFrame(() => {
+      const В = лента.clientHeight, Ш = лента.clientWidth;
+      if (!В || !Ш) return;
+      if (В < 360) { for (const в of ["--кол", "--вп"]) лента.style.removeProperty(в); лента.dataset.тесно = ""; return; }
+      const зазор = 8, шапки = [];
+      let занято = 0, ряды = 0;
+      const счётчики = [];
+      for (const г of ряд.querySelectorAll(".агенты-группа")) {
+        const спис = г.querySelector(".агенты-группа-список");
+        const видно = г.classList.contains("свёрнута") ? 0 : [...спис.children].filter((э) => getComputedStyle(э).display !== "none").length;
+        const шапка = г.getBoundingClientRect().height - (видно ? спис.getBoundingClientRect().height : 0);
+        занято += шапка + 4;
+        счётчики.push(видно);
+      }
+      if (!счётчики.some(Boolean)) return;
+      let лучший = null;
+      for (let н = 3; н <= 9; н++) {
+        const рядов = счётчики.reduce((а, к) => а + Math.ceil(к / н), 0);
+        const ширина = (Ш - зазор * (н - 1) - 4) / н;
+        const высота = (В - занято - зазор * рядов - 6) / Math.max(1, рядов);
+        const оценка = Math.min(ширина, высота * 0.92);
+        if (ширина < 70) continue;
+        if (!лучший || оценка > лучший.оценка + 0.5) лучший = { н, ширина, высота, оценка };
+      }
+      if (!лучший) return;
+      const в = Math.max(96, Math.min(лучший.высота, лучший.ширина * 1.5, 230));
+      лента.style.setProperty("--кол", лучший.н);
+      лента.style.setProperty("--вп", `${Math.floor(в)}px`);
+      лента.dataset.тесно = в < 128 ? "да" : в < 160 ? "средне" : "";
+    });
+  }
+  if (window.ResizeObserver) new ResizeObserver(подогнать).observe(лента);
 
   async function обновить() {
     clearTimeout(таймер);

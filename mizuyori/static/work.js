@@ -47,7 +47,12 @@
     раздел = новый;
     try { localStorage.setItem("mizuyori.работа.раздел", раздел); } catch {}
     поиск = "";
-    for (const к of меню.querySelectorAll("button[data-раздел]")) к.setAttribute("aria-current", String(к.dataset.раздел === раздел));
+    for (const к of меню.querySelectorAll("button[data-раздел]")) {
+      const он = к.dataset.раздел === раздел;
+      к.setAttribute("aria-current", String(он));
+      if (он) $("экран-работа").style.setProperty("--рц", к.style.getPropertyValue("--рц"));
+    }
+    $("экран-работа").dataset.раздел = раздел;
     нарисовать();
   }
   меню.addEventListener("click", (с) => {

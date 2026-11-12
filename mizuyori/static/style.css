@@ -3490,3 +3490,136 @@ main.главная > .чат { grid-column: 1; grid-row: 1; }
   .агент-опыт-блок { flex: 1 1 100%; max-width: none; }
   .агент-шапка .агент-что { font-size: .8rem; }
 }
+
+
+/* ---- панель агентов без полосы прокрутки: плитки подгоняются под размер (agents.js → подогнать) ---- */
+.конвейер-лента { overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; padding-right: 0; }
+.конвейер-лента::-webkit-scrollbar { display: none; }
+.конвейер-лента[style*="--кол"] .агенты-группа-список { grid-template-columns: repeat(var(--кол), minmax(0, 1fr)); gap: .5rem; padding: .1rem 0 .15rem; }
+.конвейер-лента[style*="--вп"] .агент { min-height: 0; height: var(--вп); padding: .1rem .3rem .4rem; border-radius: 16px; }
+.конвейер-лента[style*="--вп"] .агент .агент-круг { height: calc(var(--вп) - 3.9rem); margin-top: .3rem; }
+.конвейер-лента[style*="--вп"] .агент .агент-имя { min-height: 2.1em; }
+.конвейер-лента[data-тесно="средне"] .агент .агент-имя { font-size: .58rem; letter-spacing: .04em; }
+.конвейер-лента[data-тесно="средне"] .агент .агент-круг { height: calc(var(--вп) - 3.5rem); }
+.конвейер-лента[data-тесно="да"] .агент .агент-счёт { display: none; }
+.конвейер-лента[data-тесно="да"] .агент .агент-имя { font-size: .54rem; letter-spacing: .02em; min-height: 2.2em; }
+.конвейер-лента[data-тесно="да"] .агент .агент-круг { height: calc(var(--вп) - 2.7rem); margin-top: .2rem; }
+.конвейер-лента[data-тесно="да"] .агент .агент-точка { top: .4rem; left: .45rem; width: .38rem; height: .38rem; }
+.конвейер-лента[data-тесно] .агенты-группа-шапка { margin-top: .25rem; padding-top: .15rem; padding-bottom: .15rem; }
+
+/* =============================================================================
+   «РАБОТА» В НОВОМ СТИЛЕ: круглые формы, цвет раздела, свечение, плавающие строки
+   ============================================================================= */
+.экран-работы { --рц: var(--акцент); position: relative; isolation: isolate; overflow: hidden; gap: 1.1rem; padding: 1.1rem;
+  grid-template-columns: 15.5rem minmax(0, 1fr); }
+.экран-работы::before { content: ""; position: absolute; inset: -20%; z-index: -1; pointer-events: none; filter: blur(60px); opacity: .9;
+  background: radial-gradient(34% 30% at 12% 14%, color-mix(in srgb, var(--рц) 26%, transparent), transparent 70%),
+    radial-gradient(30% 28% at 88% 78%, color-mix(in srgb, var(--рц) 16%, transparent), transparent 70%),
+    radial-gradient(26% 24% at 62% 8%, rgba(150, 100, 255, .13), transparent 70%);
+  animation: сияние 26s ease-in-out infinite alternate; transition: background 1s; }
+
+/* меню разделов — стеклянная капсула с цветными значками */
+.работа-меню { gap: .3rem; padding: 1rem .7rem; border-radius: 26px; border: 1px solid color-mix(in srgb, var(--рц) 28%, var(--рамка));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--рц) 9%, #0e1018), #07080d); box-shadow: 0 24px 50px -30px var(--рц), inset 0 1px 0 #ffffff10;
+  max-height: calc(100dvh - 5.4rem); overflow-y: auto; scrollbar-width: none; }
+.работа-меню::-webkit-scrollbar { display: none; }
+.работа-меню h1 { margin: .2rem .7rem .8rem; font-size: 1.5rem; font-weight: 800; letter-spacing: .01em;
+  background: linear-gradient(90deg, #fff, color-mix(in srgb, var(--рц) 70%, #fff)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.работа-меню button { position: relative; gap: .7rem; padding: .5rem .6rem; border-radius: 16px; font-size: .9rem; color: color-mix(in srgb, var(--текст) 82%, transparent);
+  transition: background .2s, transform .18s, box-shadow .25s, color .2s; }
+.работа-меню button b { font-weight: 500; line-height: 1.2; text-align: left; }
+.зн-раздела { display: grid; place-items: center; flex: none; width: 2.1rem; height: 2.1rem; border-radius: 50%; color: var(--рц);
+  background: color-mix(in srgb, var(--рц) 14%, #0b0d14); border: 1px solid color-mix(in srgb, var(--рц) 35%, transparent);
+  transition: transform .3s cubic-bezier(.3, 1.6, .5, 1), box-shadow .25s, background .25s; }
+.зн-раздела svg { width: 1.1rem; height: 1.1rem; }
+.работа-меню button:hover { background: color-mix(in srgb, var(--рц) 10%, transparent); transform: translateX(3px); }
+.работа-меню button:hover .зн-раздела { transform: scale(1.12) rotate(-6deg); box-shadow: 0 0 14px -2px var(--рц); }
+.работа-меню button[aria-current="true"] { color: #fff; font-weight: 700; background: linear-gradient(100deg, color-mix(in srgb, var(--рц) 34%, transparent), color-mix(in srgb, var(--рц) 8%, transparent));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--рц) 50%, transparent), 0 8px 22px -12px var(--рц); }
+.работа-меню button[aria-current="true"] b { font-weight: 650; }
+.работа-меню button[aria-current="true"] .зн-раздела { background: var(--рц); color: #fff; box-shadow: 0 0 16px var(--рц); border-color: transparent; }
+
+/* содержимое */
+.работа-содержимое { gap: 1rem; animation: тело-вход .35s ease-out; min-width: 0; }
+.работа-шапка { gap: .7rem; padding: .85rem 1.1rem; border-radius: 22px; border: 1px solid color-mix(in srgb, var(--рц) 26%, var(--рамка));
+  background: radial-gradient(60% 160% at 0% 0%, color-mix(in srgb, var(--рц) 22%, transparent), transparent 70%), linear-gradient(180deg, #101320, #080a10);
+  box-shadow: 0 16px 36px -26px var(--рц); }
+.работа-шапка h2 { font-size: 1.45rem; font-weight: 800; text-shadow: 0 0 22px color-mix(in srgb, var(--рц) 60%, transparent); }
+.работа-счёт { padding: .15rem .65rem; border-radius: 999px; background: color-mix(in srgb, var(--рц) 14%, transparent); color: color-mix(in srgb, var(--рц) 70%, #fff); font-size: .78rem; font-weight: 600; }
+.работа-шапка .растяжка { margin-left: auto; }
+.экран-работы .работа-поиск, .экран-работы .работа-период input[type=date] { border-radius: 999px; padding: .5rem 1rem; background: #080a11; border: 1px solid color-mix(in srgb, var(--рц) 25%, var(--рамка)); transition: border-color .2s, box-shadow .2s; }
+.экран-работы .работа-поиск:focus, .экран-работы .работа-период input:focus { outline: none; border-color: var(--рц); box-shadow: 0 0 0 3px color-mix(in srgb, var(--рц) 24%, transparent); }
+.экран-работы .кнопка { border-radius: 999px; padding: .5rem 1.05rem; border: 1px solid color-mix(in srgb, var(--рц) 30%, var(--рамка)); background: color-mix(in srgb, var(--рц) 7%, #0b0d14); color: var(--текст);
+  transition: transform .15s, box-shadow .25s, background .2s, border-color .2s; }
+.экран-работы .кнопка:hover { transform: translateY(-1px); border-color: var(--рц); box-shadow: 0 8px 20px -10px var(--рц); }
+.экран-работы .кнопка.главная { background: linear-gradient(135deg, var(--рц), color-mix(in srgb, var(--рц) 55%, #000)); border-color: transparent; color: #fff; font-weight: 700; text-shadow: 0 1px 0 #0005;
+  box-shadow: 0 10px 24px -12px var(--рц), inset 0 1px 0 #ffffff40; }
+.экран-работы .кнопка.малая { padding: .3rem .8rem; }
+
+/* вкладки внутри раздела */
+.экран-работы .виды { padding: .25rem; border-radius: 999px; background: #0a0c13; border: 1px solid color-mix(in srgb, var(--рц) 22%, var(--рамка)); }
+.экран-работы .виды button { border-radius: 999px; padding: .45rem 1rem; }
+.экран-работы .виды button[aria-selected="true"] { background: linear-gradient(135deg, var(--рц), color-mix(in srgb, var(--рц) 55%, #000)); color: #fff; font-weight: 700;
+  box-shadow: 0 8px 20px -8px var(--рц), inset 0 1px 0 #ffffff40; }
+
+/* карточки-показатели */
+.работа-карточки { gap: .8rem; }
+.работа-карточка { position: relative; overflow: hidden; min-width: 9rem; padding: .75rem 1.1rem; border-radius: 20px; border: 1px solid color-mix(in srgb, var(--рц) 28%, var(--рамка));
+  background: radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--рц) 18%, transparent), transparent 65%), linear-gradient(180deg, #0f121c, #080a10);
+  transition: transform .2s, box-shadow .25s; }
+.работа-карточка:hover { transform: translateY(-3px); box-shadow: 0 16px 30px -18px var(--рц); }
+.работа-карточка span { font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: color-mix(in srgb, var(--рц) 55%, #9aa3bd); }
+.работа-карточка strong { font: 800 1.5rem/1.2 ui-monospace, "Cascadia Mono", Consolas, monospace; text-shadow: 0 0 14px color-mix(in srgb, var(--рц) 60%, transparent); }
+.работа-карточка.внимание { border-color: #f0a020; background: radial-gradient(120% 140% at 0% 0%, #f0a02030, transparent 65%), linear-gradient(180deg, #17130c, #0a0805); }
+
+/* напоминания */
+.экран-работы .напоминания { border-radius: 22px; padding: .8rem 1rem; background: radial-gradient(70% 160% at 0% 0%, #f0a02024, transparent 70%), #0c0a07; border-color: #f0a02050; }
+.экран-работы .напоминания li { border-radius: 12px; padding: .35rem .6rem; border-left-width: 4px; background: #ffffff05; transition: background .15s, transform .15s; }
+.экран-работы .напоминания li:hover { background: #ffffff0d; transform: translateX(3px); }
+
+/* таблицы — плавающие закруглённые строки */
+.работа-таблица-обёртка { border-radius: 24px; border: 1px solid color-mix(in srgb, var(--рц) 22%, var(--рамка)); background: linear-gradient(180deg, #0c0e16, #07080c);
+  padding: .4rem .6rem .6rem; box-shadow: 0 24px 50px -36px var(--рц); scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--рц) 40%, transparent) transparent; }
+.работа-таблица { border-collapse: separate; border-spacing: 0 .3rem; }
+.работа-таблица th { top: -.4rem; background: #0c0e16; border-bottom: 0; font-size: .68rem; letter-spacing: .09em; text-transform: uppercase; color: color-mix(in srgb, var(--рц) 55%, #8d96b0); padding: .7rem .8rem .35rem; }
+.работа-таблица td { border-bottom: 0; padding: .7rem .8rem; background: #ffffff06; transition: background .15s; }
+.работа-таблица td:first-child { border-radius: 16px 0 0 16px; }
+.работа-таблица td:last-child { border-radius: 0 16px 16px 0; }
+.работа-таблица tbody tr { transition: transform .18s, filter .18s; }
+.работа-таблица tbody tr:hover { background: none; transform: translateX(3px); }
+.работа-таблица tbody tr:hover td { background: color-mix(in srgb, var(--рц) 13%, #0b0d14); }
+.работа-таблица tr.внимание td:first-child { box-shadow: inset 4px 0 0 #f0a020; }
+.работа-таблица tr.раскрыта td { background: color-mix(in srgb, var(--рц) 18%, #0b0d14); }
+.работа-детали > td { background: color-mix(in srgb, var(--рц) 7%, #090b11); border-radius: 18px; padding: .3rem 1rem 1rem; }
+.работа-таблица tfoot td { background: color-mix(in srgb, var(--рц) 15%, #0b0d14); border-top: 0; bottom: -.6rem; }
+.работа-таблица td.пусто { background: none; padding: 2.5rem; font-size: .95rem; }
+.метка-внимание, .метка-тихая { border-radius: 999px; padding: .15rem .65rem; font-weight: 600; }
+.метка-внимание { background: color-mix(in srgb, #f0a020 16%, transparent); box-shadow: inset 0 0 0 1px #f0a02055; }
+
+/* окно записи/правки */
+.окно.работа-окно { border-radius: 26px; border: 1px solid color-mix(in srgb, var(--акцент) 35%, var(--рамка)); box-shadow: 0 2rem 5rem rgba(0, 0, 0, .6), 0 0 70px -24px var(--акцент); overflow: hidden; }
+.окно.работа-окно .окно-шапка { background: radial-gradient(70% 160% at 0% 0%, color-mix(in srgb, var(--акцент) 24%, transparent), transparent 70%), linear-gradient(180deg, #121624, #0a0c13);
+  border-bottom: 1px solid color-mix(in srgb, var(--акцент) 25%, #1c2030); }
+.работа-окно .работа-поле input, .работа-окно .работа-поле select, .работа-окно .работа-поле textarea { border-radius: 14px; padding: .6rem .85rem; background: #080a11; }
+.работа-окно .работа-поле input:focus, .работа-окно .работа-поле select:focus, .работа-окно .работа-поле textarea:focus { box-shadow: 0 0 0 3px color-mix(in srgb, var(--акцент) 24%, transparent); }
+.работа-окно .кнопка { border-radius: 999px; }
+
+@media (max-width: 62rem) {
+  .экран-работы { grid-template-columns: minmax(0, 1fr); padding: .7rem; gap: .8rem; }
+  .работа-меню { flex-direction: row; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; border-radius: 22px; padding: .5rem; max-height: none; position: static; gap: .25rem; }
+  .работа-меню h1 { display: none; }
+  .работа-меню button { flex: none; padding: .4rem .7rem .4rem .45rem; }
+  .работа-меню button b { white-space: nowrap; font-size: .82rem; }
+  .работа-шапка { padding: .7rem .8rem; border-radius: 18px; }
+  .работа-шапка h2 { font-size: 1.15rem; }
+}
+@media (prefers-reduced-motion: reduce) { .экран-работы::before, .работа-содержимое { animation: none; } }
+.работа-таблица td { padding: .65rem .55rem; } .работа-таблица th { padding: .7rem .55rem .35rem; }
+.работа-таблица-обёртка { padding: .3rem .4rem .5rem; }
+.работа-метки { white-space: normal; }
+.работа-метки .метка-внимание { white-space: nowrap; }
+.экран-работы { grid-template-columns: 14.2rem minmax(0, 1fr); gap: .9rem; padding: .9rem; }
+.работа-таблица.табель { border-spacing: 0 .22rem; }
+.работа-таблица.табель td, .работа-таблица.табель th { padding-left: 0; padding-right: 0; }
+.работа-таблица.табель td:first-child, .работа-таблица.табель th:first-child { padding-left: .7rem; padding-right: .5rem; }
+.работа-меню { padding: .9rem .55rem; }
