@@ -342,6 +342,21 @@ _ЗАДАНИЕ_СЖАТИЯ = (
 _ОБЪЕКТ = re.compile(r"\{.*\}", re.S)
 
 
+def прочитать_картинки(настройки_ии: dict, картинки: list[bytes], задание: str, max_tokens: int = 4000) -> str:
+    """Модель зрения читает картинки (PNG) и отвечает текстом — для сканов и фото документов."""
+    import base64
+    модель = настройки_ии.get("модель_зрения")
+    if not модель:
+        raise ОшибкаИИ("Не выбрана модель для чтения картинок.")
+    содержимое = [{"type": "text", "text": задание}] + [
+        {"type": "image_url", "image_url": {"url": "data:image/png;base64," + base64.b64encode(к).decode()}} for к in картинки]
+    тело = {"model": модель, "messages": [{"role": "user", "content": содержимое}],
+            "temperature": 0, "max_tokens": max_tokens, "stream": False}
+    with _открыть(настройки_ии["адрес"], настройки_ии["ключ"], "/chat/completions", тело, таймаут=180) as ответ:
+        ответ_json = json.loads(ответ.read().decode("utf-8"))
+    return убрать_размышления(ответ_json["choices"][0]["message"].get("content") or "")
+
+
 def _задание(система: str, данные: dict, настройки_ии: dict, max_tokens: int) -> str:
     if настройки_ии.get("правила"):               # своя память агента: правила и приёмы
         система = f"{система}\n\n{настройки_ии['правила']}"
