@@ -285,6 +285,39 @@ from .archive import МИГРАЦИЯ as МИГРАЦИЯ_АРХИВА
     );
     CREATE INDEX аудит_время ON аудит(id);
     """,
+    # 25: оценка шагов поручений и предложения по улучшению агентов
+    """
+    CREATE TABLE агент_оценка (
+        id        INTEGER PRIMARY KEY,
+        агент     TEXT NOT NULL,
+        поручение INTEGER NOT NULL DEFAULT 0,
+        шаг       INTEGER NOT NULL DEFAULT 0,
+        описание  TEXT NOT NULL DEFAULT '',
+        балл      REAL NOT NULL,                  -- 1 — с первого раза, 0.6 — со второго, 0.3 — принят вручную, 0 — отклонён или ошибка
+        попыток   INTEGER NOT NULL DEFAULT 1,
+        итог      TEXT NOT NULL,                  -- прошёл | принят_вручную | отклонён | ошибка
+        проверен  INTEGER NOT NULL DEFAULT 1,     -- 0 — у шага не было ожидания, проверяющий не смотрел
+        замечание TEXT NOT NULL DEFAULT '',
+        секунд    REAL NOT NULL DEFAULT 0,
+        токенов   INTEGER NOT NULL DEFAULT 0,
+        создано   TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+    );
+    CREATE INDEX агент_оценка_агент ON агент_оценка(агент, id);
+    CREATE TABLE агент_предложение (
+        id      INTEGER PRIMARY KEY,
+        агент   TEXT NOT NULL,
+        вид     TEXT NOT NULL CHECK (вид IN ('правило', 'роль', 'навык')),
+        название TEXT NOT NULL DEFAULT '',
+        когда   TEXT NOT NULL DEFAULT '',
+        текст   TEXT NOT NULL,
+        почему  TEXT NOT NULL DEFAULT '',
+        проверка TEXT NOT NULL DEFAULT '{}',      -- JSON: результат прогона на прошлых случаях
+        статус  TEXT NOT NULL DEFAULT 'ждёт',     -- ждёт | принято | отклонено | не_прошло_проверку
+        создано TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+        решено  TEXT
+    );
+    CREATE INDEX агент_предложение_агент ON агент_предложение(агент, id);
+    """,
 ]
 
 ТИПЫ_СУЩНОСТЕЙ = ["человек", "питомец", "место", "организация", "проект", "цель", "событие", "вещь", "другое"]

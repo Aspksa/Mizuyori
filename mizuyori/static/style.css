@@ -3077,3 +3077,13 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .аудит small { display: block; }
 .аудит-кто { font-size: .7rem; color: var(--тихий); }
 @media (max-width: 36rem) { .аудит li { grid-template-columns: 1fr; } }
+
+/* Улучшения агента: оценка шагов */
+.качество-шапка { display: flex; align-items: baseline; gap: .4rem; flex-wrap: wrap; font-size: .9rem; }
+.качество-шапка strong { font-size: 1.6rem; }
+.кач-плохо-текст { color: #d9534f; }
+.качество-график { width: 100%; max-height: 90px; overflow: visible; }
+.качество-порог { stroke: var(--приглушённый, #888); stroke-dasharray: 3 3; stroke-width: 1; opacity: .6; }
+.кач-хорошо { fill: #3fa66b; } .кач-средне { fill: #e0a43a; } .кач-плохо { fill: #d9534f; }
+.предложение.принято { border-left-color: #3fa66b; } .предложение.отклонено, .предложение.не_прошло_проверку { border-left-color: #d9534f; opacity: .75; }
+.предложение small { color: var(--приглушённый, #888); }

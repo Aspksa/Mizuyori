@@ -17,7 +17,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from . import (__version__, agents, ai, archive, audit, browser_fetch, documents, graph_tools, learning, memory, missions, printing, putevoy,
+from . import (__version__, agents, ai, archive, audit, browser_fetch, documents, evolve, graph_tools, learning, memory, missions, printing, putevoy,
                senses, smeta, soul, tools, work, work_agents)
 from .config import (ВИД_ПО_УМОЛЧАНИЮ, ВНЕШНИЙ_ВИД, ИИ_ПО_УМОЛЧАНИЮ, МОЗГИ_ПО_УМОЛЧАНИЮ,
                      НеверныйВнешнийВид, атрибуты_html, проверить_внешний_вид, проверить_ии,
@@ -825,7 +825,8 @@ def создать_приложение(настройки: dict, база: Ба
                 "записки": agents.доска(ключ, 40), "имена": agents.ИМЕНА,
                 "уроки_недели": agents.выучено(ключ, 7), "профиль": agents.профиль(ключ),
                 "подсказка": agents.правила(ключ),
-                "навыки": agents.навыки(ключ), "версии": agents.версии(ключ)}
+                "навыки": agents.навыки(ключ), "версии": agents.версии(ключ),
+                "качество": evolve.качество(ключ), "предложения": evolve.предложения(ключ, 10)}
 
     class ПрофильАгента(BaseModel):
         роль: str = Field("", max_length=agents.ПРЕДЕЛ_ПОЛЯ)
@@ -879,6 +880,32 @@ def создать_приложение(настройки: dict, база: Ба
             raise StarletteHTTPException(404, "Такой версии нет.")
         audit.записать("откат агента", agents.ИМЕНА.get(итог["агент"], итог["агент"]), f"к версии {итог['к_версии']}")
         return {**итог, "версии": agents.версии(итог["агент"])}
+
+    @app.get("/api/agents/{agent}/quality")
+    def качество_агента(agent: str):
+        return evolve.качество(_агент(agent))
+
+    @app.post("/api/agents/{agent}/improve")
+    def улучшить_агента(agent: str):
+        ключ = _агент(agent)
+        try:
+            return evolve.разобрать_неудачи(ключ, _ии())
+        except Exception as е:
+            raise StarletteHTTPException(502, f"Не удалось разобрать: {е}") from None
+
+    @app.post("/api/agents/proposals/{proposal_id}/accept")
+    def принять_улучшение(proposal_id: int):
+        итог = evolve.принять_предложение(proposal_id)
+        if not итог:
+            raise StarletteHTTPException(404, "Предложение уже решено или не найдено.")
+        return {"предложение": итог, "версии": agents.версии(итог["агент"])}
+
+    @app.post("/api/agents/proposals/{proposal_id}/reject")
+    def отклонить_улучшение(proposal_id: int):
+        итог = evolve.отклонить_предложение(proposal_id)
+        if not итог:
+            raise StarletteHTTPException(404, "Предложение уже решено или не найдено.")
+        return {"предложение": итог}
 
     @app.get("/api/audit")
     def журнал_аудита(q: str = "", limit: int = Query(100, ge=1, le=500)):
@@ -1371,6 +1398,7 @@ def создать_приложение(настройки: dict, база: Ба
     work_agents.запустить_фоновое_развитие(база, _ии)
     senses.запустить_уши(база, _ии)
     learning.запустить(база, _ии)
+    evolve.запустить(_ии)
     soul.запустить_фоновое_развитие(
         база, _ии, lambda: последняя_активность[0]
     )
