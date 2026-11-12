@@ -17,7 +17,8 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from . import __version__, agents, ai, archive, documents, graph_tools, learning, memory, printing, putevoy, senses, smeta, soul, work, work_agents
+from . import (__version__, agents, ai, archive, documents, graph_tools, learning, memory, missions, printing, putevoy,
+               senses, smeta, soul, tools, work, work_agents)
 from .config import (ВИД_ПО_УМОЛЧАНИЮ, ВНЕШНИЙ_ВИД, ИИ_ПО_УМОЛЧАНИЮ, МОЗГИ_ПО_УМОЛЧАНИЮ,
                      НеверныйВнешнийВид, атрибуты_html, проверить_внешний_вид, проверить_ии,
                      проверить_мозги, сохранить_настройки)
@@ -723,6 +724,8 @@ def создать_приложение(настройки: dict, база: Ба
     # ---- Агенты: кто сейчас работает, сколько раз сегодня ----------------------
     agents.подключить(база)
     work_agents.зарегистрировать()
+    missions.подключить(база)
+    missions.заполнить_готовые()
     printing.НАСТРОЙКИ = настройки["печать"]
     learning.НАСТРОЙКИ = настройки["агенты"]
     documents.НАСТРОЙКИ = настройки["агенты"]
@@ -848,6 +851,93 @@ def создать_приложение(настройки: dict, база: Ба
         if not agents.удалить_заметку(note_id):
             raise StarletteHTTPException(404, "Такой заметки нет.")
         return {"удалено": note_id}
+
+    # ---- Поручения: шаги, проверка, подтверждение, шаблоны, руководитель -------------------------
+
+    def _поручение(действие):
+        try:
+            return действие()
+        except missions.ОшибкаПоручения as е:
+            raise StarletteHTTPException(400, str(е)) from None
+
+    class ШагПоручения(BaseModel):
+        агент: str
+        описание: str = Field(max_length=2000)
+        ожидание: str = Field("", max_length=600)
+        инструмент: str = ""
+        проверяющий: str = ""
+        подтверждать: bool = False
+
+    class НовоеПоручение(BaseModel):
+        название: str = Field(max_length=120)
+        шаги: list[ШагПоручения]
+        параметры: dict[str, str] = {}
+        режим: str = "по порядку"
+        запустить: bool = True
+
+    class ЦельПоручения(BaseModel):
+        цель: str = Field(max_length=500)
+        запустить: bool = True
+
+    class НовыйШаблон(BaseModel):
+        название: str = Field(max_length=120)
+        шаги: list[ШагПоручения]
+        режим: str = "по порядку"
+
+    @app.get("/api/missions")
+    def поручения():
+        исполнители = [{"ключ": к, "имя": и} for к, и in agents.ИМЕНА.items() if к != "смысл"]
+        return {"поручения": missions.список(), "шаблоны": missions.шаблоны(), "инструменты": tools.список(),
+                "агенты": исполнители, "ии": ai.подключён(_ии())}
+
+    @app.post("/api/missions", status_code=201)
+    def новое_поручение(п: НовоеПоручение):
+        def сделать():
+            м = missions.создать(п.название, [ш.model_dump() for ш in п.шаги], п.параметры, п.режим)
+            return missions.запустить(м["id"], dict(_ии())) if п.запустить else м
+        return _поручение(сделать)
+
+    @app.post("/api/missions/plan", status_code=201)
+    def спланировать_поручение(ц: ЦельПоручения):
+        def сделать():
+            м = missions.спланировать(ц.цель, dict(_ии()))
+            return missions.запустить(м["id"], dict(_ии())) if ц.запустить else м
+        return _поручение(сделать)
+
+    @app.post("/api/missions/templates", status_code=201)
+    def новый_шаблон(ш: НовыйШаблон):
+        return _поручение(lambda: missions.сохранить_шаблон(ш.название, [х.model_dump() for х in ш.шаги], ш.режим))
+
+    @app.delete("/api/missions/templates/{template_id}")
+    def удалить_шаблон(template_id: int):
+        if not missions.удалить_шаблон(template_id):
+            raise StarletteHTTPException(404, "Такого шаблона нет.")
+        return {"удалено": template_id}
+
+    @app.get("/api/missions/{mission_id}")
+    def одно_поручение(mission_id: int):
+        м = missions.получить(mission_id)
+        if not м:
+            raise StarletteHTTPException(404, "Такого поручения нет.")
+        return м
+
+    @app.post("/api/missions/{mission_id}/run")
+    def запустить_поручение(mission_id: int):
+        return _поручение(lambda: missions.запустить(mission_id, dict(_ии())))
+
+    @app.post("/api/missions/{mission_id}/confirm")
+    def подтвердить_поручение(mission_id: int):
+        return _поручение(lambda: missions.подтвердить(mission_id, dict(_ии())))
+
+    @app.post("/api/missions/{mission_id}/reject")
+    def отклонить_поручение(mission_id: int):
+        return _поручение(lambda: missions.отклонить(mission_id))
+
+    @app.delete("/api/missions/{mission_id}")
+    def удалить_поручение(mission_id: int):
+        if not _поручение(lambda: missions.удалить(mission_id)):
+            raise StarletteHTTPException(404, "Такого поручения нет.")
+        return {"удалено": mission_id}
 
     # ---- Агенты «Работы»: замечания, обход, служебные записки -----------------------------
 

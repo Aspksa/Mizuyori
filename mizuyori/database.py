@@ -232,6 +232,28 @@ from .archive import МИГРАЦИЯ as МИГРАЦИЯ_АРХИВА
         изменено    TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
     );
     """,
+    # 23: поручения агентам: шаги с ожидаемым результатом, проверка, подтверждение человеком, шаблоны с {параметрами}
+    """
+    CREATE TABLE поручение (
+        id        INTEGER PRIMARY KEY,
+        название  TEXT NOT NULL,
+        шаги      TEXT NOT NULL,                   -- JSON: [{агент, описание, ожидание, инструмент, подтверждать, проверяющий}]
+        режим     TEXT NOT NULL DEFAULT 'по порядку' CHECK (режим IN ('по порядку', 'руководитель')),
+        статус    TEXT NOT NULL DEFAULT 'новое',   -- новое | в работе | ждёт вас | готово | не вышло | остановлено
+        шаг       INTEGER NOT NULL DEFAULT 0,
+        ход       TEXT NOT NULL DEFAULT '[]',      -- JSON по шагам: результат, проверка, секунды, токены
+        итог      TEXT NOT NULL DEFAULT '',
+        создано   TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+        изменено  TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+    );
+    CREATE TABLE шаблон_поручения (
+        id       INTEGER PRIMARY KEY,
+        название TEXT NOT NULL UNIQUE,
+        шаги     TEXT NOT NULL,
+        режим    TEXT NOT NULL DEFAULT 'по порядку',
+        создано  TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+    );
+    """,
 ]
 
 ТИПЫ_СУЩНОСТЕЙ = ["человек", "питомец", "место", "организация", "проект", "цель", "событие", "вещь", "другое"]

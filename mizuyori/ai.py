@@ -16,9 +16,11 @@ import json
 import logging
 import re
 import ssl
+import threading
 import time
 import urllib.error
 import urllib.request
+from contextlib import contextmanager
 from datetime import datetime
 
 журнал = logging.getLogger("mizuyori.ии")
@@ -360,6 +362,30 @@ def прочитать_картинки(настройки_ии: dict, карт�
     return убрать_размышления(ответ_json["choices"][0]["message"].get("content") or "")
 
 
+_учёт = threading.local()
+
+
+@contextmanager
+def измерять():
+    """with ai.измерять() as м: …  — после блока в м лежат «запросов» и «токенов» этого потока."""
+    м = {"запросов": 0, "токенов": 0}
+    было = getattr(_учёт, "сумма", None)
+    _учёт.сумма = м
+    try:
+        yield м
+    finally:
+        _учёт.сумма = было
+
+
+def _учесть(ответ_json: dict) -> None:
+    м = getattr(_учёт, "сумма", None)
+    if м is None:
+        return
+    м["запросов"] += 1
+    использовано = ответ_json.get("usage") or {}
+    м["токенов"] += int(использовано.get("total_tokens") or 0)
+
+
 def _задание(система: str, данные: dict, настройки_ии: dict, max_tokens: int) -> str:
     if настройки_ии.get("правила"):               # своя память агента: правила и приёмы
         система = f"{система}\n\n{настройки_ии['правила']}"
@@ -373,6 +399,7 @@ def _задание(система: str, данные: dict, настройки_
     }
     with _открыть(настройки_ии["адрес"], настройки_ии["ключ"], "/chat/completions", тело, таймаут=90) as ответ:
         ответ_json = json.loads(ответ.read().decode("utf-8"))
+    _учесть(ответ_json)
     return убрать_размышления(ответ_json["choices"][0]["message"].get("content") or "")
 
 
