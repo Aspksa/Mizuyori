@@ -67,10 +67,7 @@
   <!-- По центру: чат -->
   <section class="панель чат" aria-label="Чат">
     <div class="панель-шапка">
-      <div class="чат-вкладки" id="чат-вкладки" role="tablist" aria-label="Вид панели">
-        <button type="button" role="tab" data-вид="чат" aria-selected="true">Чат</button>
-        <button type="button" role="tab" data-вид="стол" aria-selected="false">Стол <span class="счётчик" id="стол-счёт" hidden></span></button>
-      </div>
+      <h2>Чат</h2>
       <button class="метка" id="чат-ии" type="button"></button>
       <span class="растяжка"></span>
       <button class="кнопка-значок малая" id="чат-очистить" type="button" aria-label="Очистить чат" title="Очистить чат">
@@ -83,19 +80,6 @@
         <summary id="сегодня-итог"></summary>
         <ul id="сегодня-замечания"></ul>
       </details>
-    </div>
-    <div class="стол" id="стол" hidden>
-      <div class="стол-верх">
-        <div class="стол-итоги" id="стол-итоги"></div>
-      </div>
-      <div class="стол-тело">
-        <div class="стол-граф-обёртка"><svg class="стол-граф" id="стол-граф" viewBox="0 0 780 380" role="img" aria-label="Схема: кто с кем работает"></svg></div>
-        <div class="стол-бок">
-          <div class="стол-тик" id="стол-тик"></div>
-          <div class="стол-правила" id="стол-правила"></div>
-        </div>
-      </div>
-      <div class="стол-журнал" id="стол-журнал" aria-live="polite"></div>
     </div>
     <div class="сообщения" id="чат-сообщения" aria-live="polite"></div>
     <form class="чат-ввод" id="чат-форма">
@@ -723,7 +707,6 @@
 </div>
 
 <script src="/static/app.js" charset="utf-8"></script>
-<script src="/static/desk.js" charset="utf-8"></script>
 <script src="/static/today.js" charset="utf-8"></script>
 <script src="/static/clock.js" charset="utf-8"></script>
 <script src="/static/markdown.js" charset="utf-8"></script>
