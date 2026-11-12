@@ -223,6 +223,35 @@ button.метка:hover { color: var(--текст); border-color: var(--тихи
   font-variant-numeric: tabular-nums;
   color: var(--заголовок);
 }
+/* Вокзальные часы */
+.вокзал { width: min(100%, 15rem); margin: 0 auto .8rem; aspect-ratio: 1; }
+.в-циферблат { display: block; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 .5rem .9rem rgba(0, 0, 0, .35)); }
+.в-обод { fill: color-mix(in srgb, var(--текст) 82%, var(--фон)); }
+.в-лицо { fill: color-mix(in srgb, var(--поверхность) 88%, var(--текст) 12%); }
+.в-циферблат .в-деление { fill: var(--текст); opacity: .8; transition: fill .25s, opacity .25s; }
+.в-циферблат .в-деление.час { opacity: 1; }
+.в-циферблат .в-деление.живая { fill: var(--акцент); opacity: 1; filter: drop-shadow(0 0 2px var(--акцент)); }
+.в-надпись { fill: var(--тихий); font: 600 5.6px/1 system-ui, sans-serif; letter-spacing: .32em; }
+.в-стрелки { filter: drop-shadow(1.6px 2.6px 1.4px rgba(0, 0, 0, .5)); }
+.в-стрелка { transform-box: view-box; transform-origin: 50% 50%; }
+.в-стрелка rect { fill: var(--текст); }
+.в-минутная { transition: transform .5s cubic-bezier(.34, 1.7, .5, 1); }       /* шаг с отскоком */
+.в-часовая { transition: transform .8s cubic-bezier(.4, 0, .2, 1); }
+.в-нить { stroke: #e4281d; stroke-width: 1.7; stroke-linecap: round; }
+.в-диск { fill: #e4281d; }
+.в-диск.ждёт { animation: в-ожидание .9s ease-in-out infinite alternate; }
+.в-ось { fill: #e4281d; stroke: color-mix(in srgb, var(--фон) 60%, transparent); stroke-width: .8; }
+.в-блик { pointer-events: none; }
+.в-кольцо { fill: none; stroke: var(--акцент); stroke-width: 1.4; opacity: 0; transform-box: fill-box; transform-origin: center; }
+.в-кольцо.вспышка { animation: в-вспышка 1.1s ease-out; }
+@keyframes в-вспышка { 0% { opacity: .9; transform: scale(1); } 100% { opacity: 0; transform: scale(1.14); } }
+@keyframes в-ожидание { from { filter: drop-shadow(0 0 0 #e4281d); } to { filter: drop-shadow(0 0 5px #ff5a4d); } }
+@media (prefers-reduced-motion: reduce) {
+  .в-минутная, .в-часовая { transition: none; }
+  .в-диск.ждёт, .в-кольцо.вспышка { animation: none; }
+}
+.часы .время { font-size: 2.1rem; text-align: center; }
+.часы .дата { text-align: center; }
 .секунды { margin-left: .35rem; font-size: 1.3rem; font-weight: 500; color: var(--тихий); }
 .дата { margin-top: .5rem; color: var(--тихий); }
 .дата::first-letter { text-transform: uppercase; }
