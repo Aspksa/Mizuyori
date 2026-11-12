@@ -40,6 +40,18 @@ class РазборПросьбы(unittest.TestCase):
         self.проверить("привет", "")
 
 
+class УточнениеЗапроса(unittest.TestCase):
+    def test_артикул_без_контекста_уточняется(self):
+        self.assertEqual(senses.уточнить_запрос("фильтр vic c111", "снабженец"), "фильтр vic c111 автозапчасти артикул")
+        self.assertEqual(senses.уточнить_запрос("фильтр C-111", "склад"), "фильтр C-111 автозапчасти артикул")
+
+    def test_контекст_или_другой_агент_не_трогаем(self):
+        self.assertEqual(senses.уточнить_запрос("масляный фильтр vic c111", "снабженец"), "масляный фильтр vic c111")
+        self.assertEqual(senses.уточнить_запрос("фильтр для Toyota c111", "снабженец"), "фильтр для Toyota c111")
+        self.assertEqual(senses.уточнить_запрос("фильтр vic c111", "юрист"), "фильтр vic c111")
+        self.assertEqual(senses.уточнить_запрос("цены на шины", "снабженец"), "цены на шины")
+
+
 ДДГ_КАПЧА = "<html><body>anomaly: please complete the captcha</body></html>"
 БИНГ = ('<ol><li class="b_algo"><h2><a href="https://www.bing.com/ck/a?!&&p=1&u=a1' +
         base64.urlsafe_b64encode(b"https://shop.example/tires?a=1").decode().rstrip("=") +
