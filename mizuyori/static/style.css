@@ -2701,3 +2701,151 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .знание-кнопка.опасно:hover:not(:disabled) { border-color: #ff7a7a; color: #ff7a7a; }
 .знания-ещё { padding-top: .35rem; }
 @media (max-width: 640px) { .список-периоды { margin-left: 0; } .знание { flex-direction: column; gap: .3rem; } }
+
+/* ===== Панель «Граф»: значки, плитки, переключатели, ползунки, эффекты ===== */
+.мозги-панель {
+  background:
+    radial-gradient(120% 60% at 100% 0%, color-mix(in srgb, var(--акцент) 14%, transparent), transparent 60%),
+    color-mix(in srgb, var(--панель-итог) 90%, transparent);
+  box-shadow: 0 10px 40px -12px rgba(0,0,0,.5), inset 0 1px 0 color-mix(in srgb, var(--текст) 8%, transparent);
+  scrollbar-width: thin;
+}
+.мозги-панель .зн { width: 1.05em; height: 1.05em; flex: none; }
+.мозги-панель .поле-название {
+  display: flex; align-items: center; gap: .5rem;
+  font-size: .68rem; letter-spacing: .14em; text-transform: uppercase; color: var(--тихий);
+}
+.мозги-панель .поле-название::after {
+  content: ""; flex: 1; height: 1px;
+  background: linear-gradient(90deg, var(--рамка), transparent);
+}
+.мозги-панель .поиск input { border-radius: 999px; padding-left: 1rem; transition: box-shadow .2s, border-color .2s; }
+.мозги-панель .поиск input:focus { border-color: var(--акцент); box-shadow: 0 0 0 3px color-mix(in srgb, var(--акцент) 25%, transparent); outline: none; }
+
+/* плитки раскладки */
+.кнопки-выбора.плитки { display: grid; grid-template-columns: repeat(4, 1fr); gap: .35rem; }
+.кнопки-выбора.плитки button:last-child { grid-column: span 2; }
+.кнопки-выбора.плитки button, .кнопки-выбора.сегменты button {
+  position: relative; overflow: hidden;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .3rem;
+  padding: .6rem .2rem .5rem;
+  font: 600 .68rem/1.1 system-ui, sans-serif; letter-spacing: .02em;
+  background: color-mix(in srgb, var(--текст) 4%, transparent);
+  transition: transform .15s, background .2s, color .2s, border-color .2s, box-shadow .25s;
+}
+.кнопки-выбора .зн { width: 1.45rem; height: 1.45rem; transition: transform .25s cubic-bezier(.3,1.6,.5,1); }
+.кнопки-выбора button:hover { transform: translateY(-2px); }
+.кнопки-выбора button:hover .зн { transform: scale(1.15) rotate(-6deg); }
+.кнопки-выбора button:active { transform: scale(.96); }
+.кнопки-выбора button[aria-checked="true"] {
+  background: linear-gradient(160deg, color-mix(in srgb, var(--акцент) 100%, #fff 18%), var(--акцент));
+  box-shadow: 0 0 0 1px var(--акцент), 0 6px 18px -4px color-mix(in srgb, var(--акцент) 70%, transparent);
+}
+.кнопки-выбора button[aria-checked="true"] .зн { filter: drop-shadow(0 0 4px color-mix(in srgb, var(--на-акценте) 50%, transparent)); }
+.кнопки-выбора.сегменты { display: grid; grid-template-columns: 1fr 1fr; gap: .35rem; }
+.кнопки-выбора.сегменты button { flex-direction: row; gap: .5rem; padding: .55rem .4rem; font-size: .8rem; }
+.кнопки-выбора.сегменты .зн { width: 1.1rem; height: 1.1rem; }
+
+/* карточки-группы */
+.мозги-панель .карточка-группы {
+  gap: .85rem; padding: .8rem;
+  border: 1px solid var(--рамка); border-radius: calc(var(--радиус) * .8);
+  background: color-mix(in srgb, var(--текст) 3%, transparent);
+}
+
+/* ползунки */
+.ползунок { gap: .35rem .5rem; text-transform: none; letter-spacing: 0; font-size: .82rem; color: var(--текст); }
+.ползунок-имя { display: inline-flex; align-items: center; gap: .45rem; }
+.ползунок-имя .зн { color: var(--акцент); }
+.ползунок output {
+  min-width: 3.2rem; text-align: center; padding: .05rem .5rem; font-size: .75rem;
+  border-radius: 999px; background: color-mix(in srgb, var(--акцент) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--акцент) 45%, transparent);
+}
+.ползунок input[type=range] {
+  -webkit-appearance: none; appearance: none; height: 1.1rem; background: transparent; cursor: pointer; --зап: 50%;
+}
+.ползунок input[type=range]::-webkit-slider-runnable-track {
+  height: 6px; border-radius: 999px;
+  background: linear-gradient(90deg, var(--акцент) var(--зап), color-mix(in srgb, var(--текст) 14%, transparent) var(--зап));
+  box-shadow: 0 0 10px -2px color-mix(in srgb, var(--акцент) 60%, transparent);
+}
+.ползунок input[type=range]::-moz-range-track { height: 6px; border-radius: 999px; background: color-mix(in srgb, var(--текст) 14%, transparent); }
+.ползунок input[type=range]::-moz-range-progress { height: 6px; border-radius: 999px; background: var(--акцент); }
+.ползунок input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 1.05rem; height: 1.05rem; margin-top: -.3rem; border-radius: 50%;
+  background: #fff; border: 3px solid var(--акцент);
+  box-shadow: 0 2px 8px rgba(0,0,0,.45); transition: transform .15s, box-shadow .2s;
+}
+.ползунок input[type=range]::-moz-range-thumb { width: .8rem; height: .8rem; border-radius: 50%; background: #fff; border: 3px solid var(--акцент); }
+.ползунок input[type=range]:hover::-webkit-slider-thumb { transform: scale(1.15); }
+.ползунок input[type=range]:active::-webkit-slider-thumb { transform: scale(1.3); box-shadow: 0 0 0 6px color-mix(in srgb, var(--акцент) 30%, transparent); }
+.ползунок input[type=range]:focus-visible { outline: none; }
+.ползунок input[type=range]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px color-mix(in srgb, var(--акцент) 40%, transparent); }
+
+/* переключатели */
+.флажок-строка.переключатель { position: relative; gap: .55rem; cursor: pointer; font-size: .82rem; }
+.переключатель .зн { color: var(--акцент); }
+.переключатель-текст { flex: 1; line-height: 1.25; }
+.переключатель input { position: absolute; opacity: 0; width: 100%; height: 100%; inset: 0; margin: 0; cursor: pointer; }
+.бегунок {
+  position: relative; flex: none; width: 2.3rem; height: 1.3rem; border-radius: 999px;
+  background: color-mix(in srgb, var(--текст) 18%, transparent);
+  transition: background .25s, box-shadow .25s;
+}
+.бегунок::after {
+  content: ""; position: absolute; top: 3px; left: 3px; width: calc(1.3rem - 6px); height: calc(1.3rem - 6px);
+  border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.4);
+  transition: transform .28s cubic-bezier(.3,1.5,.5,1);
+}
+.переключатель input:checked ~ .бегунок { background: var(--акцент); box-shadow: 0 0 14px -2px var(--акцент); }
+.переключатель input:checked ~ .бегунок::after { transform: translateX(1rem); }
+.переключатель input:focus-visible ~ .бегунок { outline: 2px solid var(--акцент); outline-offset: 2px; }
+
+/* статус связей и ссылка */
+.связи-статус { display: flex; align-items: center; justify-content: space-between; gap: .5rem; flex-wrap: wrap; font-size: .76rem; color: var(--тихий); }
+.связи-статус > span:not(:empty) {
+  display: inline-flex; align-items: center; gap: .4rem; padding: .25rem .6rem; border-radius: 999px;
+  background: color-mix(in srgb, var(--акцент) 14%, transparent); color: var(--текст);
+}
+.связи-статус > span:not(:empty)::before { content: ""; width: .45rem; height: .45rem; border-radius: 50%; background: #3ecf8e; box-shadow: 0 0 8px #3ecf8e; }
+.связи-статус > span.плохо { flex-basis: 100%; border-radius: .7rem; line-height: 1.35; background: color-mix(in srgb, #ef4444 14%, transparent); border: 1px solid color-mix(in srgb, #ef4444 40%, transparent); color: #ff9a9a; }
+.связи-статус > span.плохо::before { background: #ef4444; box-shadow: 0 0 8px #ef4444; flex: none; }
+.связи-статус .ссылка {
+  padding: .25rem .7rem; border: 1px solid var(--акцент); border-radius: 999px; background: transparent;
+  color: var(--акцент); font-size: .74rem; font-weight: 600; text-decoration: none; cursor: pointer; transition: background .2s, color .2s, transform .15s;
+}
+.связи-статус .ссылка:hover { background: var(--акцент); color: var(--на-акценте); transform: translateY(-1px); }
+.связи-статус .ссылка[data-настройки="да"] { background: var(--акцент); color: var(--на-акценте); }
+
+/* кнопки действий */
+.мозги-панель .три-кнопки .кнопка, .мозги-панель .две-кнопки .кнопка {
+  position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; gap: .4rem;
+  transition: transform .15s, box-shadow .25s, background .2s;
+}
+.мозги-панель .три-кнопки .кнопка { flex-direction: column; gap: .25rem; padding: .55rem .2rem; }
+.мозги-панель .три-кнопки .зн { width: 1.2rem; height: 1.2rem; transition: transform .25s cubic-bezier(.3,1.6,.5,1); }
+.мозги-панель .кнопка:hover { transform: translateY(-2px); }
+.мозги-панель .кнопка:hover .зн { transform: scale(1.15); }
+.мозги-панель .кнопка:active { transform: scale(.97); }
+.мозги-панель .кнопка.главная { box-shadow: 0 6px 20px -6px var(--акцент); }
+.мозги-панель .кнопка.главная:hover { box-shadow: 0 10px 26px -6px var(--акцент); }
+.мозги-панель .две-кнопки .кнопка { padding: .6rem .3rem; }
+
+/* волна от клика */
+.мозги-панель button.волна::after {
+  content: ""; position: absolute; left: var(--вх); top: var(--вy); width: 10px; height: 10px; margin: -5px 0 0 -5px;
+  border-radius: 50%; background: color-mix(in srgb, #fff 55%, transparent); pointer-events: none;
+  animation: волна-клика .55s ease-out forwards;
+}
+@keyframes волна-клика { to { transform: scale(18); opacity: 0; } }
+
+/* появление блоков панели */
+@keyframes панель-вход { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.мозги-панель > * { animation: панель-вход .45s both; }
+.мозги-панель > :nth-child(2) { animation-delay: .04s; } .мозги-панель > :nth-child(3) { animation-delay: .08s; }
+.мозги-панель > :nth-child(4) { animation-delay: .12s; } .мозги-панель > :nth-child(5) { animation-delay: .16s; }
+.мозги-панель > :nth-child(6) { animation-delay: .2s; } .мозги-панель > :nth-child(7) { animation-delay: .24s; }
+@media (prefers-reduced-motion: reduce) {
+  .мозги-панель *, .мозги-панель > * { animation: none !important; transition: none !important; }
+}
