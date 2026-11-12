@@ -2093,26 +2093,3 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .стат-как summary, .стат-без-машины summary { cursor: pointer; font-size: .85rem; color: var(--тихий); }
 .стат-как ul { margin: .4rem 0 0; padding-left: 1.1rem; font-size: .82rem; color: var(--тихий); display: grid; gap: .25rem; }
 @media (max-width: 760px) { .стат-две { grid-template-columns: 1fr; } .стат-столбики { overflow-x: auto; } }
-
-/* ---- Агенты «Работы» ---- */
-.аг-раб { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); }
-.аг-раб-шапка { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
-.аг-раб-шапка h2 { margin: 0; font-size: 1.15rem; }
-.аг-раб-шапка p { margin: 0; opacity: .7; font-size: .9rem; flex: 1 1 260px; }
-.аг-карта { border: 1px solid var(--линия, rgba(128,128,128,.3)); border-radius: 14px; padding: 14px; display: grid; gap: 10px;
-  align-content: start; min-width: 0; background: var(--фон-карточки, transparent); }
-.аг-карта-верх { display: flex; gap: 10px; align-items: center; }
-.аг-карта-верх .агент-кольцо { width: 44px; height: 44px; flex: none; }
-.аг-карта h3 { margin: 0; font-size: 1rem; }
-.аг-карта .что { margin: 0; opacity: .7; font-size: .85rem; }
-.аг-метки { display: flex; flex-wrap: wrap; gap: 6px; font-size: .8rem; }
-.аг-метки span { padding: 2px 8px; border-radius: 99px; background: rgba(128,128,128,.16); }
-.аг-замечания { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: .88rem; }
-.аг-замечания li { padding: 6px 8px; border-radius: 8px; border-left: 3px solid rgba(128,128,128,.5); background: rgba(128,128,128,.08); overflow-wrap: anywhere; }
-.аг-замечания li.в2 { border-left-color: #d9534f; }
-.аг-замечания li.в1 { border-left-color: #e0a030; }
-.аг-замечания li.в0 { opacity: .75; }
-.аг-порядок { margin: 0; font-size: .88rem; opacity: .75; }
-.аг-кнопки { display: flex; flex-wrap: wrap; gap: 8px; }
-.аг-записка { display: grid; gap: 6px; }
-.аг-записка input, .аг-записка textarea { width: 100%; box-sizing: border-box; }
