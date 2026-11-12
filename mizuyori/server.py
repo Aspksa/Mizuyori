@@ -17,7 +17,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from . import (__version__, agents, ai, archive, audit, browser_fetch, documents, evolve, graph_tools, learning, memory, missions, printing, putevoy,
+from . import (__version__, agents, ai, archive, audit, browser_fetch, documents, evolve, graph_tools, learning, memory, memory_plus, missions, printing, putevoy,
                search_eval, senses, smeta, soul, tools, work, work_agents)
 from .config import (ВИД_ПО_УМОЛЧАНИЮ, ВНЕШНИЙ_ВИД, ИИ_ПО_УМОЛЧАНИЮ, МОЗГИ_ПО_УМОЛЧАНИЮ,
                      НеверныйВнешнийВид, атрибуты_html, проверить_внешний_вид, проверить_ии,
@@ -440,6 +440,50 @@ def создать_приложение(настройки: dict, база: Ба
         if цель.почему.strip():
             с = база.изменить_сущность(с["id"], {"причина": цель.почему.strip()})
         return с
+
+    @app.get("/api/memory/plus")
+    def память_порядок():
+        return {"подтверждение": memory_plus.нужно_подтверждение(база), "предложения": memory_plus.предложения(база),
+                "архив": memory_plus.архив(база)}
+
+    class Подтверждение(BaseModel):
+        да: bool
+
+    @app.put("/api/memory/confirmation")
+    def память_подтверждение(п: Подтверждение):
+        memory_plus.включить_подтверждение(база, п.да)
+        audit.записать("память: спрашивать перед запоминанием", "включено" if п.да else "выключено")
+        return {"подтверждение": п.да}
+
+    @app.post("/api/memory/proposals/{proposal_id}/accept")
+    def принять_в_память(proposal_id: int):
+        итог = memory_plus.принять(база, proposal_id)
+        if not итог:
+            raise StarletteHTTPException(404, "Предложение уже решено или не найдено.")
+        return итог
+
+    @app.post("/api/memory/proposals/{proposal_id}/reject")
+    def отклонить_в_память(proposal_id: int):
+        итог = memory_plus.отклонить(база, proposal_id)
+        if not итог:
+            raise StarletteHTTPException(404, "Предложение уже решено или не найдено.")
+        return итог
+
+    @app.post("/api/memory/{fact_id}/restore")
+    def вернуть_из_архива(fact_id: int):
+        итог = memory_plus.восстановить(база, fact_id)
+        if not итог:
+            raise StarletteHTTPException(404, "Факта нет в архиве.")
+        audit.записать("факт возвращён из архива", итог["факт"][:100])
+        return итог
+
+    @app.get("/api/memory/{fact_id}/history")
+    def история_факта(fact_id: int):
+        return {"версии": memory_plus.история_факта(база, fact_id)}
+
+    @app.post("/api/memory/sleep")
+    def навести_порядок():
+        return memory_plus.сон(база, dict(_ии()))
 
     @app.get("/api/memory/working")
     def рабочая_память():
@@ -1409,6 +1453,7 @@ def создать_приложение(настройки: dict, база: Ба
     senses.запустить_уши(база, _ии)
     learning.запустить(база, _ии)
     evolve.запустить(_ии)
+    memory_plus.запустить(база, _ии)
     soul.запустить_фоновое_развитие(
         база, _ии, lambda: последняя_активность[0]
     )

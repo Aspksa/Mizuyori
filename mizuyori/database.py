@@ -329,6 +329,29 @@ from .archive import МИГРАЦИЯ as МИГРАЦИЯ_АРХИВА
         подробности TEXT NOT NULL DEFAULT '[]'
     );
     """,
+    # 27: история правок фактов и очередь предложений в память
+    """
+    CREATE TABLE память_версия (
+        id      INTEGER PRIMARY KEY,
+        факт_id INTEGER NOT NULL,
+        текст   TEXT NOT NULL,
+        причина TEXT NOT NULL DEFAULT '',
+        создано TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+    );
+    CREATE INDEX память_версия_факт ON память_версия(факт_id, id);
+    CREATE TABLE память_предложение (
+        id        INTEGER PRIMARY KEY,
+        факт      TEXT NOT NULL,
+        категория TEXT NOT NULL DEFAULT 'другое',
+        важность  INTEGER NOT NULL DEFAULT 3,
+        источник  INTEGER,
+        почему    TEXT NOT NULL DEFAULT '',
+        заменяет  TEXT NOT NULL DEFAULT '[]',     -- JSON: id фактов, уходящих в архив при принятии (обобщение)
+        статус    TEXT NOT NULL DEFAULT 'ждёт',   -- ждёт | принято | отклонено
+        создано   TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+        решено    TEXT
+    );
+    """,
 ]
 
 ТИПЫ_СУЩНОСТЕЙ = ["человек", "питомец", "место", "организация", "проект", "цель", "событие", "вещь", "другое"]
@@ -637,7 +660,13 @@ class База:
                      max(0.0, min(float(уверенность), 1.0)))).lastrowid
         return self.факт(номер)
 
-    def изменить_факт(self, номер: int, поля: dict) -> dict | None:
+    def изменить_факт(self, номер: int, поля: dict, причина: str = "правка") -> dict | None:
+        if "факт" in поля:                      # история правок: прежний текст не теряется
+            старый = self.факт(номер)
+            if старый and старый["факт"] != поля["факт"]:
+                with self.соединение() as связь:
+                    связь.execute("INSERT INTO память_версия (факт_id, текст, причина) VALUES (?, ?, ?)",
+                                  (номер, старый["факт"], причина))
         if "смысл" in поля:
             поля = {**поля, "смысл": json.dumps(поля["смысл"] or {}, ensure_ascii=False)}
         поля = {к: з for к, з in поля.items() if к in {

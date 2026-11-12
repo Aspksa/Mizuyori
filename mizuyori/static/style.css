@@ -3103,3 +3103,13 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .поиск-список li { grid-template-columns: auto 1fr auto; }
 .поиск-точка { width: .7rem; height: .7rem; border-radius: 50%; display: inline-block; }
 .поиск-точка.кач-хорошо { background: #3fa66b; } .поиск-точка.кач-средне { background: #e0a43a; } .поиск-точка.кач-плохо { background: #d9534f; }
+
+/* Порядок в памяти */
+.порядок-памяти { margin-top: .6rem; }
+.порядок-памяти summary { cursor: pointer; font-size: .85rem; color: var(--тихий); }
+.порядок-памяти h4 { margin: .8rem 0 .3rem; font-size: .85rem; }
+.флажок-строка { display: flex; gap: .5rem; align-items: flex-start; font-size: .85rem; margin: .5rem 0; }
+.память-список { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .4rem; }
+.память-список li { display: flex; justify-content: space-between; gap: .6rem; padding: .5rem .6rem; border: 1px solid var(--рамка); border-radius: var(--радиус); font-size: .85rem; }
+.память-список small { display: block; color: var(--тихий); font-size: .72rem; }
+.память-история { margin-top: .3rem; }
