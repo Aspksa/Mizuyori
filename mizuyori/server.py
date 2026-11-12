@@ -18,7 +18,7 @@ from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from . import paths
-from . import (__version__, agent_profiles, chat_delegate, agents, ai, archive, audit, browser_fetch, documents, evolve, housekeeping, graph_tools, learning, mcp_client, memory, memory_plus, missions, printing, putevoy,
+from . import (__version__, agent_profiles, chat_delegate, agents, ai, archive, audit, browser_fetch, documents, evolve, housekeeping, graph_tools, knowledge, learning, mcp_client, memory, memory_plus, missions, printing, putevoy,
                search_eval, senses, smeta, soul, tools, usage, work, work_agents)
 from .config import (ВИД_ПО_УМОЛЧАНИЮ, ВНЕШНИЙ_ВИД, ИИ_ПО_УМОЛЧАНИЮ, МОЗГИ_ПО_УМОЛЧАНИЮ,
                      НеверныйВнешнийВид, атрибуты_html, проверить_внешний_вид, проверить_ии,
@@ -887,7 +887,7 @@ def создать_приложение(настройки: dict, база: Ба
         return {**сводка, "история": agents.история(ключ, q, limit), "заметки": agents.заметки(ключ),
                 "записки": agents.доска(ключ, 40), "имена": agents.ИМЕНА,
                 "уроки_недели": agents.выучено(ключ, 7), "профиль": agents.профиль(ключ),
-                "подсказка": agents.правила(ключ),
+                "подсказка": agents.правила(ключ), "факты": knowledge.факты(ключ), "правки": knowledge.последние_правки(ключ, 8),
                 "навыки": agents.навыки(ключ), "версии": agents.версии(ключ),
                 "качество": evolve.качество(ключ), "предложения": (evolve.проверить_откаты(ключ), evolve.предложения(ключ, 10))[1]}
 
@@ -1050,6 +1050,56 @@ def создать_приложение(настройки: dict, база: Ба
         audit.записать(f"{заметка.вид} добавлено", agents.ИМЕНА[ключ], заметка.текст)
         return итог
 
+    class ФактАгента(BaseModel):
+        текст: str = Field(max_length=300)
+
+    @app.post("/api/agents/{agent}/facts", status_code=201)
+    def факт_агенту(agent: str, факт: ФактАгента):
+        ключ = _агент(agent)
+        итог = knowledge.добавить_факт(ключ, _непустой(факт.текст, "Факт"))
+        if not итог["уже_есть"]:
+            audit.записать("факт добавлен", agents.ИМЕНА[ключ], факт.текст)
+        return итог
+
+    @app.delete("/api/agents/facts/{fact_id}")
+    def удалить_факт_агента(fact_id: int):
+        if not knowledge.удалить_факт(fact_id):
+            raise StarletteHTTPException(404, "Такого факта нет.")
+        return {"удалено": fact_id}
+
+    class ЗаписьСправочника(BaseModel):
+        вид: str = Field("другое", max_length=20)
+        название: str = Field(max_length=120)
+        алиасы: str = Field("", max_length=300)
+        сведения: str = Field("", max_length=600)
+
+    def _справочник(действие):
+        try:
+            return действие()
+        except ValueError as е:
+            raise StarletteHTTPException(400, str(е))
+
+    @app.get("/api/reference-book")
+    def справочник_список():
+        return {"записи": knowledge.список(), "живые": [{"вид": з["вид"], "название": з["название"], "сведения": з["сведения"]} for з in knowledge._живые()]}
+
+    @app.post("/api/reference-book", status_code=201)
+    def справочник_добавить(з: ЗаписьСправочника):
+        return _справочник(lambda: knowledge.добавить(з.вид, з.название, з.алиасы, з.сведения))
+
+    @app.put("/api/reference-book/{entry_id}")
+    def справочник_изменить(entry_id: int, з: ЗаписьСправочника):
+        итог = _справочник(lambda: knowledge.изменить(entry_id, з.вид, з.название, з.алиасы, з.сведения))
+        if not итог:
+            raise StarletteHTTPException(404, "Такой записи нет.")
+        return итог
+
+    @app.delete("/api/reference-book/{entry_id}")
+    def справочник_удалить(entry_id: int):
+        if not knowledge.удалить(entry_id):
+            raise StarletteHTTPException(404, "Такой записи нет.")
+        return {"удалено": entry_id}
+
     @app.delete("/api/agents/notes/{note_id}")
     def удалить_заметку_агента(note_id: int):
         if not agents.удалить_заметку(note_id):
@@ -1136,6 +1186,13 @@ def создать_приложение(настройки: dict, база: Ба
     @app.post("/api/missions/{mission_id}/confirm")
     def подтвердить_поручение(mission_id: int, отпечаток: str = Query("", max_length=40)):
         return _поручение(lambda: missions.подтвердить(mission_id, dict(_ии()), отпечаток))
+
+    class ПравкаРезультата(BaseModel):
+        текст: str = Field(max_length=6000)
+
+    @app.put("/api/missions/{mission_id}/steps/{step}/result")
+    def исправить_результат_шага(mission_id: int, step: int, п: ПравкаРезультата):
+        return _поручение(lambda: missions.исправить_результат(mission_id, step, п.текст))
 
     @app.post("/api/missions/{mission_id}/reject")
     def отклонить_поручение(mission_id: int):

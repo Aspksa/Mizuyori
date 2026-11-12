@@ -377,6 +377,35 @@ from .archive import МИГРАЦИЯ as МИГРАЦИЯ_АРХИВА
     ALTER TABLE агент_предложение ADD COLUMN оценка_после REAL;
     ALTER TABLE агент_предложение ADD COLUMN откат_статус TEXT NOT NULL DEFAULT '';  -- '' | предложен | выполнен | оставлено
     """,
+    # 30: личные факты агента о вашей работе, общий справочник техники и контрагентов, правки результатов шагов
+    """
+    CREATE TABLE агент_факты (
+        id         INTEGER PRIMARY KEY,
+        агент      TEXT NOT NULL,
+        текст      TEXT NOT NULL,
+        источник   TEXT NOT NULL DEFAULT 'вы',     -- вы | правка | сам
+        создано    TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+    );
+    CREATE INDEX агент_факты_агент ON агент_факты(агент, id);
+    CREATE TABLE справочник (
+        id       INTEGER PRIMARY KEY,
+        вид      TEXT NOT NULL DEFAULT 'другое' CHECK (вид IN ('техника', 'контрагент', 'другое')),
+        название TEXT NOT NULL,
+        алиасы   TEXT NOT NULL DEFAULT '',          -- другие названия через запятую («хайлюкс, хайлюкс белый»)
+        сведения TEXT NOT NULL DEFAULT '',
+        создано  TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+        изменено TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+    );
+    CREATE TABLE правки_результатов (
+        id        INTEGER PRIMARY KEY,
+        агент     TEXT NOT NULL,
+        поручение TEXT NOT NULL DEFAULT '',
+        шаг       INTEGER NOT NULL DEFAULT 0,
+        до        TEXT NOT NULL,
+        после     TEXT NOT NULL,
+        создано   TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+    );
+    """,
 ]
 
 ТИПЫ_СУЩНОСТЕЙ = ["человек", "питомец", "место", "организация", "проект", "цель", "событие", "вещь", "другое"]
