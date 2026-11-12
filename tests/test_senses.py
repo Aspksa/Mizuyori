@@ -169,6 +169,36 @@ class ПриоритетПриморья(unittest.TestCase):
 
 
 class ЗапаснойПоисковик(unittest.TestCase):
+    def setUp(self):
+        senses._отказ_до.clear()
+
+    def tearDown(self):
+        senses._отказ_до.clear()
+
+    def test_капча_запоминается_и_не_повторяется(self):
+        вызовы = []
+
+        def получить(адрес):
+            вызовы.append(адрес)
+            return ДДГ_КАПЧА if "duckduckgo" in адрес else БИНГ
+        senses.искать("шины", получить=получить)
+        вызовы.clear()
+        senses.искать("масло", получить=получить)
+        self.assertEqual(len(вызовы), 1)
+        self.assertIn("bing", вызовы[0])
+
+    def test_mojeek_последний_запасной(self):
+        МОДЖИК = ('<ul><li><a class="ob" href="https://m.example/">m.example</a><h2><a class="title" href="https://m.example/p">Фильтр VIC C-111</a></h2>'
+                  '<p class="s">Купить фильтр</p></li></ul>')
+
+        def получить(адрес):
+            if "mojeek" in адрес:
+                return МОДЖИК
+            return "<html></html>" if "bing" in адрес else ДДГ_КАПЧА
+        р = senses.искать("vic c111", получить=получить)
+        self.assertEqual(р[0]["ссылка"], "https://m.example/p")
+        self.assertEqual(р[0]["название"], "Фильтр VIC C-111")
+
     def test_капча_duckduckgo_уходит_в_bing(self):
         вызовы = []
 
