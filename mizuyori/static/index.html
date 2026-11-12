@@ -74,6 +74,13 @@
         <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>
       </button>
     </div>
+    <div class="итоги-дня" id="сегодня" hidden>
+      <div class="ждёт-вас" id="ждёт-вас" hidden></div>
+      <details class="сегодня-список" id="сегодня-список">
+        <summary id="сегодня-итог"></summary>
+        <ul id="сегодня-замечания"></ul>
+      </details>
+    </div>
     <div class="сообщения" id="чат-сообщения" aria-live="polite"></div>
     <form class="чат-ввод" id="чат-форма">
       <button class="кнопка-значок" id="чат-скрепка" type="button" aria-label="Прикрепить файл" title="Прикрепить смету (PDF, Excel, Word, фото)">
@@ -310,14 +317,18 @@
         <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
       </button>
     </div>
+    <div class="поручения-разделы" id="поручения-разделы" role="tablist" aria-label="Раздел">
+      <button type="button" role="tab" data-раздел="работа" aria-selected="true">Работа</button>
+      <button type="button" role="tab" data-раздел="настройки" aria-selected="false">Настройки агентов</button>
+    </div>
     <div class="виды поручения-вкладки" id="поручения-вкладки" role="tablist">
-      <button type="button" role="tab" data-вкладка="список" aria-selected="true">Поручения</button>
-      <button type="button" role="tab" data-вкладка="новое" aria-selected="false">Новое</button>
-      <button type="button" role="tab" data-вкладка="шаблоны" aria-selected="false">Шаблоны</button>
-      <button type="button" role="tab" data-вкладка="инструменты" aria-selected="false">Инструменты</button>
-      <button type="button" role="tab" data-вкладка="расход" aria-selected="false">Расход</button>
-      <button type="button" role="tab" data-вкладка="поиск" aria-selected="false">Поиск</button>
-      <button type="button" role="tab" data-вкладка="журнал" aria-selected="false">Журнал</button>
+      <button type="button" role="tab" data-раздел="работа" data-вкладка="список" aria-selected="true">Поручения</button>
+      <button type="button" role="tab" data-раздел="работа" data-вкладка="новое" aria-selected="false">Новое</button>
+      <button type="button" role="tab" data-раздел="работа" data-вкладка="шаблоны" aria-selected="false">Шаблоны</button>
+      <button type="button" role="tab" data-раздел="работа" data-вкладка="журнал" aria-selected="false">Журнал</button>
+      <button type="button" role="tab" data-раздел="настройки" data-вкладка="инструменты" aria-selected="false" hidden>Инструменты</button>
+      <button type="button" role="tab" data-раздел="настройки" data-вкладка="расход" aria-selected="false" hidden>Расход</button>
+      <button type="button" role="tab" data-раздел="настройки" data-вкладка="поиск" aria-selected="false" hidden>Поиск</button>
     </div>
     <div class="окно-тело" id="поручения-тело"></div>
   </div>
@@ -696,6 +707,7 @@
 </div>
 
 <script src="/static/app.js" charset="utf-8"></script>
+<script src="/static/today.js" charset="utf-8"></script>
 <script src="/static/clock.js" charset="utf-8"></script>
 <script src="/static/markdown.js" charset="utf-8"></script>
 <script src="/static/chat.js" charset="utf-8"></script>
