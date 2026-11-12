@@ -3178,13 +3178,22 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .дни-недели, .дни { grid-template-columns: repeat(7, minmax(0, 1fr)); }
 .день { min-width: 0; }
 
-/* ===== Главная без часов и календаря: чат и агенты ===== */
+/* ===== Главная без часов и календаря: чат чуть уже, агенты шире ===== */
 main.главная > .колонка { display: none; }
-main.главная { grid-template-columns: minmax(0, 1fr) minmax(28rem, 36rem); }
-@media (max-width: 80rem) {
+main.главная { grid-template-columns: minmax(0, 1.15fr) minmax(32rem, 1fr); grid-template-rows: minmax(0, 1fr); }
+main.главная > .конвейер { grid-column: 2; grid-row: 1; max-height: none; }
+main.главная > .чат { grid-column: 1; grid-row: 1; }
+@media (max-width: 62rem) {
   main.главная { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
-  .конвейер { grid-column: 1; }
+  main.главная > .конвейер { grid-column: 1; grid-row: 2; max-height: 26rem; }
 }
 @media (max-width: 44rem) {
   main.главная { grid-template-rows: none; }
+  main.главная > .чат, main.главная > .конвейер { grid-row: auto; }
+  main.главная > .конвейер { max-height: none; }
 }
+/* заголовок группы: название слева, счётчик и кнопка «все» не налезают друг на друга */
+.агенты-группа-шапка { padding-right: 3.6rem; gap: .5rem; }
+.агенты-группа-шапка > span:first-of-type { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.агенты-группа-счёт { white-space: nowrap; flex: none; }
+.агенты-группа-все { right: .4rem; }
