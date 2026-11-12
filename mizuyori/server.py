@@ -17,7 +17,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from . import (__version__, agents, ai, archive, documents, graph_tools, learning, memory, missions, printing, putevoy,
+from . import (__version__, agents, ai, archive, browser_fetch, documents, graph_tools, learning, memory, missions, printing, putevoy,
                senses, smeta, soul, tools, work, work_agents)
 from .config import (ВИД_ПО_УМОЛЧАНИЮ, ВНЕШНИЙ_ВИД, ИИ_ПО_УМОЛЧАНИЮ, МОЗГИ_ПО_УМОЛЧАНИЮ,
                      НеверныйВнешнийВид, атрибуты_html, проверить_внешний_вид, проверить_ии,
@@ -725,6 +725,7 @@ def создать_приложение(настройки: dict, база: Ба
     agents.подключить(база)
     work_agents.зарегистрировать()
     missions.подключить(база)
+    browser_fetch.настроить(настройки["агенты"].get("браузер_для_поиска", ""))
     missions.заполнить_готовые()
     printing.НАСТРОЙКИ = настройки["печать"]
     learning.НАСТРОЙКИ = настройки["агенты"]
