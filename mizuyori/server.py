@@ -17,7 +17,8 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from . import (__version__, agents, ai, archive, audit, browser_fetch, documents, evolve, graph_tools, learning, mcp_client, memory, memory_plus, missions, printing, putevoy,
+from . import paths
+from . import (__version__, agents, ai, archive, audit, browser_fetch, documents, evolve, housekeeping, graph_tools, learning, mcp_client, memory, memory_plus, missions, printing, putevoy,
                search_eval, senses, smeta, soul, tools, usage, work, work_agents)
 from .config import (ВИД_ПО_УМОЛЧАНИЮ, ВНЕШНИЙ_ВИД, ИИ_ПО_УМОЛЧАНИЮ, МОЗГИ_ПО_УМОЛЧАНИЮ,
                      НеверныйВнешнийВид, атрибуты_html, проверить_внешний_вид, проверить_ии,
@@ -776,6 +777,8 @@ def создать_приложение(настройки: dict, база: Ба
     mcp_client.подключить(lambda: база.прочитать("mcp", {}), lambda з: база.записать("mcp", з))
     mcp_client.запустить_включённые()
     browser_fetch.настроить(настройки["агенты"].get("браузер_для_поиска", ""))
+    senses.настроить_регион(настройки["агенты"])
+    housekeeping.запустить(база, lambda: int(настройки["агенты"].get("хранить_дней", 180)), paths.ПАПКА_ЛОГОВ)
     missions.заполнить_готовые()
     printing.НАСТРОЙКИ = настройки["печать"]
     learning.НАСТРОЙКИ = настройки["агенты"]

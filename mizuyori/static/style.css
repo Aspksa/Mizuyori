@@ -3090,7 +3090,7 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 
 /* Временная шкала поручения */
 .шкала { list-style: none; margin: .4rem 0 .6rem; padding: 0; display: flex; flex-direction: column; gap: .3rem; font-size: .8rem; }
-.шкала li { display: grid; grid-template-columns: 9rem 1fr auto; gap: .5rem; align-items: center; }
+.шкала li { display: grid; grid-template-columns: 12rem 1fr auto; gap: .5rem; align-items: center; }
 .шкала-имя { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .шкала-полоса { display: flex; height: .55rem; border-radius: 99px; background: color-mix(in srgb, var(--текст) 8%, transparent); overflow: hidden; }
 .шкала-работа { background: #3fa66b; } .шкала-ждал { background: #e0a43a; }
