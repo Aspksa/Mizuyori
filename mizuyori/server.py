@@ -4,6 +4,7 @@ import json
 import logging
 import platform
 import threading
+import time
 from datetime import date
 from html import escape
 
@@ -87,6 +88,15 @@ def _непустой(текст: str | None, что: str) -> str:
 def создать_приложение(настройки: dict, база: База, порт: int) -> FastAPI:
     app = FastAPI(title=настройки["имя"], version=__version__,
                   docs_url=None, redoc_url=None, openapi_url=None)
+
+    последняя_активность = [time.monotonic()]
+
+    @app.middleware("http")
+    async def отметить_активность(request: Request, вызвать_дальше):
+        # Чтение страниц и фоновые опросы не мешают Душе развиваться.
+        if request.method in ("POST", "PUT", "PATCH", "DELETE"):
+            последняя_активность[0] = time.monotonic()
+        return await вызвать_дальше(request)
 
     # ---- Ошибки отдаются на русском ---------------------------------------
 
@@ -642,6 +652,7 @@ def создать_приложение(настройки: dict, база: Ба
             "настроение": soul.настроение(база),
             "знакомство": soul.знакомство(база),
             "мнения": soul.прочитать_мнения(база),
+            "развитие": soul.прочитать_развитие(база),
             "важное": soul.важное(база),
             "ии": ai.подключён(_ии()),
             "по_умолчанию": soul.ДУША_ПО_УМОЛЧАНИЮ,
@@ -672,6 +683,15 @@ def создать_приложение(настройки: dict, база: Ба
             soul.обновить_мнения(база, н)
         except ai.ОшибкаИИ as ошибка:
             raise StarletteHTTPException(502, f"ИИ не ответил: {ошибка}")
+        return _душа()
+
+    class НастройкиРазвития(BaseModel):
+        включено: bool
+
+    @app.put("/api/soul/development")
+    def настроить_фоновое_развитие(запрос_: НастройкиРазвития):
+        soul.настроить_развитие(база, запрос_.включено)
+        журнал.info("Фоновое развитие Души: %s.", "включено" if запрос_.включено else "выключено")
         return _душа()
 
     class УбратьМнение(BaseModel):
@@ -770,4 +790,7 @@ def создать_приложение(настройки: dict, база: Ба
         журнал.info("Настройки мозгов сохранены.")
         return новые
 
+    soul.запустить_фоновое_развитие(
+        база, _ии, lambda: последняя_активность[0]
+    )
     return app
