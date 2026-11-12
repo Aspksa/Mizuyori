@@ -2302,3 +2302,84 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 }
 
 .агент-имя.длинное { font-size: .56rem; letter-spacing: -.01em; }
+
+
+/* =============================================================================
+   РАБОТА → АРХИВ И КОНТРАГЕНТЫ (папки как на Яндекс.Диске)
+   ============================================================================= */
+.архив-тело { display: grid; grid-template-columns: minmax(14rem, 18rem) minmax(0, 1fr); gap: 1rem; margin-top: .8rem; align-items: start; }
+@media (max-width: 52rem) { .архив-тело { grid-template-columns: minmax(0, 1fr); } }
+.архив-дерево { display: flex; flex-direction: column; gap: .1rem; padding: .5rem; border: 1px solid var(--рамка); border-radius: 12px;
+  background: color-mix(in srgb, var(--акцент) 3%, transparent); max-height: calc(100vh - 12rem); overflow-y: auto; }
+.архив-узел { display: flex; align-items: center; gap: .4rem; width: 100%; padding: .4rem .5rem; border: 0; border-radius: 8px; background: none;
+  color: inherit; font: inherit; font-size: .88rem; cursor: pointer; text-align: left; }
+.архив-узел:hover { background: color-mix(in srgb, var(--акцент) 9%, transparent); }
+.архив-узел.активен { background: color-mix(in srgb, var(--акцент) 18%, transparent); font-weight: 600; }
+.архив-стрелка { width: .9rem; flex: none; color: var(--тихий); font-size: .75rem; }
+.архив-иконка { flex: none; }
+.архив-имя { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.архив-число { flex: none; font-size: .72rem; color: var(--тихий); }
+.архив-метка { flex: none; font-size: .68rem; padding: 0 .35rem; border-radius: 999px; background: #e5534b; color: #fff; font-weight: 700; }
+.архив-разделитель { margin: .6rem .5rem .2rem; font-size: .68rem; letter-spacing: .1em; text-transform: uppercase; color: var(--тихий); }
+.архив-сирота { margin: 0 .5rem; font-size: .78rem; color: var(--тихий); }
+.пусто.малый, .малый { font-size: .82rem; }
+.архив-содержимое { min-width: 0; display: flex; flex-direction: column; gap: .8rem; border-radius: 12px; transition: box-shadow .2s, background .2s; }
+.архив-содержимое.над { box-shadow: 0 0 0 2px var(--акцент); background: color-mix(in srgb, var(--акцент) 6%, transparent); }
+.архив-путь { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; font-size: .92rem; color: var(--тихий); }
+.архив-путь > span:last-child { color: var(--текст); font-weight: 600; }
+.архив-путь-стрелка { opacity: .6; }
+.архив-зона { display: flex; align-items: center; justify-content: center; gap: .6rem; padding: .9rem; border: 2px dashed var(--рамка); border-radius: 12px;
+  color: var(--тихий); font-size: .88rem; text-align: center; }
+.архив-подсказка { padding: .6rem .8rem; border-radius: 10px; background: color-mix(in srgb, var(--акцент) 8%, transparent); font-size: .88rem; }
+.архив-итоги { display: flex; flex-direction: column; gap: .25rem; padding: .6rem .8rem; border: 1px solid var(--рамка); border-radius: 10px; font-size: .84rem; }
+.архив-итог.ок { color: var(--текст); }
+.архив-итог.ошибка { color: #e5534b; }
+.архив-карточка { padding: 1rem 1.1rem; border: 1px solid var(--рамка); border-radius: 14px; background: color-mix(in srgb, var(--акцент) 4%, transparent); display: flex; flex-direction: column; gap: .5rem; }
+.архив-карточка-шапка { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.архив-карточка-шапка h3 { margin: 0; font-size: 1.1rem; }
+.кнопка.малая { padding: .3rem .7rem; font-size: .82rem; }
+.архив-реквизиты { display: grid; grid-template-columns: max-content 1fr; gap: .2rem 1rem; margin: 0; font-size: .88rem; }
+.архив-реквизиты dt { color: var(--тихий); }
+.архив-реквизиты dd { margin: 0; overflow-wrap: anywhere; }
+.архив-заметка { margin: 0; font-size: .85rem; color: var(--тихий); }
+.архив-подзаголовок { margin: .3rem 0 0; font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: var(--тихий); font-weight: 600; }
+.архив-папки { display: grid; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); gap: .6rem; }
+.архив-папка { display: flex; flex-direction: column; align-items: flex-start; gap: .25rem; padding: .8rem; border: 1px solid var(--рамка); border-radius: 12px;
+  background: none; color: inherit; font: inherit; cursor: pointer; text-align: left; transition: transform .15s, border-color .2s, background .2s; }
+.архив-папка:hover { transform: translateY(-2px); border-color: var(--акцент); background: color-mix(in srgb, var(--акцент) 7%, transparent); }
+.архив-папка-значок { font-size: 1.6rem; }
+.архив-папка-имя { font-weight: 600; font-size: .92rem; }
+.архив-папка-мелко { font-size: .78rem; color: var(--тихий); }
+.архив-комплект { font-size: .75rem; padding: .1rem .5rem; border-radius: 999px; }
+.архив-комплект.готов { background: color-mix(in srgb, #3ecf9a 22%, transparent); color: #3ecf9a; }
+.архив-комплект.нет { background: color-mix(in srgb, #f5a34b 22%, transparent); color: #f5a34b; }
+.архив-чеклист { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .3rem; }
+.архив-чеклист li { display: grid; grid-template-columns: 1.5rem auto 1fr; gap: .5rem; align-items: baseline; font-size: .9rem; }
+.архив-галка { font-weight: 700; text-align: center; }
+.архив-чеклист .есть .архив-галка { color: #3ecf9a; }
+.архив-чеклист .нет .архив-галка { color: #e5534b; }
+.архив-чеклист .необяз { color: var(--тихий); }
+.архив-чек-файл { font-size: .76rem; color: var(--тихий); overflow-wrap: anywhere; }
+.архив-вывод { margin: .2rem 0 0; font-size: .88rem; color: #f5a34b; }
+.архив-вывод.ок { color: #3ecf9a; }
+.архив-раздел { display: flex; flex-direction: column; gap: .4rem; }
+.архив-файлы { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .3rem; }
+.архив-файл { display: grid; grid-template-columns: 2rem minmax(0, 1fr) auto; gap: .6rem; align-items: start; padding: .55rem .7rem; border: 1px solid var(--рамка); border-radius: 10px; }
+.архив-файл:hover { border-color: color-mix(in srgb, var(--акцент) 50%, var(--рамка)); }
+.архив-файл.пропал { border-color: #e5534b; }
+.архив-файл-значок { font-size: 1.3rem; text-align: center; }
+.архив-файл-имя { font-weight: 600; font-size: .9rem; color: var(--текст); text-decoration: none; overflow-wrap: anywhere; }
+.архив-файл-имя:hover { color: var(--акцент); }
+.архив-файл-мелко { display: flex; flex-wrap: wrap; gap: .2rem .7rem; font-size: .76rem; color: var(--тихий); margin-top: .1rem; }
+.архив-вид { color: var(--акцент); font-weight: 600; }
+.архив-где { opacity: .8; }
+.архив-файл-описание { font-size: .8rem; color: var(--тихий); margin-top: .15rem; }
+.архив-файл-действия { display: flex; gap: .1rem; }
+.архив-файл-действия .кнопка-значок { width: 1.9rem; height: 1.9rem; font-size: .95rem; }
+.архив-окно { max-width: 30rem; }
+.архив-форма { display: flex; flex-direction: column; gap: .5rem; }
+.архив-поле { display: flex; flex-direction: column; gap: .15rem; font-size: .8rem; color: var(--тихий); }
+.архив-поле input, .архив-поле select, .архив-поле textarea { font: inherit; font-size: .92rem; color: var(--текст); background: var(--фон); border: 1px solid var(--рамка);
+  border-radius: 8px; padding: .45rem .6rem; }
+.архив-ошибка { margin: 0; color: #e5534b; font-size: .85rem; }
+.архив-ошибка[hidden] { display: none; }

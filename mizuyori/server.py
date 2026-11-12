@@ -17,7 +17,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from . import __version__, agents, ai, documents, learning, memory, printing, putevoy, smeta, soul, work, work_agents
+from . import __version__, agents, ai, archive, documents, learning, memory, printing, putevoy, smeta, soul, work, work_agents
 from .config import (ВИД_ПО_УМОЛЧАНИЮ, ВНЕШНИЙ_ВИД, ИИ_ПО_УМОЛЧАНИЮ, МОЗГИ_ПО_УМОЛЧАНИЮ,
                      НеверныйВнешнийВид, атрибуты_html, проверить_внешний_вид, проверить_ии,
                      проверить_мозги, сохранить_настройки)
@@ -851,6 +851,129 @@ def создать_приложение(настройки: dict, база: Ба
             raise StarletteHTTPException(409, "Подходит несколько: " + "; ".join(printing.подпись(п) for п in найдено[:12]))
         printing.отправить_в_фоне(найдено, при_ошибке=work_agents._ошибка_печати)
         return {"файл": printing.подпись(найдено[0])}
+
+    # ---- Архив: контрагенты → договоры → документы ------------------------------------------
+
+    def _архив(действие):
+        try:
+            return действие()
+        except archive.ОшибкаАрхива as ошибка:
+            raise StarletteHTTPException(400, str(ошибка))
+
+    class КонтрагентЗапрос(BaseModel):
+        название: str = Field("", max_length=200)
+        инн: str = Field("", max_length=12)
+        кпп: str = Field("", max_length=9)
+        адрес: str = Field("", max_length=300)
+        телефон: str = Field("", max_length=60)
+        email: str = Field("", max_length=120)
+        контакт: str = Field("", max_length=200)
+        банк: str = Field("", max_length=300)
+        заметка: str = Field("", max_length=2000)
+
+    class ФайлПравка(BaseModel):
+        имя: str | None = Field(None, max_length=200)
+        контрагент_id: int | None = None
+        договор_id: int | None = None
+        раздел: str | None = Field(None, max_length=60)
+        вид: str | None = Field(None, max_length=60)
+        номер: str | None = Field(None, max_length=60)
+        дата: str | None = Field(None, max_length=10)
+        сумма: float | str | None = None
+        описание: str | None = Field(None, max_length=300)
+
+    class ДоговорЗапрос(BaseModel):
+        контрагент_id: int
+        вид: str = Field("договор", max_length=20)
+        номер: str = Field("", max_length=60)
+        дата: str | None = Field(None, max_length=10)
+        сумма: float | None = None
+        предмет: str = Field("", max_length=500)
+
+    class ЗакупкаЗапрос(BaseModel):
+        статус: str = Field("", max_length=30)
+
+    @app.get("/api/archive/tree")
+    def архив_дерево():
+        return archive.дерево(база)
+
+    @app.get("/api/archive/contractors/{cid}")
+    def архив_контрагент(cid: int):
+        к = _архив(lambda: archive.контрагент(база, cid))
+        return {"контрагент": к, "файлы": archive.файлы(база, контрагент_id=cid),
+                "договоры": [{**д, "комплект": archive.комплект(база, д["id"])}
+                             for д in work.список(база, "договоры") + work.список(база, "оферты") if д.get("контрагент_id") == cid]}
+
+    @app.post("/api/archive/contractors", status_code=201)
+    def архив_создать_контрагента(з: КонтрагентЗапрос):
+        return _архив(lambda: archive.создать_контрагента(база, з.model_dump()))
+
+    @app.put("/api/archive/contractors/{cid}")
+    def архив_изменить_контрагента(cid: int, з: КонтрагентЗапрос):
+        return _архив(lambda: archive.изменить_контрагента(база, cid, з.model_dump()))
+
+    @app.delete("/api/archive/contractors/{cid}")
+    def архив_удалить_контрагента(cid: int):
+        _архив(lambda: archive.удалить_контрагента(база, cid))
+        return {"удалено": cid}
+
+    @app.post("/api/archive/dogovor", status_code=201)
+    def архив_договор(з: ДоговорЗапрос):
+        return _архив(lambda: archive.создать_договор(база, з.контрагент_id, з.вид, з.номер, з.дата, з.сумма, з.предмет))
+
+    @app.get("/api/archive/files")
+    def архив_файлы(kontragent: int | None = None, dogovor: int | None = None, inbox: bool = False, q: str = Query("", max_length=200)):
+        if q.strip():
+            return {"файлы": archive.искать(база, q, 40)}
+        return {"файлы": archive.файлы(база, kontragent, dogovor, inbox)}
+
+    @app.post("/api/archive/upload", status_code=201)
+    async def архив_загрузка(request: Request, name: str = Query("файл", max_length=200), kontragent: int | None = None,
+                             dogovor: int | None = None, razdel: str | None = Query(None, max_length=60),
+                             rename: bool = True):
+        данные = await request.body()
+        н = dict(_ии())
+        with agents.работа("архивариус", "принял файл в архив", f"«{name}»") as з:
+            итог = await run_in_threadpool(lambda: _архив(lambda: archive.принять_файл(
+                база, н, name, данные, kontragent, dogovor, razdel, None, rename)))
+            з["результат"] = f"{итог['вид']} → {итог['где']}"
+            з["польза"] = 2
+        return итог
+
+    @app.get("/api/archive/file/{fid}")
+    def архив_скачать(fid: int):
+        п = _архив(lambda: archive.путь_на_диске(база, fid))
+        return FileResponse(п, filename=п.name)
+
+    @app.patch("/api/archive/file/{fid}")
+    def архив_править(fid: int, з: ФайлПравка):
+        return _архив(lambda: archive.изменить_файл(база, fid, з.model_dump(exclude_unset=True)))
+
+    @app.post("/api/archive/file/{fid}/rename-auto")
+    def архив_имя_по_схеме(fid: int):
+        return _архив(lambda: archive.переименовать_по_схеме(база, fid))
+
+    @app.delete("/api/archive/file/{fid}")
+    def архив_удалить_файл(fid: int):
+        _архив(lambda: archive.удалить_файл(база, fid))
+        return {"удалено": fid}
+
+    @app.post("/api/archive/sort-inbox")
+    def архив_разобрать_входящие():
+        с_ = agents.работа("архивариус", "разбираю входящие", "по кнопке")
+        with с_ as з:
+            n = archive.разобрать_входящие(база, dict(_ии()))
+            з["результат"] = f"разложено: {n}"
+            з["польза"] = 1 + min(n, 3)
+        return {"разложено": n}
+
+    @app.get("/api/archive/procurement/{did}")
+    def архив_комплект(did: int):
+        return _архив(lambda: archive.комплект(база, did))
+
+    @app.post("/api/archive/procurement/{did}")
+    def архив_статус_закупки(did: int, з: ЗакупкаЗапрос):
+        return _архив(lambda: archive.задать_закупку(база, did, з.статус))
 
     @app.post("/api/work-agents/memo", status_code=201)
     def записка_инженера(з: ЗаписокЗапрос):
