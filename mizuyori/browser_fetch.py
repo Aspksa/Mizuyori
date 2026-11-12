@@ -32,9 +32,32 @@ _сбой_до = 0.0
 _замок = threading.Lock()
 
 
+def _найти_chrome() -> bool:
+    import os
+    import shutil
+    if any(shutil.which(и) for и in ("google-chrome", "google-chrome-stable", "chrome", "chromium", "chromium-browser")):
+        return True
+    пути = [os.path.join(os.environ.get(к, ""), "Google", "Chrome", "Application", "chrome.exe")
+            for к in ("PROGRAMFILES", "PROGRAMFILES(X86)", "LOCALAPPDATA")]
+    пути += ["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"]
+    return any(п and os.path.exists(п) for п in пути)
+
+
+def авто_доступен() -> bool:
+    """Автовключение: есть пакет playwright и установленный Chrome."""
+    import importlib.util
+    return importlib.util.find_spec("playwright") is not None and _найти_chrome()
+
+
 def настроить(режим: str) -> None:
+    """"" и «авто» — включить свой Chrome, если он есть (иначе тихо остаёмся на обычном поиске); «выкл» — выключить."""
     global _режим
-    _режим = (режим or "").strip()
+    режим = (режим or "").strip()
+    if режим in ("", "авто"):
+        режим = "chrome" if авто_доступен() else ""
+    elif режим == "выкл":
+        режим = ""
+    _режим = режим
 
 
 def включён() -> bool:

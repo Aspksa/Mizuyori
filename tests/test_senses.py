@@ -273,3 +273,54 @@ class ЗапасноеЧерезКлюч(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ТестКэшаИЦен(unittest.TestCase):
+    def setUp(self):
+        import tempfile
+        from pathlib import Path
+        from mizuyori import agents
+        from mizuyori.database import База
+        self.папка = tempfile.TemporaryDirectory()
+        self.база = База(Path(self.папка.name) / "t.db")
+        self.база.подготовить()
+        agents.подключить(self.база)
+        self.старое = senses._получатель
+
+    def tearDown(self):
+        senses._получатель = self.старое
+        self.папка.cleanup()
+
+    def test_выдача_кэшируется_на_часы(self):
+        вызовы = []
+        html_ = '<a class="result__a" href="https://shop.example/x">Фильтр</a>'
+        senses._получатель = lambda: (lambda адрес: вызовы.append(адрес) or html_)
+        движки = senses._порядок_поисковиков
+        senses._порядок_поисковиков = lambda: [("тест", lambda з, п: [{"название": "Фильтр C-111", "ссылка": "https://shop.example/x", "кратко": ""}])]
+        try:
+            первая = senses.искать("фильтр vic c111")
+            self.assertEqual(len(первая), 1)
+            senses._порядок_поисковиков = lambda: [("тест", lambda з, п: (_ for _ in ()).throw(OSError("нет сети")))]
+            вторая = senses.искать("Фильтр  VIC c111")        # регистр и пробелы не важны
+            self.assertEqual(вторая, первая)
+            with self.assertRaises(OSError):
+                senses.искать("фильтр vic c111", кэш=False)
+        finally:
+            senses._порядок_поисковиков = движки
+
+    def test_цена_рядом_с_артикулом(self):
+        снимок = "Доставка от 300 руб.\n# Каталог\n- Фильтр VIC C-110\n- 900 руб.\n- Фильтр VIC C-111 воздушный\n- Цена 1 250 руб."
+        self.assertEqual(senses.цена_со_страницы(снимок, "фильтр C111"), ("1 250 ₽", True))
+        self.assertEqual(senses.цена_со_страницы("Товар за 500 руб.", "шины"), ("500 ₽", False))
+
+    def test_цены_добавляются_магазинам_без_цены(self):
+        результаты = [{"название": "Фильтр C-111", "ссылка": "https://exist.ru/p/1", "кратко": ""},
+                      {"название": "Блог про фильтры", "ссылка": "https://blog.example/a", "кратко": ""},
+                      {"название": "Уже с ценой", "ссылка": "https://emex.ru/p/2", "кратко": "1 000 руб."}]
+        вызовы = []
+        senses.добавить_цены(результаты, "фильтр C111", снимок=lambda а: вызовы.append(а) or "Фильтр VIC C-111\nЦена 1 250 руб.")
+        self.assertEqual(результаты[0]["цена"], "1 250 ₽")
+        self.assertTrue(результаты[0]["цена_точно"])
+        self.assertNotIn("цена", результаты[1])
+        self.assertEqual(вызовы, ["https://exist.ru/p/1"])
+        senses.добавить_цены(результаты, "фильтр C111", снимок=lambda а: self.fail("должно быть из кэша"))
