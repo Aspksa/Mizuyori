@@ -44,6 +44,12 @@ from datetime import date, datetime, timedelta
 _замок = threading.Lock()
 _база = None
 _работают: dict[str, int] = {}
+_стек = threading.local()      # какие агенты сейчас «в работе» в этом потоке: кому записать расход токенов
+
+
+def текущий_агент() -> str:
+    стек = getattr(_стек, "значение", None)
+    return стек[-1] if стек else ""
 _начато: dict[str, float] = {}
 
 
@@ -72,6 +78,7 @@ def работа(ключ: str, действие: str = "", почему: str = 
     with _замок:
         _работают[ключ] = _работают.get(ключ, 0) + 1
         _начато[ключ] = time.monotonic()
+    _стек.__dict__.setdefault("значение", []).append(ключ)
     начало = time.monotonic()
     ошибка = ""
     try:
@@ -81,6 +88,10 @@ def работа(ключ: str, действие: str = "", почему: str = 
         raise
     finally:
         секунд = round(time.monotonic() - начало, 1)
+        try:
+            _стек.значение.pop()
+        except (AttributeError, IndexError):
+            pass
         with _замок:
             _работают[ключ] = max(0, _работают.get(ключ, 1) - 1)
         try:

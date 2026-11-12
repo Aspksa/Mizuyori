@@ -360,6 +360,23 @@ from .archive import МИГРАЦИЯ as МИГРАЦИЯ_АРХИВА
         создано REAL NOT NULL
     );
     """,
+    # 29: расход токенов по агентам и дням; автооткат принятых улучшений
+    """
+    CREATE TABLE агент_расход (
+        день       TEXT NOT NULL,                 -- ГГГГ-ММ-ДД
+        агент      TEXT NOT NULL,                 -- ключ агента или «прочее»
+        приоритет  TEXT NOT NULL,                 -- чат | поручение | фон
+        запросов   INTEGER NOT NULL DEFAULT 0,
+        токенов    INTEGER NOT NULL DEFAULT 0,
+        оценка     INTEGER NOT NULL DEFAULT 0,    -- сколько из токенов — прикидка по длине текста (потоковый чат)
+        PRIMARY KEY (день, агент, приоритет)
+    );
+    ALTER TABLE агент_предложение ADD COLUMN после_id INTEGER NOT NULL DEFAULT 0;   -- последняя оценка шага на момент принятия
+    ALTER TABLE агент_предложение ADD COLUMN откат_к INTEGER;                       -- версия агента до изменения
+    ALTER TABLE агент_предложение ADD COLUMN оценка_до REAL;
+    ALTER TABLE агент_предложение ADD COLUMN оценка_после REAL;
+    ALTER TABLE агент_предложение ADD COLUMN откат_статус TEXT NOT NULL DEFAULT '';  -- '' | предложен | выполнен | оставлено
+    """,
 ]
 
 ТИПЫ_СУЩНОСТЕЙ = ["человек", "питомец", "место", "организация", "проект", "цель", "событие", "вещь", "другое"]

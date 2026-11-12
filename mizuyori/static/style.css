@@ -3113,3 +3113,9 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .память-список li { display: flex; justify-content: space-between; gap: .6rem; padding: .5rem .6rem; border: 1px solid var(--рамка); border-radius: var(--радиус); font-size: .85rem; }
 .память-список small { display: block; color: var(--тихий); font-size: .72rem; }
 .память-история { margin-top: .3rem; }
+
+/* Расход токенов, откат улучшения */
+.шкала.расход li { grid-template-columns: 8rem 1fr auto; }
+.расход-имя { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.предупреждение-отката { margin-top: .4rem; padding: .5rem .6rem; border: 1px solid #d9534f; border-radius: var(--радиус); font-size: .85rem; }
+.предупреждение-отката p { margin: 0 0 .4rem; }

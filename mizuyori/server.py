@@ -18,7 +18,7 @@ from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from . import (__version__, agents, ai, archive, audit, browser_fetch, documents, evolve, graph_tools, learning, mcp_client, memory, memory_plus, missions, printing, putevoy,
-               search_eval, senses, smeta, soul, tools, work, work_agents)
+               search_eval, senses, smeta, soul, tools, usage, work, work_agents)
 from .config import (ВИД_ПО_УМОЛЧАНИЮ, ВНЕШНИЙ_ВИД, ИИ_ПО_УМОЛЧАНИЮ, МОЗГИ_ПО_УМОЛЧАНИЮ,
                      НеверныйВнешнийВид, атрибуты_html, проверить_внешний_вид, проверить_ии,
                      проверить_мозги, сохранить_настройки)
@@ -771,6 +771,7 @@ def создать_приложение(настройки: dict, база: Ба
     work_agents.зарегистрировать()
     missions.подключить(база)
     audit.подключить(база)
+    usage.подключить(база)
     tools.подключить(lambda: база.прочитать("инструменты", {}), lambda з: база.записать("инструменты", з))
     mcp_client.подключить(lambda: база.прочитать("mcp", {}), lambda з: база.записать("mcp", з))
     mcp_client.запустить_включённые()
@@ -874,7 +875,7 @@ def создать_приложение(настройки: dict, база: Ба
                 "уроки_недели": agents.выучено(ключ, 7), "профиль": agents.профиль(ключ),
                 "подсказка": agents.правила(ключ),
                 "навыки": agents.навыки(ключ), "версии": agents.версии(ключ),
-                "качество": evolve.качество(ключ), "предложения": evolve.предложения(ключ, 10)}
+                "качество": evolve.качество(ключ), "предложения": (evolve.проверить_откаты(ключ), evolve.предложения(ключ, 10))[1]}
 
     class ПрофильАгента(BaseModel):
         роль: str = Field("", max_length=agents.ПРЕДЕЛ_ПОЛЯ)
@@ -948,6 +949,20 @@ def создать_приложение(настройки: dict, база: Ба
             raise StarletteHTTPException(404, "Предложение уже решено или не найдено.")
         return {"предложение": итог, "версии": agents.версии(итог["агент"])}
 
+    @app.post("/api/agents/proposals/{proposal_id}/rollback")
+    def откатить_улучшение(proposal_id: int):
+        итог = evolve.откатить_улучшение(proposal_id)
+        if not итог:
+            raise StarletteHTTPException(404, "Откат не предлагался или уже решён.")
+        return {**итог, "версии": agents.версии(итог["агент"])}
+
+    @app.post("/api/agents/proposals/{proposal_id}/keep")
+    def оставить_улучшение(proposal_id: int):
+        итог = evolve.оставить_улучшение(proposal_id)
+        if not итог:
+            raise StarletteHTTPException(404, "Откат не предлагался или уже решён.")
+        return {"предложение": итог}
+
     @app.post("/api/agents/proposals/{proposal_id}/reject")
     def отклонить_улучшение(proposal_id: int):
         итог = evolve.отклонить_предложение(proposal_id)
@@ -989,6 +1004,10 @@ def создать_приложение(настройки: dict, база: Ба
             raise StarletteHTTPException(502, f"Не удалось запустить: {е}") from None
         audit.записать("MCP-сервер включён" if п.включён else "MCP-сервер выключен", mcp_client.КАТАЛОГ[key]["имя"])
         return итог
+
+    @app.get("/api/usage")
+    def расход_токенов(days: int = Query(14, ge=1, le=90)):
+        return usage.отчёт(days)
 
     @app.get("/api/search-eval")
     def история_проверки_поиска():
