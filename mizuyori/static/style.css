@@ -2575,3 +2575,25 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .подсказка-уровень u { display: block; height: 100%; background: var(--акцент, #3ecf9a); border-radius: 3px; text-decoration: none; }
 .подсказка-неделя { display: flex; align-items: flex-end; gap: 3px; height: 24px; margin: .2rem 0; }
 .подсказка-неделя i { width: 9px; background: var(--акцент, #3ecf9a); opacity: .55; border-radius: 2px 2px 0 0; }
+
+/* Душа: путь роста */
+.рост-уровень { display: flex; align-items: center; gap: .8rem; margin-bottom: .7rem; }
+.рост-число { width: 2.8rem; height: 2.8rem; border-radius: 50%; display: grid; place-items: center; font-size: 1.3rem; font-weight: 700; flex: none;
+  color: #08150f; background: radial-gradient(circle at 35% 30%, #fff3c4, #f5c451); box-shadow: 0 0 16px -2px #f5c451; }
+.рост-уровень > div { flex: 1; display: flex; flex-direction: column; gap: .2rem; }
+.рост-уровень i { height: 6px; border-radius: 3px; background: rgba(245, 196, 81, .18); overflow: hidden; }
+.рост-уровень u { display: block; height: 100%; background: linear-gradient(90deg, #f5a34b, #f5c451); border-radius: 3px; text-decoration: none; }
+.рост-уровень small { opacity: .65; }
+.рост-фильтры { display: flex; gap: .3rem; flex-wrap: wrap; margin-bottom: .6rem; }
+.рост-фильтр { all: unset; cursor: pointer; font-size: .72rem; padding: .18rem .6rem; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--ц, currentColor) 40%, transparent); color: var(--ц, inherit); opacity: .75; }
+.рост-фильтр.активен { opacity: 1; background: color-mix(in srgb, var(--ц, currentColor) 18%, transparent); }
+.рост-фильтр:focus-visible { outline: 2px solid currentColor; }
+.рост-список { list-style: none; margin: 0; padding: 0 0 0 .2rem; position: relative; }
+.рост-список::before { content: ""; position: absolute; left: .95rem; top: .4rem; bottom: .4rem; width: 2px; background: linear-gradient(#f5c451, color-mix(in srgb, #3ecf9a 40%, transparent), transparent); opacity: .5; }
+.рост-день { position: relative; margin: .6rem 0 .2rem 2.3rem; font-size: .7rem; letter-spacing: .06em; text-transform: uppercase; opacity: .6; }
+.рост-событие { position: relative; display: flex; gap: .7rem; padding: .25rem 0; }
+.рост-значок { position: relative; z-index: 1; flex: none; width: 1.8rem; height: 1.8rem; border-radius: 50%; display: grid; place-items: center;
+  background: var(--фон); border: 1.5px solid currentColor; box-shadow: 0 0 10px -3px currentColor; }
+.рост-событие small { opacity: .65; font-size: .7rem; }
+.рост-событие p { margin: .05rem 0 0; font-size: .86rem; line-height: 1.35; }
+.рост-ещё { margin-top: .5rem; }
