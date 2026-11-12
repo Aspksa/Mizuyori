@@ -255,6 +255,7 @@ def сводка() -> dict:
     стат: dict[str, dict] = {}
     неделя: dict[str, list[int]] = {}
     письма: list[dict] = []
+    опыт: list[dict] = []
     заметок: dict[str, int] = {}
     выучено_: dict[str, int] = {}
     записок: dict[str, int] = {}
@@ -273,6 +274,13 @@ def сводка() -> dict:
                     неделя[агент_][дни.index(день)] = н
             письма = [dict(с) for с in связь.execute(
                 "SELECT id, от, кому, текст FROM доска ORDER BY id DESC LIMIT 6").fetchall()]
+            for п in письма:
+                п["тип"] = "знание" if п["текст"].startswith("Урок:") else "работа"
+            ключ_по_имени = {и: к for к, и in ИМЕНА.items()}
+            for н in связь.execute("SELECT id, агент, источник FROM агент_заметки WHERE источник LIKE 'от %' ORDER BY id DESC LIMIT 6").fetchall():
+                автор = ключ_по_имени.get(н["источник"][3:].strip())
+                if автор:
+                    опыт.append({"id": н["id"], "от": автор, "кому": н["агент"]})
             for с in связь.execute("SELECT агент, COUNT(*) FROM агент_заметки GROUP BY агент").fetchall():
                 заметок[с[0]] = с[1]
             граница = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d %H:%M:%S")
@@ -310,6 +318,7 @@ def сводка() -> dict:
             "сегодня": sum(а["сегодня"] for а in итог),
             "записок": sum(записок.values()),
             "письма": письма,
+            "опыт": опыт,
             "время": datetime.now().isoformat(timespec="seconds")}
 
 

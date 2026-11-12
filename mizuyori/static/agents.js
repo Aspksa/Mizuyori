@@ -183,6 +183,7 @@
         const данные = await запрос("/api/agents");
         показать(данные);
         проверитьПисьма(данные.письма);
+        проверитьОпыт(данные.опыт);
         таймер = setTimeout(обновить, данные.работают || Date.now() < частоДо ? 450 : 3000);
         return;
       } catch {
@@ -197,7 +198,7 @@
 
   // ---- Дорожка, искры, вспышки ---------------------------------------------------
 
-  const искры = [], вспышки = [], письма = [], пузыри = [], лучи = [];
+  const искры = [], вспышки = [], письма = [], пузыри = [], лучи = [], впитывания = [];
   let пыль = null;
   const кэшЦветов = new Map();
   function цветА(ключ) {
@@ -207,6 +208,15 @@
       if (ц) кэшЦветов.set(ключ, ц); else return getComputedStyle(document.documentElement).getPropertyValue("--акцент").trim() || "#3ecf9a";
     }
     return кэшЦветов.get(ключ);
+  }
+  const ЗНАЧОК_ПОСЫЛКИ = { работа: "📤", знание: "💡", опыт: "🎓" };
+  function прибытие(п, куда) {
+    const цв = п.тип === "опыт" ? "#f5c451" : п.тип === "знание" ? "#6aa9ff" : цветА(п.от);
+    вспышки.push({ ключ: п.кому, успех: true, t: 0.35, золото: п.тип === "опыт" });
+    if (п.тип !== "работа") впитывания.push({ ключ: п.кому, цвет: цв, t: 0 });
+    пузырь(п.кому, `${ЗНАЧОК_ПОСЫЛКИ[п.тип]} от ${имена[п.от] || п.от}`, п.тип === "опыт");
+    const яч = ячейки.get(п.кому);
+    if (яч) { яч.classList.remove("получил"); void яч.offsetWidth; яч.classList.add("получил"); setTimeout(() => яч.classList.remove("получил"), 900); }
   }
   function пузырь(ключ, текст, золото = false) {
     if (безАнимаций()) return;
@@ -226,13 +236,22 @@
     for (const п of новые) {
       if (!ячейки.has(п.от)) continue;
       const кому = ячейки.has(п.кому) ? [п.кому] : п.кому === "все" ? [...ячейки.keys()].filter((к) => к !== п.от).slice(0, 4) : [];
-      for (const к_ of кому) письмо(п.от, к_);
+      for (const к_ of кому) письмо(п.от, к_, п.тип || "работа");
     }
   }
-  function письмо(от, кому) {
+  let последнийОпыт = null;
+  function проверитьОпыт(список) {
+    if (!список) return;
+    if (!список.length) { последнийОпыт ??= 0; return; }
+    const новые = список.filter((п) => п.id > (последнийОпыт ?? Infinity)).reverse();
+    последнийОпыт = Math.max(...список.map((п) => п.id), последнийОпыт ?? 0);
+    for (const п of новые) if (ячейки.has(п.от) && ячейки.has(п.кому)) письмо(п.от, п.кому, "опыт");
+  }
+  function письмо(от, кому, тип = "работа") {
     if (безАнимаций()) return;
-    письма.push({ от, кому, t: 0 });
+    письма.push({ от, кому, тип, t: 0 });
     лучи.push({ от, кому, t: 0 });
+    вспышки.push({ ключ: от, успех: true, t: 0.45 });
     if (!кадр) кадр = requestAnimationFrame(рисовать);
   }
   let кадр = 0, время = 0, прошлый = 0;
@@ -350,33 +369,69 @@
       к.globalAlpha = 1; к.fillStyle = "#fff";
       к.beginPath(); к.arc(x, y, 2.4, 0, Math.PI * 2); к.fill();
     }
-    // письма: конверт летит дугой от автора к адресату
+    // посылки между агентами: работа — конверт-задание, знание — лампочка, опыт — золотая звезда
     for (let i = письма.length - 1; i >= 0; i--) {
       const п = письма[i];
-      п.t += dt / 1.3;
+      п.t += dt / (п.тип === "опыт" ? 1.8 : 1.5);
       const от = центр(п.от), куда = центр(п.кому);
       if (!от || !куда || п.t >= 1) {
-        if (куда && п.t >= 1) вспышки.push({ ключ: п.кому, успех: true, t: 0.35 });
+        if (куда && п.t >= 1) прибытие(п, куда);
         письма.splice(i, 1); continue;
       }
       const е = п.t < 0.5 ? 2 * п.t * п.t : 1 - Math.pow(-2 * п.t + 2, 2) / 2;
       const дx = куда[0] - от[0], дy = куда[1] - от[1], дл = Math.hypot(дx, дy) || 1;
-      const подъём = Math.min(46, 14 + дл * 0.25);
-      const точка = (ее) => [от[0] + дx * ее - (дy / дл) * Math.sin(ее * Math.PI) * подъём * 0.5,
-                             от[1] + дy * ее + (дx / дл) * Math.sin(ее * Math.PI) * подъём * 0.5 - Math.sin(ее * Math.PI) * подъём * 0.6];
-      for (let х = 1; х <= 7; х++) {
-        const [xx, yy] = точка(Math.max(0, е - х * 0.035));
-        к.globalAlpha = (1 - х / 8) * 0.5; к.fillStyle = цветА(п.от);
-        к.beginPath(); к.arc(xx, yy, 2.4 - х * 0.25, 0, Math.PI * 2); к.fill();
+      const подъём = Math.min(60, 16 + дл * 0.28) * (п.тип === "знание" ? 1.3 : 1);
+      const качание = п.тип === "знание" ? Math.sin(е * Math.PI * 5) * 5 * Math.sin(е * Math.PI) : 0;
+      const точка = (ее) => [от[0] + дx * ее - (дy / дл) * (Math.sin(ее * Math.PI) * подъём * 0.5 + качание),
+                             от[1] + дy * ее + (дx / дл) * (Math.sin(ее * Math.PI) * подъём * 0.5 + качание) - Math.sin(ее * Math.PI) * подъём * 0.6];
+      const цв = п.тип === "опыт" ? "#f5c451" : п.тип === "знание" ? "#6aa9ff" : цветА(п.от);
+      for (let х = 1; х <= 9; х++) {                                   // шлейф
+        const [xx, yy] = точка(Math.max(0, е - х * 0.032));
+        к.globalAlpha = (1 - х / 10) * 0.55; к.fillStyle = цв;
+        к.beginPath(); к.arc(xx, yy, Math.max(.4, (п.тип === "опыт" ? 3 : 2.4) - х * 0.25), 0, Math.PI * 2); к.fill();
       }
       const [x, y] = точка(е);
-      const масштаб = 0.8 + Math.sin(е * Math.PI) * 0.45;
-      к.save(); к.translate(x, y); к.rotate(Math.sin(е * Math.PI * 2) * 0.18); к.scale(масштаб, масштаб);
+      const масштаб = 0.85 + Math.sin(е * Math.PI) * 0.5;
+      к.save(); к.translate(x, y); к.scale(масштаб, масштаб);
       к.globalAlpha = Math.min(1, п.t * 6) * Math.min(1, (1 - п.t) * 8);
-      к.fillStyle = "#fff8e1"; к.strokeStyle = цветА(п.от); к.lineWidth = 1.2;
-      к.beginPath(); к.roundRect(-8, -5.5, 16, 11, 2); к.fill(); к.stroke();
-      к.beginPath(); к.moveTo(-8, -5.5); к.lineTo(0, 1); к.lineTo(8, -5.5); к.stroke();
+      if (п.тип === "работа") {                                        // конверт с отметкой «к исполнению»
+        к.rotate(Math.sin(е * Math.PI * 2) * 0.18);
+        к.fillStyle = "#fff8e1"; к.strokeStyle = цв; к.lineWidth = 1.3;
+        к.beginPath(); к.roundRect(-8, -5.5, 16, 11, 2); к.fill(); к.stroke();
+        к.beginPath(); к.moveTo(-8, -5.5); к.lineTo(0, 1); к.lineTo(8, -5.5); к.stroke();
+        к.fillStyle = цв; к.beginPath(); к.arc(5.5, 4, 2, 0, Math.PI * 2); к.fill();
+      } else if (п.тип === "знание") {                                 // лампочка-идея: светится и пускает лучи
+        const г = к.createRadialGradient(0, 0, 1, 0, 0, 13);
+        г.addColorStop(0, "rgba(255,255,255,.95)"); г.addColorStop(.35, прозрачный(цв, .8)); г.addColorStop(1, прозрачный(цв, 0));
+        к.fillStyle = г; к.beginPath(); к.arc(0, 0, 13, 0, Math.PI * 2); к.fill();
+        к.strokeStyle = прозрачный("#ffffff", .85); к.lineWidth = 1.2;
+        for (let л = 0; л < 6; л++) {
+          const а_ = время * 2.5 + л * Math.PI / 3;
+          к.beginPath(); к.moveTo(Math.cos(а_) * 7, Math.sin(а_) * 7); к.lineTo(Math.cos(а_) * 11, Math.sin(а_) * 11); к.stroke();
+        }
+        к.fillStyle = "#fff"; к.beginPath(); к.arc(0, -.5, 3.4, 0, Math.PI * 2); к.fill();
+        к.fillStyle = цв; к.fillRect(-1.8, 3, 3.6, 2);
+      } else {                                                         // опыт: золотая звезда, вращается
+        к.rotate(время * 3);
+        к.fillStyle = "#f5c451"; к.strokeStyle = "#fff3c4"; к.lineWidth = 1;
+        к.beginPath();
+        for (let л = 0; л < 10; л++) { const р = л % 2 ? 4 : 9, а_ = -Math.PI / 2 + л * Math.PI / 5; к.lineTo(Math.cos(а_) * р, Math.sin(а_) * р); }
+        к.closePath(); к.fill(); к.stroke();
+      }
       к.restore(); к.globalAlpha = 1;
+    }
+    // впитывание: опыт и знания «втягиваются» в плитку получателя
+    for (let i = впитывания.length - 1; i >= 0; i--) {
+      const в_ = впитывания[i]; в_.t += dt / 0.8;
+      const ц = центр(в_.ключ);
+      if (!ц || в_.t >= 1) { впитывания.splice(i, 1); continue; }
+      к.fillStyle = в_.цвет;
+      for (let ч = 0; ч < 10; ч++) {
+        const а_ = ч / 10 * Math.PI * 2 + 0.4, р = (ц[2] + 26) * (1 - в_.t * в_.t);
+        к.globalAlpha = Math.min(1, в_.t * 4) * (1 - в_.t * .6);
+        к.beginPath(); к.arc(ц[0] + Math.cos(а_) * р, ц[1] + Math.sin(а_) * р, 2.4 * (1 - в_.t * .5), 0, Math.PI * 2); к.fill();
+      }
+      к.globalAlpha = 1;
     }
     // вспышки: расходящееся кольцо и искры-лучи
     for (let i = вспышки.length - 1; i >= 0; i--) {
