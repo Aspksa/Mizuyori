@@ -2239,3 +2239,11 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 
 .агент-учёба { display: flex; align-items: center; justify-content: space-between; gap: .6rem; flex-wrap: wrap;
   padding: .5rem .7rem; border: 1px solid var(--рамка); border-radius: var(--скругление, 10px); font-size: .8rem; color: var(--тихий); }
+.агент-ревизия:empty { display: none; }
+.агент-ревизия { margin-top: .6rem; }
+.агент-ревизия h3 { margin: 0 0 .4rem; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--тихий); }
+.агент-заметки li.сомнительно { border-color: var(--акцент); }
+.агент-вкладки { flex: none; min-height: 2.4rem; }
+.агент-заметки li.ревизия-пункт { display: grid; grid-template-columns: 1fr auto auto; gap: .3rem .6rem; align-items: center; }
+.агент-заметки li.ревизия-пункт > span { grid-column: 1 / -1; }
+.агент-заметки li.ревизия-пункт > small { grid-column: 1; }

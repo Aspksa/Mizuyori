@@ -688,6 +688,16 @@ def создать_приложение(настройки: dict, база: Ба
     def учёба_агентов():
         return learning.состояние()
 
+    @app.get("/api/agents-learning/review")
+    def ревизия_учёбы():
+        return {"приёмы": learning.ревизия()}
+
+    @app.post("/api/agents/notes/{note_id}/keep")
+    def оставить_приём(note_id: int):
+        if not agents.оставить_навсегда(note_id):
+            raise StarletteHTTPException(404, "Такого приёма нет.")
+        return {"оставлено": note_id}
+
     class УчёбаПереключатель(BaseModel):
         включено: bool | None = None
         запросов_в_час: int | None = Field(None, ge=1, le=200)
