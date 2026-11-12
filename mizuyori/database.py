@@ -254,6 +254,37 @@ from .archive import МИГРАЦИЯ as МИГРАЦИЯ_АРХИВА
         создано  TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
     );
     """,
+    # 24: версии агента (откат), библиотека навыков, журнал аудита
+    """
+    CREATE TABLE агент_версия (
+        id      INTEGER PRIMARY KEY,
+        агент   TEXT NOT NULL,
+        номер   INTEGER NOT NULL,
+        причина TEXT NOT NULL DEFAULT '',
+        снимок  TEXT NOT NULL,                    -- JSON: профиль, правила и приёмы, навыки
+        создано TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+    );
+    CREATE INDEX агент_версия_агент ON агент_версия(агент, номер);
+    CREATE TABLE агент_навык (
+        id       INTEGER PRIMARY KEY,
+        агент    TEXT NOT NULL,
+        название TEXT NOT NULL,
+        когда    TEXT NOT NULL DEFAULT '',        -- ключевые слова через запятую; пусто — подключать всегда
+        текст    TEXT NOT NULL,
+        включён  INTEGER NOT NULL DEFAULT 1,
+        создано  TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+        изменено TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+    );
+    CREATE TABLE аудит (
+        id          INTEGER PRIMARY KEY,
+        кто         TEXT NOT NULL DEFAULT 'вы',
+        действие    TEXT NOT NULL,
+        объект      TEXT NOT NULL DEFAULT '',
+        подробности TEXT NOT NULL DEFAULT '',
+        создано     TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+    );
+    CREATE INDEX аудит_время ON аудит(id);
+    """,
 ]
 
 ТИПЫ_СУЩНОСТЕЙ = ["человек", "питомец", "место", "организация", "проект", "цель", "событие", "вещь", "другое"]

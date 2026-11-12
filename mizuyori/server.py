@@ -17,7 +17,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from . import (__version__, agents, ai, archive, browser_fetch, documents, graph_tools, learning, memory, missions, printing, putevoy,
+from . import (__version__, agents, ai, archive, audit, browser_fetch, documents, graph_tools, learning, memory, missions, printing, putevoy,
                senses, smeta, soul, tools, work, work_agents)
 from .config import (ВИД_ПО_УМОЛЧАНИЮ, ВНЕШНИЙ_ВИД, ИИ_ПО_УМОЛЧАНИЮ, МОЗГИ_ПО_УМОЛЧАНИЮ,
                      НеверныйВнешнийВид, атрибуты_html, проверить_внешний_вид, проверить_ии,
@@ -725,6 +725,7 @@ def создать_приложение(настройки: dict, база: Ба
     agents.подключить(база)
     work_agents.зарегистрировать()
     missions.подключить(база)
+    audit.подключить(база)
     browser_fetch.настроить(настройки["агенты"].get("браузер_для_поиска", ""))
     missions.заполнить_готовые()
     printing.НАСТРОЙКИ = настройки["печать"]
@@ -823,7 +824,8 @@ def создать_приложение(настройки: dict, база: Ба
         return {**сводка, "история": agents.история(ключ, q, limit), "заметки": agents.заметки(ключ),
                 "записки": agents.доска(ключ, 40), "имена": agents.ИМЕНА,
                 "уроки_недели": agents.выучено(ключ, 7), "профиль": agents.профиль(ключ),
-                "подсказка": agents.правила(ключ)}
+                "подсказка": agents.правила(ключ),
+                "навыки": agents.навыки(ключ), "версии": agents.версии(ключ)}
 
     class ПрофильАгента(BaseModel):
         роль: str = Field("", max_length=agents.ПРЕДЕЛ_ПОЛЯ)
@@ -834,7 +836,53 @@ def создать_приложение(настройки: dict, база: Ба
     @app.put("/api/agents/{agent}/profile")
     def профиль_агента(agent: str, п: ПрофильАгента):
         ключ = _агент(agent)
-        return {"профиль": agents.сохранить_профиль(ключ, п.model_dump()), "подсказка": agents.правила(ключ)}
+        итог = {"профиль": agents.сохранить_профиль(ключ, п.model_dump()), "подсказка": agents.правила(ключ)}
+        audit.записать("профиль агента изменён", agents.ИМЕНА[ключ], "; ".join(f"{к}: {з[:40]}" for к, з in итог["профиль"].items() if з))
+        return {**итог, "версии": agents.версии(ключ)}
+
+    class НавыкАгента(BaseModel):
+        название: str = Field("", max_length=80)
+        когда: str = Field("", max_length=200)
+        текст: str = Field("", max_length=agents.ПРЕДЕЛ_НАВЫКА)
+        включён: bool = True
+
+    @app.post("/api/agents/{agent}/skills", status_code=201)
+    def новый_навык(agent: str, н: НавыкАгента):
+        ключ = _агент(agent)
+        try:
+            итог = agents.добавить_навык(ключ, н.название, н.когда, н.текст)
+        except ValueError as е:
+            raise StarletteHTTPException(400, str(е)) from None
+        audit.записать("навык добавлен", f"{agents.ИМЕНА[ключ]}: {итог['название']}", итог["когда"])
+        return итог
+
+    @app.put("/api/agents/skills/{skill_id}")
+    def изменить_навык(skill_id: int, н: НавыкАгента):
+        итог = agents.изменить_навык(skill_id, н.model_dump())
+        if not итог:
+            raise StarletteHTTPException(404, "Такого навыка нет.")
+        audit.записать("навык изменён", f"{agents.ИМЕНА.get(итог['агент'], итог['агент'])}: {итог['название']}",
+                       "включён" if итог["включён"] else "выключен")
+        return итог
+
+    @app.delete("/api/agents/skills/{skill_id}")
+    def удалить_навык(skill_id: int):
+        if not agents.удалить_навык(skill_id):
+            raise StarletteHTTPException(404, "Такого навыка нет.")
+        audit.записать("навык удалён", f"№{skill_id}")
+        return {"удалено": skill_id}
+
+    @app.post("/api/agents/versions/{version_id}/rollback")
+    def откатить_агента(version_id: int):
+        итог = agents.откатить(version_id)
+        if not итог:
+            raise StarletteHTTPException(404, "Такой версии нет.")
+        audit.записать("откат агента", agents.ИМЕНА.get(итог["агент"], итог["агент"]), f"к версии {итог['к_версии']}")
+        return {**итог, "версии": agents.версии(итог["агент"])}
+
+    @app.get("/api/audit")
+    def журнал_аудита(q: str = "", limit: int = Query(100, ge=1, le=500)):
+        return {"записи": audit.список(limit, q)}
 
     class ЗаметкаАгента(BaseModel):
         вид: str
@@ -845,12 +893,15 @@ def создать_приложение(настройки: dict, база: Ба
         ключ = _агент(agent)
         if заметка.вид not in ("правило", "приём"):
             raise StarletteHTTPException(400, "Можно добавить правило или приём.")
-        return agents.добавить_заметку(ключ, заметка.вид, _непустой(заметка.текст, "Заметка"))
+        итог = agents.добавить_заметку(ключ, заметка.вид, _непустой(заметка.текст, "Заметка"))
+        audit.записать(f"{заметка.вид} добавлено", agents.ИМЕНА[ключ], заметка.текст)
+        return итог
 
     @app.delete("/api/agents/notes/{note_id}")
     def удалить_заметку_агента(note_id: int):
         if not agents.удалить_заметку(note_id):
             raise StarletteHTTPException(404, "Такой заметки нет.")
+        audit.записать("заметка агента удалена", f"№{note_id}")
         return {"удалено": note_id}
 
     # ---- Поручения: шаги, проверка, подтверждение, шаблоны, руководитель -------------------------
@@ -907,12 +958,15 @@ def создать_приложение(настройки: dict, база: Ба
 
     @app.post("/api/missions/templates", status_code=201)
     def новый_шаблон(ш: НовыйШаблон):
-        return _поручение(lambda: missions.сохранить_шаблон(ш.название, [х.model_dump() for х in ш.шаги], ш.режим))
+        итог = _поручение(lambda: missions.сохранить_шаблон(ш.название, [х.model_dump() for х in ш.шаги], ш.режим))
+        audit.записать("шаблон поручения сохранён", ш.название)
+        return итог
 
     @app.delete("/api/missions/templates/{template_id}")
     def удалить_шаблон(template_id: int):
         if not missions.удалить_шаблон(template_id):
             raise StarletteHTTPException(404, "Такого шаблона нет.")
+        audit.записать("шаблон поручения удалён", f"№{template_id}")
         return {"удалено": template_id}
 
     @app.get("/api/missions/{mission_id}")

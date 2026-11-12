@@ -3058,3 +3058,22 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .пор-параметры { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: .6rem; }
 .пор-параметры:empty { display: none; }
 @media (prefers-reduced-motion: reduce) { .пор-карточка, .пор-статус { animation: none !important; } }
+
+/* Версии, навыки, журнал */
+.версии, .навыки, .аудит { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .4rem; }
+.версии li { display: grid; grid-template-columns: auto 1fr auto; gap: .7rem; align-items: center; padding: .5rem .7rem; border: 1px solid var(--рамка); border-radius: calc(var(--радиус) * .7); background: color-mix(in srgb, var(--текст) 3%, transparent); }
+.версии li.текущая { border-color: color-mix(in srgb, var(--акцент) 55%, transparent); background: color-mix(in srgb, var(--акцент) 10%, transparent); }
+.версии b { font: 600 .78rem ui-monospace, Consolas, monospace; color: var(--акцент); }
+.версия-текст { display: flex; flex-direction: column; font-size: .86rem; min-width: 0; }
+.версия-текст small, .аудит small { color: var(--тихий); font-size: .72rem; }
+.версия-метка { font-size: .7rem; padding: .1rem .5rem; border-radius: 999px; background: color-mix(in srgb, #3ecf9a 18%, transparent); color: #3ecf9a; }
+.навык { padding: .7rem .8rem; border: 1px solid var(--рамка); border-left: 3px solid var(--акцент); border-radius: var(--радиус); background: color-mix(in srgb, var(--текст) 3%, transparent); display: flex; flex-direction: column; gap: .4rem; }
+.навык.выключен { opacity: .55; border-left-color: var(--рамка); }
+.навык p { margin: 0; font-size: .85rem; white-space: pre-wrap; color: var(--тихий); }
+.навык-верх { display: flex; justify-content: space-between; gap: .6rem; flex-wrap: wrap; }
+.навык-когда { font-size: .72rem; padding: .1rem .55rem; border-radius: 999px; background: color-mix(in srgb, var(--акцент) 15%, transparent); }
+.аудит li { display: grid; grid-template-columns: 8.5rem 1fr auto; gap: .6rem; align-items: baseline; padding: .45rem .1rem; border-bottom: 1px solid var(--рамка); font-size: .85rem; }
+.аудит time { font-size: .72rem; color: var(--тихий); }
+.аудит small { display: block; }
+.аудит-кто { font-size: .7rem; color: var(--тихий); }
+@media (max-width: 36rem) { .аудит li { grid-template-columns: 1fr; } }
