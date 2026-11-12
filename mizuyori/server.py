@@ -818,7 +818,19 @@ def создать_приложение(настройки: dict, база: Ба
         сводка = next(а for а in agents.сводка()["агенты"] if а["ключ"] == ключ)
         return {**сводка, "история": agents.история(ключ, q, limit), "заметки": agents.заметки(ключ),
                 "записки": agents.доска(ключ, 40), "имена": agents.ИМЕНА,
-                "уроки_недели": agents.выучено(ключ, 7)}
+                "уроки_недели": agents.выучено(ключ, 7), "профиль": agents.профиль(ключ),
+                "подсказка": agents.правила(ключ)}
+
+    class ПрофильАгента(BaseModel):
+        роль: str = Field("", max_length=agents.ПРЕДЕЛ_ПОЛЯ)
+        цель: str = Field("", max_length=agents.ПРЕДЕЛ_ПОЛЯ)
+        предыстория: str = Field("", max_length=agents.ПРЕДЕЛ_ПОЛЯ)
+        указания: str = Field("", max_length=agents.ПРЕДЕЛ_ПОЛЯ)
+
+    @app.put("/api/agents/{agent}/profile")
+    def профиль_агента(agent: str, п: ПрофильАгента):
+        ключ = _агент(agent)
+        return {"профиль": agents.сохранить_профиль(ключ, п.model_dump()), "подсказка": agents.правила(ключ)}
 
     class ЗаметкаАгента(BaseModel):
         вид: str

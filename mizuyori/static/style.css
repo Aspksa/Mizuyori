@@ -2983,3 +2983,19 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .обмен-пусто span { max-width: 26rem; line-height: 1.45; }
 .обмен-пусто-зн { width: 3.4rem; height: 3.4rem; color: var(--акцент); filter: drop-shadow(0 0 10px color-mix(in srgb, var(--акцент) 50%, transparent)); animation: пустой-дыхание 3.2s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .обмен-событие, .обмен-статус::before, .обмен-пусто-зн { animation: none !important; } }
+
+/* Вкладка «Роль» в карточке агента */
+.роль-форма { display: flex; flex-direction: column; gap: .7rem; }
+.роль-поле { display: grid; gap: .3rem; font-size: .82rem; color: var(--тихий); position: relative; }
+.роль-поле > span { color: var(--текст); font-weight: 600; font-size: .85rem; }
+.роль-поле input, .роль-поле textarea {
+  padding: .55rem .8rem; border: 1px solid var(--рамка); border-radius: calc(var(--радиус) * .7);
+  background: color-mix(in srgb, var(--текст) 4%, transparent); color: var(--текст); font: inherit; resize: vertical;
+  transition: border-color .2s, box-shadow .2s;
+}
+.роль-поле input:focus, .роль-поле textarea:focus { outline: none; border-color: var(--акцент); box-shadow: 0 0 0 3px color-mix(in srgb, var(--акцент) 20%, transparent); }
+.роль-поле small { text-align: right; font: .7rem ui-monospace, Consolas, monospace; }
+.роль-кнопки { display: flex; align-items: center; gap: .5rem; }
+.роль-статус { color: #3ecf9a; font-size: .8rem; }
+.роль-заголовок { margin: 1rem 0 .4rem; font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--тихий); }
+.роль-подсказка { margin: 0; padding: .7rem .9rem; border-radius: calc(var(--радиус) * .7); border: 1px dashed var(--рамка); background: color-mix(in srgb, var(--текст) 3%, transparent); white-space: pre-wrap; font: .78rem/1.5 ui-monospace, Consolas, monospace; color: var(--тихий); }
