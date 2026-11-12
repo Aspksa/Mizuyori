@@ -2236,3 +2236,6 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .агент-неделя i.сегодня { background: var(--акцент); }
 .агент-уровень .агент-неделя { height: 18px; } .агент-уровень .агент-неделя i { width: 4px; }
 .агент-строка-имени { display: flex; align-items: center; justify-content: space-between; gap: .4rem; min-width: 0; }
+
+.агент-учёба { display: flex; align-items: center; justify-content: space-between; gap: .6rem; flex-wrap: wrap;
+  padding: .5rem .7rem; border: 1px solid var(--рамка); border-radius: var(--скругление, 10px); font-size: .8rem; color: var(--тихий); }
