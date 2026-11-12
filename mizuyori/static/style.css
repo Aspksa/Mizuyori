@@ -1761,3 +1761,103 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .панель-действия-низ select:last-of-type { margin-right: auto; }
 .панель-действия .пусто { margin: 0; font-size: .84rem; color: var(--тихий); }
 @media (prefers-reduced-motion: reduce) { .сообщение.новое, .панель-действия { animation: none; } }
+
+/* =============================================================================
+   ЭКРАН «РАБОТА»
+   ============================================================================= */
+.экран-работы { flex: 1; min-height: 0; display: grid; grid-template-columns: 14rem minmax(0, 1fr); gap: calc(1rem * var(--п)); padding: calc(1rem * var(--п)); }
+.экран-работы[hidden] { display: none; }
+.работа-меню { display: flex; flex-direction: column; gap: .2rem; padding: .8rem .6rem; border: 1px solid var(--рамка); border-radius: var(--радиус);
+  background: var(--панель); align-self: start; position: sticky; top: 0; }
+.работа-меню h1 { margin: .1rem .5rem .6rem; font-size: 1.35rem; }
+.работа-меню button { display: flex; align-items: center; gap: .6rem; padding: .55rem .65rem; border: 0; border-radius: 8px; background: none;
+  color: var(--текст); font: inherit; font-size: .92rem; cursor: pointer; text-align: left; transition: background .15s; }
+.работа-меню button span { width: 1.3rem; text-align: center; }
+.работа-меню button:hover { background: color-mix(in srgb, var(--акцент) 9%, transparent); }
+.работа-меню button[aria-current="true"] { background: color-mix(in srgb, var(--акцент) 18%, transparent); color: var(--акцент); font-weight: 600; }
+.работа-содержимое { min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: .8rem; }
+.работа-шапка { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+.работа-шапка h2 { margin: 0; font-size: 1.3rem; }
+.работа-шапка a.кнопка { text-decoration: none; }
+.работа-счёт { color: var(--тихий); font-size: .85rem; }
+.работа-поиск { font: inherit; font-size: .9rem; color: var(--текст); background: var(--фон); border: 1px solid var(--рамка); border-radius: 8px;
+  padding: .45rem .7rem; width: 14rem; }
+.работа-таблица-обёртка { flex: 1; min-height: 0; overflow: auto; border: 1px solid var(--рамка); border-radius: var(--радиус); background: var(--панель); }
+.работа-таблица { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.работа-таблица th { position: sticky; top: 0; z-index: 1; text-align: left; font-weight: 600; font-size: .78rem; color: var(--тихий);
+  padding: .6rem .7rem; background: var(--поверхность); border-bottom: 1px solid var(--рамка); white-space: nowrap; }
+.работа-таблица td { padding: .55rem .7rem; border-bottom: 1px solid color-mix(in srgb, var(--рамка) 60%, transparent); vertical-align: top; }
+.работа-таблица tbody tr { cursor: pointer; transition: background .12s; }
+.работа-таблица tbody tr:hover { background: color-mix(in srgb, var(--акцент) 6%, transparent); }
+.работа-таблица tr.внимание td:first-child { box-shadow: inset 3px 0 0 #f0a020; }
+.работа-таблица tr.тусклая { opacity: .55; }
+.работа-таблица .число { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.работа-таблица .жирно { font-weight: 650; }
+.работа-таблица .моно { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: .82rem; }
+.работа-таблица tfoot td { position: sticky; bottom: 0; background: var(--поверхность); font-weight: 650; border-top: 1px solid var(--рамка); }
+.работа-таблица td.пусто { text-align: center; color: var(--тихий); padding: 2rem; cursor: default; }
+.работа-метки { text-align: right; white-space: nowrap; }
+.метка-внимание { display: inline-block; padding: .1rem .5rem; border-radius: 999px; font-size: .75rem; color: #f0a020;
+  background: color-mix(in srgb, #f0a020 14%, transparent); }
+.метка-тихая { display: inline-block; padding: .1rem .5rem; border-radius: 999px; font-size: .75rem; color: var(--тихий); border: 1px solid var(--рамка); }
+.работа-период { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; color: var(--тихий); font-size: .9rem; }
+.работа-период input[type=date] { font: inherit; color: var(--текст); background: var(--фон); border: 1px solid var(--рамка); border-radius: 8px; padding: .35rem .5rem; }
+.работа-карточки { display: flex; gap: .6rem; flex-wrap: wrap; }
+.работа-карточка { display: flex; flex-direction: column; padding: .55rem .9rem; border: 1px solid var(--рамка); border-radius: 10px; background: var(--панель); min-width: 8rem; }
+.работа-карточка span { font-size: .75rem; color: var(--тихий); }
+.работа-карточка strong { font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+.работа-карточка.внимание { border-color: #f0a020; }
+.работа-карточка.внимание strong { color: #f0a020; }
+.работа-таблица tr.раскрыта { background: color-mix(in srgb, var(--акцент) 9%, transparent); }
+.работа-детали > td { padding: 0 .7rem .8rem; background: color-mix(in srgb, var(--акцент) 4%, transparent); cursor: default; }
+.работа-операции { width: 100%; border-collapse: collapse; font-size: .8rem; }
+.работа-операции th { position: static; background: none; font-size: .72rem; padding: .35rem .4rem; }
+.работа-операции td { padding: .3rem .4rem; border-bottom: 1px dashed color-mix(in srgb, var(--рамка) 70%, transparent); }
+.работа-операции tr.возврат td { color: #ff8a7a; }
+.работа-выписки { font-size: .85rem; color: var(--тихий); }
+.работа-выписки summary { cursor: pointer; }
+.работа-выписки li { display: flex; gap: .8rem; justify-content: space-between; padding: .2rem 0; }
+
+/* окно записи */
+.окно.работа-окно { max-width: 44rem; }
+.работа-поля { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem .9rem; max-height: 65vh; overflow-y: auto; }
+.работа-поле { display: flex; flex-direction: column; gap: .25rem; font-size: .82rem; color: var(--тихий); }
+.работа-поле.широкое { grid-column: 1 / -1; }
+.работа-поле input, .работа-поле select, .работа-поле textarea { font: inherit; font-size: .95rem; color: var(--текст); background: var(--фон);
+  border: 1px solid var(--рамка); border-radius: 8px; padding: .5rem .6rem; resize: vertical; }
+.работа-поле input:focus, .работа-поле select:focus, .работа-поле textarea:focus { outline: none; border-color: var(--акцент); }
+.работа-поле.флажок-строка { flex-direction: row; align-items: center; gap: .5rem; color: var(--текст); font-size: .92rem; }
+
+/* табель */
+.табель-месяц { min-width: 9rem; text-align: center; text-transform: capitalize; }
+.табель-коды { display: flex; flex-wrap: wrap; gap: .4rem; font-size: .78rem; color: var(--тихий); }
+.табель-коды span { padding: .15rem .5rem; border-radius: 6px; border: 1px solid var(--рамка); }
+.работа-таблица.табель { font-size: .8rem; width: max-content; min-width: 100%; }
+.работа-таблица.табель th, .работа-таблица.табель td { padding: .3rem .25rem; text-align: center; border-right: 1px solid color-mix(in srgb, var(--рамка) 50%, transparent); }
+.работа-таблица.табель th small, .табель-фио small { display: block; font-weight: 400; color: var(--тихий); font-size: .68rem; }
+.работа-таблица.табель th.выходной, .табель-клетка.выходной { background: color-mix(in srgb, #ff6b5b 8%, transparent); }
+.работа-таблица.табель tbody tr { cursor: default; }
+.табель-фио { text-align: left !important; position: sticky; left: 0; background: var(--панель); min-width: 10rem; padding-left: .6rem !important; z-index: 1; }
+.работа-таблица.табель th:first-child { left: 0; z-index: 2; text-align: left; }
+.табель-клетка { width: 2.1rem; height: 2.2rem; cursor: pointer; font-weight: 650; }
+.табель-клетка small { display: block; font-size: .62rem; font-weight: 400; color: var(--тихий); }
+.табель-клетка:hover { outline: 2px solid var(--акцент); outline-offset: -2px; }
+.код-Я { color: #3ecf9a; } .код-В { color: var(--тихий); } .код-ОТ { color: #6aa9ff; } .код-Б { color: #ff8a7a; }
+.код-К { color: #c297ff; } .код-ДО { color: #f5c451; } .код-НН { color: #ff6b5b; } .код-РВ { color: #2fb8ac; }
+.табель-выбор { position: fixed; z-index: 300; padding: .6rem; border-radius: 10px; border: 1px solid var(--рамка); background: var(--поверхность);
+  box-shadow: 0 .6rem 1.6rem rgba(0, 0, 0, .4); display: flex; flex-direction: column; gap: .45rem; }
+.табель-выбор-заголовок { font-size: .78rem; color: var(--тихий); }
+.табель-выбор-коды { display: grid; grid-template-columns: repeat(5, 2.4rem); gap: .3rem; }
+.табель-выбор-коды button { height: 2.1rem; border-radius: 7px; border: 1px solid var(--рамка); background: var(--фон); font: inherit; font-weight: 700; cursor: pointer; }
+.табель-выбор-коды button:hover, .табель-выбор-коды button.выбран { border-color: currentColor; background: color-mix(in srgb, currentColor 14%, transparent); }
+.табель-выбор-коды .стереть { color: var(--тихий); }
+.табель-выбор-часы { display: flex; align-items: center; gap: .4rem; font-size: .8rem; color: var(--тихий); }
+.табель-выбор-часы input { width: 4rem; font: inherit; color: var(--текст); background: var(--фон); border: 1px solid var(--рамка); border-radius: 6px; padding: .25rem .4rem; }
+
+@media (max-width: 64rem) {
+  .экран-работы { grid-template-columns: minmax(0, 1fr); flex: none; min-height: calc(100dvh - 3.8rem); }
+  .работа-меню { flex-direction: row; flex-wrap: wrap; position: static; }
+  .работа-меню h1 { width: 100%; }
+  .работа-поля { grid-template-columns: minmax(0, 1fr); }
+}
+.работа-шапка .кнопка-значок { font-size: 1.4rem; line-height: 1; width: 2.2rem; height: 2.2rem; border: 1px solid var(--рамка); border-radius: 8px; }

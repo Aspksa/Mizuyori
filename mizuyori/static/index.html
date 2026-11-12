@@ -25,6 +25,10 @@
       <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></svg>
       <span>Дела</span>
     </a>
+    <a href="#работа" data-экран="работа">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M3 13h18"/></svg>
+      <span>Работа</span>
+    </a>
     <a href="#мозги" data-экран="мозги">
       <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.5"/><circle cx="5" cy="6" r="1.6"/><circle cx="19" cy="6" r="1.6"/><circle cx="5" cy="18" r="1.6"/><circle cx="19" cy="18" r="1.6"/><path d="M6.3 7l3.7 3.4M17.7 7L14 10.4M6.3 17l3.7-3.4M17.7 17L14 13.6"/></svg>
       <span>Мозги</span>
@@ -93,6 +97,42 @@
 </main>
 
 <!-- Экран «Дела»: список, доска, неделя, цели -->
+<!-- Экран «Работа»: сотрудники, автомобили, ГСМ, табель, служебные записки, договоры, счёт-оферты -->
+<section class="экран-работы" id="экран-работа" aria-label="Работа" hidden>
+  <nav class="работа-меню" id="работа-меню" aria-label="Разделы работы">
+    <h1>Работа</h1>
+    <button type="button" data-раздел="сотрудники"><span>👤</span>Сотрудники</button>
+    <button type="button" data-раздел="автомобили"><span>🚗</span>Автомобили</button>
+    <button type="button" data-раздел="гсм"><span>⛽</span>ГСМ</button>
+    <button type="button" data-раздел="карты"><span>💳</span>Топливные карты</button>
+    <button type="button" data-раздел="табель"><span>📅</span>Табель</button>
+    <button type="button" data-раздел="записки"><span>📝</span>Служебные записки</button>
+    <button type="button" data-раздел="договоры"><span>📄</span>Договоры</button>
+    <button type="button" data-раздел="оферты"><span>🧾</span>Счёт-оферты</button>
+  </nav>
+  <div class="работа-содержимое" id="работа-содержимое"></div>
+</section>
+
+<!-- Окно записи «Работы» (форма строится по схеме) -->
+<div class="затемнение" id="окно-работы" hidden>
+  <form class="окно работа-окно" id="форма-работы" role="dialog" aria-modal="true" aria-labelledby="заголовок-работы">
+    <div class="окно-шапка">
+      <h2 id="заголовок-работы">Запись</h2>
+      <button class="кнопка-значок" id="закрыть-работу" type="button" aria-label="Закрыть">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="окно-тело работа-поля" id="поля-работы"></div>
+    <div class="окно-низ">
+      <button class="кнопка опасная" id="удалить-работу" type="button">Удалить</button>
+      <span class="растяжка"></span>
+      <button class="кнопка второстепенная" id="печать-работы" type="button" hidden>🖨 Печать</button>
+      <button class="кнопка второстепенная" id="отмена-работы" type="button">Отмена</button>
+      <button class="кнопка главная" type="submit">Сохранить</button>
+    </div>
+  </form>
+</div>
+
 <section class="экран-дел" id="экран-дела" aria-label="Дела" hidden>
   <div class="дела-шапка">
     <h1>Дела</h1>
@@ -556,6 +596,7 @@
 <script src="/static/brain.js" charset="utf-8"></script>
 <script src="/static/soul.js" charset="utf-8"></script>
 <script src="/static/agents.js" charset="utf-8"></script>
+<script src="/static/work.js" charset="utf-8"></script>
 <script src="/static/ai-settings.js" charset="utf-8"></script>
 </body>
 </html>

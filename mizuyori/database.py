@@ -6,6 +6,8 @@ import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
 
+from .work import МИГРАЦИЯ as МИГРАЦИЯ_РАБОТЫ
+
 журнал = logging.getLogger("mizuyori.база")
 
 # Каждое изменение структуры базы — новый шаг. Уже применённые шаги
@@ -147,6 +149,8 @@ from pathlib import Path
         создано   TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
     );
     """,
+    # 8: «Работа» — сотрудники, автомобили, топливные карты, ГСМ, табель, служебные записки, договоры
+    МИГРАЦИЯ_РАБОТЫ,
 ]
 
 ТИПЫ_СУЩНОСТЕЙ = ["человек", "питомец", "место", "организация", "проект", "цель", "событие", "вещь", "другое"]

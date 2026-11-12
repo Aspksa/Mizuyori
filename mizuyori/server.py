@@ -14,7 +14,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from . import __version__, agents, ai, memory, soul
+from . import __version__, agents, ai, memory, soul, work
 from .config import (ВИД_ПО_УМОЛЧАНИЮ, ВНЕШНИЙ_ВИД, ИИ_ПО_УМОЛЧАНИЮ, МОЗГИ_ПО_УМОЛЧАНИЮ,
                      НеверныйВнешнийВид, атрибуты_html, проверить_внешний_вид, проверить_ии,
                      проверить_мозги, сохранить_настройки)
@@ -574,6 +574,9 @@ def создать_приложение(настройки: dict, база: Ба
         if not база.удалить_заметку(note_id):
             raise StarletteHTTPException(404, "Такой заметки нет.")
         return {"удалено": note_id}
+
+    # ---- Работа: сотрудники, автомобили, ГСМ, табель, записки, договоры ---------
+    work.подключить(app, база)
 
     # ---- Агенты: кто сейчас работает, сколько раз сегодня ----------------------
     agents.подключить(база)
