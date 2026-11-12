@@ -91,6 +91,7 @@
       <h2>Агенты</h2>
       <span class="агенты-пульс" id="агенты-пульс" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
       <span class="агенты-итог" id="агенты-итог">—</span>
+      <button class="ссылка" id="агенты-обмен" type="button">Обмен</button>
       <button class="ссылка" id="агенты-доска" type="button">Доска <span class="счётчик" id="доска-счёт" hidden></span></button>
     </div>
     <div class="конвейер-лента">
@@ -295,6 +296,18 @@
 </div>
 
 <!-- Общая доска записок агентов -->
+<div class="затемнение" id="окно-обмена" hidden>
+  <div class="окно обмен-окно" role="dialog" aria-modal="true" aria-labelledby="заголовок-обмена">
+    <div class="окно-шапка">
+      <h2 id="заголовок-обмена">Обмен между агентами</h2>
+      <button class="кнопка-значок" id="закрыть-обмен" type="button" aria-label="Закрыть">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="окно-тело" id="обмен-тело"></div>
+  </div>
+</div>
+
 <div class="затемнение" id="окно-доски" hidden>
   <div class="окно узкое доска-окно" role="dialog" aria-modal="true" aria-labelledby="заголовок-доски">
     <div class="окно-шапка">

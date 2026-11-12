@@ -748,6 +748,10 @@ def создать_приложение(настройки: dict, база: Ба
             raise StarletteHTTPException(404, "Такого агента нет.")
         return ключ
 
+    @app.get("/api/agents/exchange")
+    def обмен_агентов(limit: int = Query(60, ge=1, le=200)):
+        return agents.обмен(limit)
+
     @app.get("/api/agents/board")
     def доска_агентов():
         return {"записки": agents.доска(), "имена": agents.ИМЕНА}
