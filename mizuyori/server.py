@@ -17,7 +17,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from . import (__version__, agents, ai, archive, audit, browser_fetch, documents, evolve, graph_tools, learning, memory, memory_plus, missions, printing, putevoy,
+from . import (__version__, agents, ai, archive, audit, browser_fetch, documents, evolve, graph_tools, learning, mcp_client, memory, memory_plus, missions, printing, putevoy,
                search_eval, senses, smeta, soul, tools, work, work_agents)
 from .config import (ВИД_ПО_УМОЛЧАНИЮ, ВНЕШНИЙ_ВИД, ИИ_ПО_УМОЛЧАНИЮ, МОЗГИ_ПО_УМОЛЧАНИЮ,
                      НеверныйВнешнийВид, атрибуты_html, проверить_внешний_вид, проверить_ии,
@@ -771,6 +771,8 @@ def создать_приложение(настройки: dict, база: Ба
     missions.подключить(база)
     audit.подключить(база)
     tools.подключить(lambda: база.прочитать("инструменты", {}), lambda з: база.записать("инструменты", з))
+    mcp_client.подключить(lambda: база.прочитать("mcp", {}), lambda з: база.записать("mcp", з))
+    mcp_client.запустить_включённые()
     browser_fetch.настроить(настройки["агенты"].get("браузер_для_поиска", ""))
     missions.заполнить_готовые()
     printing.НАСТРОЙКИ = настройки["печать"]
@@ -968,6 +970,24 @@ def создать_приложение(настройки: dict, база: Ба
         audit.записать("настройки инструментов изменены", "только чтение" if итог["только_чтение"] else "обычный режим",
                        f"выключены наборы: {', '.join(итог['выключены']) or 'нет'}")
         return {"настройки": итог}
+
+    @app.get("/api/mcp")
+    def mcp_каталог():
+        return {"серверы": mcp_client.каталог()}
+
+    class ВключитьMCP(BaseModel):
+        включён: bool
+
+    @app.put("/api/mcp/{key}")
+    def mcp_включить(key: str, п: ВключитьMCP):
+        if key not in mcp_client.КАТАЛОГ:
+            raise StarletteHTTPException(404, "Такого сервера нет в каталоге.")
+        try:
+            итог = mcp_client.включить(key, п.включён)
+        except Exception as е:
+            raise StarletteHTTPException(502, f"Не удалось запустить: {е}") from None
+        audit.записать("MCP-сервер включён" if п.включён else "MCP-сервер выключен", mcp_client.КАТАЛОГ[key]["имя"])
+        return итог
 
     @app.get("/api/search-eval")
     def история_проверки_поиска():

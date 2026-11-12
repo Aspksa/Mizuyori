@@ -25,7 +25,7 @@ from .paths import ПАПКА_ДАННЫХ
 ТАЙМАУТ_СТРАНИЦЫ_МС = 20000
 ПАУЗА_ПОСЛЕ_СБОЯ = 600.0
 
-_очередь: "queue.Queue[tuple[str, Future]]" = queue.Queue()
+_очередь: "queue.Queue[tuple[str, Future, str]]" = queue.Queue()      # (адрес, будущее, вид: html | снимок)
 _поток: threading.Thread | None = None
 _режим = ""
 _сбой_до = 0.0
@@ -56,14 +56,14 @@ def _рабочий(режим: str) -> None:
             закрыть = lambda: None      # чужой Chrome не закрываем
         try:
             while True:
-                адрес, будущее = _очередь.get()
+                адрес, будущее, вид = _очередь.get()
                 if адрес == "":
                     break
                 страница = None
                 try:
                     страница = контекст.new_page()
                     страница.goto(адрес, wait_until="domcontentloaded", timeout=ТАЙМАУТ_СТРАНИЦЫ_МС)
-                    будущее.set_result(страница.content())
+                    будущее.set_result(_снимок_страницы(страница) if вид == "снимок" else страница.content())
                 except Exception as ошибка:
                     будущее.set_exception(ошибка)
                 finally:
@@ -90,7 +90,7 @@ def _запустить() -> None:
                 журнал.warning("Браузер для поиска не запустился: %s", ошибка)
                 while True:                              # всем, кто ждёт, — понятная ошибка, а не зависание
                     try:
-                        _, б = _очередь.get_nowait()
+                        _, б, _вид = _очередь.get_nowait()
                     except queue.Empty:
                         break
                     if not б.done():
@@ -103,7 +103,24 @@ def скачать(адрес: str, ожидание: float = 40.0) -> str:
     """HTML страницы из настоящего Chrome. Ошибка — исключение (вызывающий откатится на обычное скачивание)."""
     _запустить()
     б: Future = Future()
-    _очередь.put((адрес, б))
+    _очередь.put((адрес, б, "html"))
+    return б.result(timeout=ожидание)
+
+
+def _снимок_страницы(страница) -> str:
+    """Структура страницы текстом (дерево доступности, как в Playwright MCP): заголовки, ссылки, кнопки, поля, цены.
+    Скриншоты и vision-модель не нужны. Старый Playwright без aria_snapshot — читаем видимый текст."""
+    try:
+        return страница.locator("body").aria_snapshot()
+    except Exception:
+        return страница.inner_text("body")
+
+
+def снимок(адрес: str, ожидание: float = 40.0) -> str:
+    """Снимок страницы из настоящего Chrome. Ошибка — исключение."""
+    _запустить()
+    б: Future = Future()
+    _очередь.put((адрес, б, "снимок"))
     return б.result(timeout=ожидание)
 
 
