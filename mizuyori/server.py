@@ -12,11 +12,12 @@ from pathlib import Path
 from fastapi import FastAPI, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, StreamingResponse
+from fastapi.concurrency import run_in_threadpool
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from . import __version__, agents, ai, learning, memory, printing, putevoy, soul, work, work_agents
+from . import __version__, agents, ai, learning, memory, printing, putevoy, smeta, soul, work, work_agents
 from .config import (ВИД_ПО_УМОЛЧАНИЮ, ВНЕШНИЙ_ВИД, ИИ_ПО_УМОЛЧАНИЮ, МОЗГИ_ПО_УМОЛЧАНИЮ,
                      НеверныйВнешнийВид, атрибуты_html, проверить_внешний_вид, проверить_ии,
                      проверить_мозги, сохранить_настройки)
@@ -269,6 +270,31 @@ def создать_приложение(настройки: dict, база: Ба
 
         return StreamingResponse(поток(), media_type="application/x-ndjson",
                                  headers={"Cache-Control": "no-store", "X-Accel-Buffering": "no"})
+
+    @app.post("/api/chat/attach")
+    async def вложение(request: Request, name: str = Query("файл", max_length=200)):
+        """Файл в чат (сырые байты в теле): смета на ремонт → разбор → сообщение агента с проверкой."""
+        данные = await request.body()
+        if not данные:
+            raise StarletteHTTPException(400, "Файл пустой.")
+        н = dict(_ии())
+        мой = база.добавить_сообщение("пользователь", f"📎 {name}")
+        learning.чат_идёт()
+        try:
+            if not ai.подключён(н):
+                raise smeta.СметаНеЧитается("Чтобы разобрать смету, нужен подключённый ИИ (настройки проекта → ИИ).")
+            from .smeta import принять
+            with agents.работа("инженер", "разобрал смету", f"файл «{name}»") as з:
+                с = await run_in_threadpool(принять, база, н, name, данные)
+                з["результат"] = f"позиций: {len(с['позиции'])}, замечаний: {len(с['замечания'])}"
+                з["польза"] = 3
+            текст = smeta.описание(с)
+        except smeta.СметаНеЧитается as ошибка:
+            текст = f"📎 {ошибка}"
+        except Exception as ошибка:
+            журнал.exception("Смета не разобралась")
+            текст = f"📎 Не получилось разобрать «{name}»: {ошибка}"
+        return {"вы": мой, "ответ": база.добавить_сообщение("ии", текст)}
 
     # ---- Память ИИ ----------------------------------------------------------
 

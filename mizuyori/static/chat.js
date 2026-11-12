@@ -383,6 +383,36 @@
   }
 
   форма.addEventListener("submit", (событие) => { событие.preventDefault(); отправить(); });
+
+  // Скрепка: файл (смета на ремонт) уходит на сервер, агент отвечает разбором прямо в чат
+  const скрепка = $("чат-скрепка"), файлВвод = $("чат-файл");
+  async function отправитьФайл(файл) {
+    if (!файл || отправляется) return;
+    отправляется = true;
+    кнопка.disabled = скрепка.disabled = true;
+    document.dispatchEvent(new CustomEvent("mizuyori:чат-отправлено"));
+    добавить(пузырь({ роль: "пользователь", текст: `📎 ${файл.name}` }, true));
+    const печатает = создать("div", { класс: "сообщение ии печатает", "aria-label": "Агент разбирает смету" },
+      создать("span"), создать("span"), создать("span"));
+    добавить(печатает);
+    try {
+      const ответ = await fetch(`/api/chat/attach?name=${encodeURIComponent(файл.name)}`, {
+        method: "POST", headers: { "Content-Type": "application/octet-stream" }, body: файл });
+      const данные = await ответ.json().catch(() => ({}));
+      if (!ответ.ok) throw new Error(данные.ошибка || `Ошибка ${ответ.status}`);
+      печатает.remove();
+      добавить(пузырь(данные.ответ, true));
+    } catch (e) {
+      печатает.remove();
+      добавить(пузырь({ роль: "ии", текст: `📎 Не получилось отправить файл: ${e.message}` }, true));
+    } finally {
+      отправляется = false;
+      кнопка.disabled = скрепка.disabled = false;
+      файлВвод.value = "";
+    }
+  }
+  скрепка.addEventListener("click", () => файлВвод.click());
+  файлВвод.addEventListener("change", () => отправитьФайл(файлВвод.files[0]));
   поле.addEventListener("input", подогнатьВысоту);
   // Enter — отправить, Shift+Enter — новая строка
   поле.addEventListener("keydown", (событие) => {

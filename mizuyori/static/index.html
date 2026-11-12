@@ -74,6 +74,10 @@
     </div>
     <div class="сообщения" id="чат-сообщения" aria-live="polite"></div>
     <form class="чат-ввод" id="чат-форма">
+      <button class="кнопка-значок" id="чат-скрепка" type="button" aria-label="Прикрепить файл" title="Прикрепить смету (PDF, Excel, Word)">
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5l-8.6 8.6a5 5 0 0 1-7-7l9-9a3.4 3.4 0 0 1 4.8 4.8l-9 9a1.7 1.7 0 0 1-2.4-2.4l8.3-8.3"/></svg>
+      </button>
+      <input type="file" id="чат-файл" hidden accept=".pdf,.xlsx,.xlsm,.xls,.docx,.txt,.csv">
       <textarea id="чат-поле" rows="1" maxlength="20000" placeholder="Напишите сообщение…" aria-label="Сообщение"></textarea>
       <button class="кнопка главная отправить" type="submit" aria-label="Отправить">
         <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
