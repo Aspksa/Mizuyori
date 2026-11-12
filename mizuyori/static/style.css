@@ -2680,3 +2680,24 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .эл-дни span { opacity: .18; }
 .эл-дни span.сегодня { opacity: 1; text-shadow: 0 0 6px var(--эл), 0 0 12px var(--эл); }
 @media (prefers-reduced-motion: reduce) { .сег.вспышка { animation: none; } .эл-двоеточие { transition: none; } }
+
+/* Мозги → Список: фильтры, сортировка, период, действия над знаниями */
+.список-управление { max-width: 68rem; margin: 0 auto .9rem; display: flex; flex-wrap: wrap; gap: .5rem .9rem; align-items: center; }
+.список-фильтры, .список-периоды { display: flex; flex-wrap: wrap; gap: .35rem; }
+.список-периоды { margin-left: auto; }
+.список-чип { padding: .28rem .7rem; border-radius: 999px; border: 1px solid var(--рамка); background: transparent; color: inherit; cursor: pointer; font-size: .8rem; }
+.список-чип:hover { border-color: var(--тихий); }
+.список-чип.активен { border-color: #3ecf9a; color: #3ecf9a; background: color-mix(in srgb, #3ecf9a 10%, transparent); }
+.список-чип em { font-style: normal; opacity: .7; }
+.список-сортировка, .знание-кому { padding: .3rem .6rem; border-radius: 999px; border: 1px solid var(--рамка); background: var(--поверхность); color: inherit; font: inherit; font-size: .8rem; }
+.знания { list-style: none; padding: 0; margin: 0 0 .6rem; }
+.знание { display: flex; justify-content: space-between; align-items: baseline; gap: .8rem; padding: .35rem 0; border-top: 1px dashed var(--рамка); }
+.знание-текст small { opacity: .5; margin-left: .4rem; }
+.знание-действия { display: flex; flex: none; gap: .3rem; align-items: center; opacity: 0; transition: opacity .15s; }
+.знание:hover .знание-действия, .знание:focus-within .знание-действия { opacity: 1; }
+@media (hover: none) { .знание-действия { opacity: 1; } }
+.знание-кнопка { padding: .15rem .6rem; border-radius: 999px; border: 1px solid var(--рамка); background: transparent; color: inherit; cursor: pointer; font-size: .76rem; white-space: nowrap; }
+.знание-кнопка:hover:not(:disabled) { border-color: #3ecf9a; color: #3ecf9a; }
+.знание-кнопка.опасно:hover:not(:disabled) { border-color: #ff7a7a; color: #ff7a7a; }
+.знания-ещё { padding-top: .35rem; }
+@media (max-width: 640px) { .список-периоды { margin-left: 0; } .знание { flex-direction: column; gap: .3rem; } }

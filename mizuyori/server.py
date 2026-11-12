@@ -734,6 +734,25 @@ def создать_приложение(настройки: dict, база: Ба
             raise StarletteHTTPException(404, "Такого приёма нет.")
         return {"оставлено": note_id}
 
+    class ВидЗаметки(BaseModel):
+        вид: str
+
+    @app.put("/api/agents/notes/{note_id}")
+    def вид_заметки(note_id: int, з: ВидЗаметки):
+        if not agents.изменить_вид(note_id, з.вид):
+            raise StarletteHTTPException(404, "Записи нет или она уже такого вида.")
+        return {"изменено": note_id, "вид": з.вид}
+
+    class КомуЗнание(BaseModel):
+        кому: str
+
+    @app.post("/api/agents/notes/{note_id}/share")
+    def передать_знание(note_id: int, з: КомуЗнание):
+        итог = agents.передать_знание(note_id, _агент(з.кому))
+        if not итог:
+            raise StarletteHTTPException(404, "Записи нет, или её нельзя передать этому агенту.")
+        return итог
+
     class УчёбаПереключатель(BaseModel):
         включено: bool | None = None
         запросов_в_час: int | None = Field(None, ge=1, le=200)
@@ -748,8 +767,8 @@ def создать_приложение(настройки: dict, база: Ба
         return learning.состояние()
 
     @app.get("/api/agents")
-    def агенты():
-        return agents.сводка()
+    def агенты(days: int = Query(7, ge=7, le=90)):
+        return agents.сводка(days)
 
     def _агент(ключ: str) -> str:
         if ключ not in agents.ИМЕНА:
