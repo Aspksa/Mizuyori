@@ -164,6 +164,12 @@ def _сообщения(история: list[dict], настройки_ии: dic
     if контекст.get("знания"):
         части.append("Понимание (люди, цели, связи и причины):\n" + контекст["знания"])
 
+    if контекст.get("наблюдения"):
+        части.append(
+            "Фоновые наблюдения — учитывай осторожно и только к месту; это выводы, а не прямые цитаты хозяина:\n" +
+            "\n".join(f"- {н['вид']}: {н['текст']}" for н in контекст["наблюдения"])
+        )
+
     if контекст.get("сводка"):
         части.append("Краткое содержание более ранней части этого разговора:\n" + контекст["сводка"])
 
@@ -515,6 +521,81 @@ def осмыслить_развитие(данные: dict, настройки_�
     if not вывод:
         return {}
     return {"вывод": вывод, "привычка": привычка, "предложение": предложение}
+
+
+_ЗАДАНИЕ_ОБСЛУЖИВАНИЯ_МОЗГА = (
+    "Ты проверяешь внутреннюю память ассистента в фоне. Ничего не выдумывай: каждый вывод должен "
+    "опираться на переданные id и текст. Найди только уверенные случаи. Не предлагай изменения интерфейса. "
+    "Код никогда не меняй: идеи кода только помести в code_suggestions. "
+    "duplicates — два факта об одном и том же; primary_id должен быть более точным или новым. "
+    "contradictions — факты, которые не могут одновременно быть актуальны; newer_id — актуальный. "
+    "validity — срок действия, только если дата явно следует из текста. aliases и entity_merges — псевдонимы "
+    "одной сущности. missing_links — отсутствующая привязка факта к сущности. goal_gaps — активная цель без "
+    "следующего действия. dependencies — одна открытая задача явно ждёт другую. promises — незавершённое обещание "
+    "из разговора. habits — устойчивая привычка или предпочтение только при нескольких подтверждениях. "
+    "corrections — явное исправление хозяина, fact_id указывает исправленный старый факт. "
+    "confidence от 0 до 1. Ответь только JSON с массивами: duplicates, contradictions, validity, aliases, "
+    "entity_merges, missing_links, goal_gaps, dependencies, promises, habits, corrections, code_suggestions. "
+    "Формы элементов: duplicates {primary_id, duplicate_id, confidence, explanation}; contradictions "
+    "{older_id, newer_id, confidence, explanation}; validity {fact_id, valid_from, valid_to, confidence}; "
+    "aliases {entity_id, alias, confidence}; entity_merges {primary_id, duplicate_id, confidence}; "
+    "missing_links {fact_id, entity_id, confidence}; goal_gaps {goal_id, text, confidence}; dependencies "
+    "{task_id, depends_on_id, reason, confidence}; promises {message_id, text, confidence}; habits "
+    "{text, confidence}; corrections {message_id, fact_id, text, confidence}; code_suggestions "
+    "{suggestion, confidence}. Если случаев нет, верни пустой массив."
+)
+
+
+def осмыслить_мозг(данные: dict, настройки_ии: dict) -> dict:
+    """Строго разбирает предложения фонового анализа; сам ничего не применяет."""
+    текст = _задание(_ЗАДАНИЕ_ОБСЛУЖИВАНИЯ_МОЗГА, данные, настройки_ии, max_tokens=2200)
+    найдено = _ОБЪЕКТ.search(текст)
+    пусто = {к: [] for к in (
+        "duplicates", "contradictions", "validity", "aliases", "entity_merges", "missing_links",
+        "goal_gaps", "dependencies", "promises", "habits", "corrections", "code_suggestions")}
+    if not найдено:
+        return пусто
+    try:
+        ответ = json.loads(найдено.group(0))
+    except ValueError:
+        return пусто
+    if not isinstance(ответ, dict):
+        return пусто
+
+    def записи(ключ, поля_id=(), предел=30):
+        итог = []
+        for запись in (ответ.get(ключ) or [])[:предел]:
+            if not isinstance(запись, dict):
+                continue
+            if any(not isinstance(запись.get(поле), int) for поле in поля_id):
+                continue
+            уверенность = запись.get("confidence", 0.0)
+            try:
+                уверенность = max(0.0, min(float(уверенность), 1.0))
+            except (TypeError, ValueError):
+                уверенность = 0.0
+            чистая = {поле: запись[поле] for поле in поля_id}
+            чистая["confidence"] = уверенность
+            for поле in ("explanation", "reason", "text", "valid_from", "valid_to", "alias", "suggestion"):
+                if значение := _строка(запись.get(поле), 600 if поле in ("text", "suggestion") else 300):
+                    чистая[поле] = значение
+            итог.append(чистая)
+        return итог
+
+    return {
+        "duplicates": записи("duplicates", ("primary_id", "duplicate_id")),
+        "contradictions": записи("contradictions", ("older_id", "newer_id")),
+        "validity": записи("validity", ("fact_id",)),
+        "aliases": записи("aliases", ("entity_id",)),
+        "entity_merges": записи("entity_merges", ("primary_id", "duplicate_id")),
+        "missing_links": записи("missing_links", ("fact_id", "entity_id")),
+        "goal_gaps": записи("goal_gaps", ("goal_id",)),
+        "dependencies": записи("dependencies", ("task_id", "depends_on_id")),
+        "promises": записи("promises", ("message_id",)),
+        "habits": записи("habits"),
+        "corrections": записи("corrections", ("message_id", "fact_id")),
+        "code_suggestions": записи("code_suggestions"),
+    }
 
 
 _ЗАДАНИЕ_МНЕНИЙ = (

@@ -170,6 +170,42 @@ from .work import МИГРАЦИЯ as МИГРАЦИЯ_РАБОТЫ, МИГРА�
     CREATE INDEX задачи_состояние ON задачи(удалено, архив, готово);
     CREATE INDEX задачи_входящие ON задачи(входящие, готово);
     """,
+    # 13: фоновое обслуживание памяти и графа — уверенность, срок действия, наблюдения, зависимости
+    """
+    ALTER TABLE память ADD COLUMN уверенность REAL NOT NULL DEFAULT 0.75;
+    ALTER TABLE память ADD COLUMN действует_с TEXT;
+    ALTER TABLE память ADD COLUMN действует_до TEXT;
+    ALTER TABLE память ADD COLUMN состояние TEXT NOT NULL DEFAULT 'активен';
+    ALTER TABLE память ADD COLUMN использовано INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE память ADD COLUMN последнее_использование TEXT;
+    ALTER TABLE память ADD COLUMN заменён_на INTEGER;
+    CREATE INDEX память_состояние ON память(состояние, важность);
+    CREATE INDEX память_действует_до ON память(действует_до);
+
+    CREATE TABLE мозг_наблюдения (
+        id           INTEGER PRIMARY KEY,
+        вид          TEXT NOT NULL,
+        ключ         TEXT NOT NULL,
+        текст        TEXT NOT NULL,
+        данные       TEXT NOT NULL DEFAULT '{}',
+        уверенность  REAL NOT NULL DEFAULT 0.5,
+        состояние    TEXT NOT NULL DEFAULT 'открыто',
+        создано      TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+        изменено     TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+        UNIQUE (вид, ключ)
+    );
+    CREATE INDEX мозг_наблюдения_вид ON мозг_наблюдения(вид, состояние);
+
+    CREATE TABLE задача_зависимости (
+        задача_id       INTEGER NOT NULL REFERENCES задачи(id) ON DELETE CASCADE,
+        зависит_от_id   INTEGER NOT NULL REFERENCES задачи(id) ON DELETE CASCADE,
+        причина         TEXT NOT NULL DEFAULT '',
+        уверенность     REAL NOT NULL DEFAULT 0.5,
+        создано         TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+        PRIMARY KEY (задача_id, зависит_от_id),
+        CHECK (задача_id <> зависит_от_id)
+    );
+    """,
 ]
 
 ТИПЫ_СУЩНОСТЕЙ = ["человек", "питомец", "место", "организация", "проект", "цель", "событие", "вещь", "другое"]
@@ -418,7 +454,10 @@ class База:
 
     # ---- Память ИИ ------------------------------------------------------
 
-    _ПОЛЯ_ФАКТА = "id, факт, источник, категория, важность, смысл, создано, изменено"
+    _ПОЛЯ_ФАКТА = (
+        "id, факт, источник, категория, важность, смысл, уверенность, действует_с, действует_до, "
+        "состояние, использовано, последнее_использование, заменён_на, создано, изменено"
+    )
 
     @staticmethod
     def _факт(строка) -> dict:
@@ -429,9 +468,11 @@ class База:
             ф["смысл"] = {}
         return ф
 
-    def память(self) -> list[dict]:
+    def память(self, включая_устаревшие: bool = False) -> list[dict]:
         with self.соединение() as связь:
-            строки = связь.execute(f"SELECT {self._ПОЛЯ_ФАКТА} FROM память ORDER BY важность DESC, id").fetchall()
+            условие = "" if включая_устаревшие else "WHERE состояние = 'активен'"
+            строки = связь.execute(
+                f"SELECT {self._ПОЛЯ_ФАКТА} FROM память {условие} ORDER BY важность DESC, id").fetchall()
             пары = связь.execute("SELECT факт_id, сущность_id FROM факт_сущность").fetchall()
         сущности: dict[int, list[int]] = {}
         for п in пары:
@@ -449,28 +490,82 @@ class База:
         return self._факт(строка) if строка else None
 
     def запомнить(self, факт: str, источник: int | None = None,
-                  категория: str = "другое", важность: int = 3, смысл: dict | None = None) -> dict | None:
+                  категория: str = "другое", важность: int = 3, смысл: dict | None = None,
+                  уверенность: float = 0.75) -> dict | None:
         """Новый факт. Точный повтор (без учёта регистра) не добавляется."""
         ключ = ключ_имени(факт)
         with self.соединение() as связь:
-            for (текст,) in связь.execute("SELECT факт FROM память").fetchall():
+            for строка in связь.execute("SELECT id, факт, состояние, уверенность FROM память").fetchall():
+                текст = строка["факт"]
                 if ключ_имени(текст) == ключ:
+                    if строка["состояние"] != "активен":
+                        связь.execute(
+                            "UPDATE память SET состояние = 'активен', заменён_на = NULL, уверенность = ?, "
+                            "изменено = datetime('now', 'localtime') WHERE id = ?",
+                            (max(float(строка["уверенность"]), float(уверенность)), строка["id"]))
+                        номер = строка["id"]
+                        break
                     return None
-            номер = связь.execute(
-                "INSERT INTO память (факт, источник, категория, важность, смысл) VALUES (?, ?, ?, ?, ?)",
-                (факт, источник, категория, важность, json.dumps(смысл or {}, ensure_ascii=False))).lastrowid
+            else:
+                номер = связь.execute(
+                    "INSERT INTO память (факт, источник, категория, важность, смысл, уверенность) "
+                    "VALUES (?, ?, ?, ?, ?, ?)",
+                    (факт, источник, категория, важность, json.dumps(смысл or {}, ensure_ascii=False),
+                     max(0.0, min(float(уверенность), 1.0)))).lastrowid
         return self.факт(номер)
 
     def изменить_факт(self, номер: int, поля: dict) -> dict | None:
         if "смысл" in поля:
             поля = {**поля, "смысл": json.dumps(поля["смысл"] or {}, ensure_ascii=False)}
-        поля = {к: з for к, з in поля.items() if к in {"факт", "категория", "важность", "источник", "смысл"}}
+        поля = {к: з for к, з in поля.items() if к in {
+            "факт", "категория", "важность", "источник", "смысл", "уверенность",
+            "действует_с", "действует_до", "состояние", "использовано",
+            "последнее_использование", "заменён_на",
+        }}
         if поля:
             набор = ", ".join(f"{к} = ?" for к in поля)
             with self.соединение() as связь:
                 связь.execute(f"UPDATE память SET {набор}, изменено = datetime('now', 'localtime') WHERE id = ?",
                               (*поля.values(), номер))
         return self.факт(номер)
+
+    def отметить_использование_фактов(self, номера: list[int]) -> None:
+        номера = sorted({int(н) for н in номера if isinstance(н, int)})
+        if not номера:
+            return
+        знаки = ",".join("?" for _ in номера)
+        with self.соединение() as связь:
+            связь.execute(
+                f"UPDATE память SET важность = CASE WHEN использовано + 1 IN (5, 15) AND важность < 4 "
+                f"THEN важность + 1 ELSE важность END, использовано = использовано + 1, "
+                f"последнее_использование = datetime('now', 'localtime') WHERE id IN ({знаки})",
+                номера)
+
+    def объединить_факты(self, основной_id: int, повтор_id: int) -> bool:
+        """Сохраняет основной факт, переносит связи, а повтор помечает устаревшим."""
+        if основной_id == повтор_id:
+            return False
+        with self.соединение() as связь:
+            основной = связь.execute(
+                "SELECT важность, уверенность, использовано FROM память WHERE id = ?", (основной_id,)).fetchone()
+            повтор = связь.execute(
+                "SELECT важность, уверенность, использовано, состояние FROM память WHERE id = ?", (повтор_id,)).fetchone()
+            if not основной or not повтор or повтор["состояние"] != "активен":
+                return False
+            связь.execute(
+                "INSERT OR IGNORE INTO факт_сущность (факт_id, сущность_id) "
+                "SELECT ?, сущность_id FROM факт_сущность WHERE факт_id = ?", (основной_id, повтор_id))
+            связь.execute(
+                "UPDATE память SET важность = ?, уверенность = ?, использовано = ?, "
+                "изменено = datetime('now', 'localtime') WHERE id = ?",
+                (max(основной["важность"], повтор["важность"]),
+                 max(основной["уверенность"], повтор["уверенность"]),
+                 основной["использовано"] + повтор["использовано"], основной_id))
+            связь.execute(
+                "UPDATE память SET состояние = 'устарел', заменён_на = ?, "
+                "изменено = datetime('now', 'localtime') WHERE id = ?", (основной_id, повтор_id))
+            связь.execute("DELETE FROM вектора WHERE ключ = ?", (f"п{повтор_id}",))
+        return True
 
     def забыть(self, номер: int) -> bool:
         with self.соединение() as связь:
@@ -628,9 +723,101 @@ class База:
         with self.соединение() as связь:
             return связь.execute("DELETE FROM отношения WHERE id = ?", (номер,)).rowcount > 0
 
+    def объединить_сущности(self, основной_id: int, повтор_id: int) -> bool:
+        """Переносит псевдонимы, факты, цели задач и связи на одну сущность."""
+        if основной_id == повтор_id:
+            return False
+        основной, повтор = self.сущность(основной_id), self.сущность(повтор_id)
+        if not основной or not повтор:
+            return False
+        известные = {ключ_имени(основной["имя"]), *(ключ_имени(и) for и in основной["другие_имена"])}
+        псевдонимы = list(основной["другие_имена"])
+        for имя in [повтор["имя"], *повтор["другие_имена"]]:
+            if ключ_имени(имя) not in известные:
+                псевдонимы.append(имя)
+                известные.add(ключ_имени(имя))
+        with self.соединение() as связь:
+            связь.execute("UPDATE сущности SET другие_имена = ?, изменено = datetime('now', 'localtime') WHERE id = ?",
+                          (json.dumps(псевдонимы, ensure_ascii=False), основной_id))
+            связь.execute(
+                "INSERT OR IGNORE INTO факт_сущность (факт_id, сущность_id) "
+                "SELECT факт_id, ? FROM факт_сущность WHERE сущность_id = ?", (основной_id, повтор_id))
+            связь.execute("UPDATE задачи SET цель_id = ? WHERE цель_id = ?", (основной_id, повтор_id))
+            исходящие = связь.execute(
+                "SELECT отношение, к_id FROM отношения WHERE от_id = ?", (повтор_id,)).fetchall()
+            входящие = связь.execute(
+                "SELECT от_id, отношение FROM отношения WHERE к_id = ?", (повтор_id,)).fetchall()
+            for отношение, к_id in исходящие:
+                if к_id not in (основной_id, повтор_id):
+                    связь.execute("INSERT OR IGNORE INTO отношения (от_id, отношение, к_id) VALUES (?, ?, ?)",
+                                  (основной_id, отношение, к_id))
+            for от_id, отношение in входящие:
+                if от_id not in (основной_id, повтор_id):
+                    связь.execute("INSERT OR IGNORE INTO отношения (от_id, отношение, к_id) VALUES (?, ?, ?)",
+                                  (от_id, отношение, основной_id))
+            связь.execute("DELETE FROM сущности WHERE id = ?", (повтор_id,))
+            связь.execute("DELETE FROM вектора WHERE ключ = ?", (f"е{повтор_id}",))
+        return True
+
     def привязать_факт(self, факт_id: int, сущность_id: int) -> None:
         with self.соединение() as связь:
             связь.execute("INSERT OR IGNORE INTO факт_сущность (факт_id, сущность_id) VALUES (?, ?)", (факт_id, сущность_id))
+
+    # ---- Внутренние результаты фонового обслуживания --------------------
+
+    def сохранить_наблюдение(self, вид: str, ключ: str, текст: str,
+                             данные: dict | None = None, уверенность: float = 0.5) -> None:
+        with self.соединение() as связь:
+            связь.execute(
+                "INSERT INTO мозг_наблюдения (вид, ключ, текст, данные, уверенность) VALUES (?, ?, ?, ?, ?) "
+                "ON CONFLICT(вид, ключ) DO UPDATE SET текст = excluded.текст, данные = excluded.данные, "
+                "уверенность = excluded.уверенность, состояние = 'открыто', "
+                "изменено = datetime('now', 'localtime')",
+                (вид[:40], ключ[:160], текст[:600], json.dumps(данные or {}, ensure_ascii=False),
+                 max(0.0, min(float(уверенность), 1.0))))
+
+    def наблюдения(self, вид: str | None = None) -> list[dict]:
+        with self.соединение() as связь:
+            if вид:
+                строки = связь.execute(
+                    "SELECT * FROM мозг_наблюдения WHERE вид = ? ORDER BY уверенность DESC, id DESC", (вид,)).fetchall()
+            else:
+                строки = связь.execute(
+                    "SELECT * FROM мозг_наблюдения ORDER BY уверенность DESC, id DESC").fetchall()
+        итог = []
+        for строка in строки:
+            запись = dict(строка)
+            try:
+                запись["данные"] = json.loads(запись["данные"] or "{}")
+            except ValueError:
+                запись["данные"] = {}
+            итог.append(запись)
+        return итог
+
+    def закрыть_наблюдения(self, вид: str) -> None:
+        with self.соединение() as связь:
+            связь.execute(
+                "UPDATE мозг_наблюдения SET состояние = 'закрыто', "
+                "изменено = datetime('now', 'localtime') WHERE вид = ? AND состояние = 'открыто'", (вид,))
+
+    def сохранить_зависимость(self, задача_id: int, зависит_от_id: int,
+                               причина: str = "", уверенность: float = 0.5) -> bool:
+        if задача_id == зависит_от_id or not self.задача(задача_id) or not self.задача(зависит_от_id):
+            return False
+        with self.соединение() as связь:
+            связь.execute(
+                "INSERT INTO задача_зависимости (задача_id, зависит_от_id, причина, уверенность) "
+                "VALUES (?, ?, ?, ?) ON CONFLICT(задача_id, зависит_от_id) DO UPDATE SET "
+                "причина = excluded.причина, уверенность = excluded.уверенность",
+                (задача_id, зависит_от_id, причина[:300], max(0.0, min(float(уверенность), 1.0))))
+        return True
+
+    def зависимости_задач(self) -> list[dict]:
+        with self.соединение() as связь:
+            строки = связь.execute(
+                "SELECT задача_id, зависит_от_id, причина, уверенность, создано "
+                "FROM задача_зависимости ORDER BY уверенность DESC, создано DESC").fetchall()
+        return [dict(строка) for строка in строки]
 
     def цели(self) -> list[dict]:
         return [с for с in self.сущности() if с["тип"] == "цель"]
