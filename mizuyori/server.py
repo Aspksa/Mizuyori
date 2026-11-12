@@ -7,15 +7,16 @@ import threading
 import time
 from datetime import date
 from html import escape
+from pathlib import Path
 
 from fastapi import FastAPI, Query, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from . import __version__, agents, ai, learning, memory, printing, soul, work, work_agents
+from . import __version__, agents, ai, learning, memory, printing, putevoy, soul, work, work_agents
 from .config import (ВИД_ПО_УМОЛЧАНИЮ, ВНЕШНИЙ_ВИД, ИИ_ПО_УМОЛЧАНИЮ, МОЗГИ_ПО_УМОЛЧАНИЮ,
                      НеверныйВнешнийВид, атрибуты_html, проверить_внешний_вид, проверить_ии,
                      проверить_мозги, сохранить_настройки)
@@ -795,6 +796,13 @@ def создать_приложение(настройки: dict, база: Ба
         пояснение: str = Field("", max_length=1500)
         кому: str = Field("", max_length=200)
         от_кого: str = Field("", max_length=200)
+
+    @app.get("/api/work-agents/putevoy/{name}")
+    def готовый_путевой(name: str):
+        файл = putevoy.ПАПКА_ГОТОВЫХ / Path(name).name
+        if not файл.is_file():
+            raise StarletteHTTPException(404, "Такого файла нет.")
+        return FileResponse(файл, filename=файл.name)
 
     class ПечатьЗапрос(BaseModel):
         запрос: str = Field(max_length=200)

@@ -12,7 +12,7 @@ function _строчная(т) {
   const коды = [];
   т = т.replace(/`([^`\n]+)`/g, (_, к) => { коды.push(к); return `\u0000${коды.length - 1}\u0000`; });
   т = _экран(т);
-  т = т.replace(/\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g, (_, текст, адрес) => `<a href="${адрес}" target="_blank" rel="noopener noreferrer">${текст}</a>`);
+  т = т.replace(/\[([^\]\n]+)\]\(((?:https?:\/\/|\/api\/)[^\s)]+)\)/g, (_, текст, адрес) => `<a href="${адрес}" target="_blank" rel="noopener noreferrer"${адрес.startsWith("/api/") ? " download" : ""}>${текст}</a>`);
   т = т.replace(/\*\*\*([^*\n]+?)\*\*\*/g, "<strong><em>$1</em></strong>");
   т = т.replace(/\*\*([^\n]+?)\*\*/g, "<strong>$1</strong>");
   т = т.replace(/__([^_\n]+?)__/g, "<strong>$1</strong>");
