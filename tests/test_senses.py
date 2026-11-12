@@ -70,5 +70,55 @@ class ЗапаснойПоисковик(unittest.TestCase):
         self.assertEqual(senses.искать("абвгд", получить=lambda а: "<html></html>"), [])
 
 
+class ЗапасноеЧерезКлюч(unittest.TestCase):
+    """Нет сети (или пусто) → ответ из знаний модели по ключу, с честной оговоркой."""
+    НАСТРОЙКИ = {"включён": True, "ключ": "k", "модель": "m", "адрес": "https://x"}
+
+    def setUp(self):
+        from mizuyori import agents, ai
+        self.ai = ai
+        self.agents = agents
+        self.старое = (ai.справка_без_сети, agents.работа, senses.искать)
+        ai.справка_без_сети = lambda запрос, н: "- Смотрите на размер и индекс нагрузки.\n- Аналоги: …"
+        from contextlib import contextmanager
+
+        @contextmanager
+        def работа(*а, **к):
+            yield {}
+        agents.работа = работа
+
+    def tearDown(self):
+        self.ai.справка_без_сети, self.agents.работа, senses.искать = self.старое
+
+    def test_нет_сети_и_есть_ключ(self):
+        def нет_сети(*а, **к):
+            raise OSError("нет сети")
+        senses.искать = нет_сети
+        _, сообщение = senses.найти_для_чата("шины хайлюкс", настройки_ии=self.НАСТРОЙКИ)
+        self.assertIn("из знаний модели", сообщение)
+        self.assertIn("не проверены", сообщение)
+        self.assertIn("индекс нагрузки", сообщение)
+
+    def test_нет_сети_и_нет_ключа(self):
+        def нет_сети(*а, **к):
+            raise OSError("нет сети")
+        senses.искать = нет_сети
+        _, сообщение = senses.найти_для_чата("шины хайлюкс", настройки_ии={})
+        self.assertIn("Не смог выйти в интернет", сообщение)
+        self.assertNotIn("индекс нагрузки", сообщение)
+
+    def test_сеть_есть_ключ_не_нужен(self):
+        senses.искать = lambda *а, **к: [{"название": "Магазин", "ссылка": "https://s.example", "кратко": "от 5000"}]
+        _, сообщение = senses.найти_для_чата("шины", настройки_ии=self.НАСТРОЙКИ)
+        self.assertIn("https://s.example", сообщение)
+        self.assertNotIn("знаний модели", сообщение)
+
+    def test_пусто_в_сети_уходит_к_модели(self):
+        senses.искать = lambda *а, **к: []
+        _, сообщение = senses.найти_для_чата("шины", настройки_ии=self.НАСТРОЙКИ)
+        self.assertIn("ничего не нашлось", сообщение)
+        self.assertIn("из знаний модели", сообщение)
+
+
 if __name__ == "__main__":
     unittest.main()
