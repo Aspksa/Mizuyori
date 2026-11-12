@@ -1889,3 +1889,47 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
   font-size: 1.1rem; cursor: pointer; line-height: 1; }
 .работа-сброс[hidden] { display: none; }
 .работа-сброс:hover { color: var(--текст); }
+
+/* напоминания по автомобилям */
+.метка-внимание.просрочено, .метка-внимание.сегодня { color: #ff6b5b; background: color-mix(in srgb, #ff6b5b 15%, transparent); }
+.метка-внимание.скоро { color: #f5c451; background: color-mix(in srgb, #f5c451 12%, transparent); }
+.напоминания { border: 1px solid color-mix(in srgb, #f0a020 45%, var(--рамка)); border-radius: var(--радиус); padding: .6rem .8rem;
+  background: color-mix(in srgb, #f0a020 6%, var(--панель)); font-size: .88rem; }
+.напоминания ul { list-style: none; margin: .4rem 0 0; padding: 0; display: flex; flex-direction: column; gap: .2rem; max-height: 9rem; overflow-y: auto; }
+.напоминания li { display: flex; gap: .7rem; padding: .2rem .4rem; border-radius: 6px; cursor: pointer; border-left: 3px solid #f5c451; }
+.напоминания li:hover { background: color-mix(in srgb, var(--акцент) 8%, transparent); }
+.напоминания li.просрочено, .напоминания li.сегодня { border-left-color: #ff6b5b; }
+.напоминания li.срочно { border-left-color: #f0a020; }
+.напоминание-авто { font-weight: 600; min-width: 12rem; }
+/* история автомобиля */
+.история-авто { gap: .5rem; }
+.график-авто { width: 100%; height: auto; background: var(--фон); border-radius: 8px; border: 1px solid var(--рамка); }
+.график-авто .ось { stroke: var(--рамка); }
+.график-авто .столбик-норма { fill: color-mix(in srgb, var(--тихий) 55%, transparent); }
+.график-авто .столбик-факт { fill: var(--акцент); }
+.график-авто .столбик-факт.перерасход { fill: #ff6b5b; }
+.график-авто .линия-заправок { fill: none; stroke: #6aa9ff; stroke-width: 2; }
+.график-авто .точка-заправок { fill: #6aa9ff; }
+.график-авто .подпись-оси { fill: var(--тихий); font-size: 10px; }
+.легенда-авто { display: flex; gap: 1rem; font-size: .75rem; color: var(--тихий); }
+.легенда-авто span::before { content: ""; display: inline-block; width: .7rem; height: .7rem; border-radius: 2px; margin-right: .3rem; vertical-align: -1px; }
+.легенда-авто .л-норма::before { background: color-mix(in srgb, var(--тихий) 55%, transparent); }
+.легенда-авто .л-факт::before { background: var(--акцент); }
+.легенда-авто .л-заправки::before { background: #6aa9ff; border-radius: 50%; }
+.история-таблица { overflow-x: auto; }
+.история-таблица td.перерасход { color: #ff6b5b; } .история-таблица td.экономия { color: #3ecf9a; }
+/* табель: норма и периоды */
+.табель-норма { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem 1rem; font-size: .85rem; color: var(--тихий); }
+.табель-норма strong { color: var(--текст); }
+.работа-таблица.табель th.праздник span { color: #ff6b5b; }
+.табель-коды .сокр b { color: var(--акцент); }
+.табель-периоды { font-size: .85rem; }
+.табель-периоды ul { list-style: none; margin: .3rem 0 0; padding: 0; display: flex; flex-direction: column; gap: .2rem; }
+.табель-периоды li { display: flex; gap: .7rem; align-items: center; }
+.табель-периоды li > span:first-child { font-weight: 700; min-width: 2rem; }
+.период-окно, .сезоны-окно { width: min(26rem, 92vw); }
+.период-окно select, .период-окно input[type=text], .сезоны-окно input { font: inherit; font-size: .88rem; color: var(--текст); background: var(--фон);
+  border: 1px solid var(--рамка); border-radius: 7px; padding: .35rem .5rem; width: 100%; box-sizing: border-box; }
+.период-окно input[type=date] { font: inherit; font-size: .85rem; color: var(--текст); background: var(--фон); border: 1px solid var(--рамка); border-radius: 6px; padding: .25rem .4rem; }
+.сезоны-окно .табель-выбор-часы input { width: 5rem; }
+.период-окно small, .сезоны-окно small { color: var(--тихий); font-size: .75rem; }
