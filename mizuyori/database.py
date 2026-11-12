@@ -110,6 +110,10 @@ from pathlib import Path
     ALTER TABLE память ADD COLUMN смысл TEXT NOT NULL DEFAULT '{}';  -- JSON: кто, что, для_кого, зачем, почему, когда
     ALTER TABLE задачи ADD COLUMN цель_id INTEGER REFERENCES сущности(id) ON DELETE SET NULL;
     """,
+    # 6: внутренняя мысль ИИ перед ответом
+    """
+    ALTER TABLE сообщения ADD COLUMN мысль TEXT NOT NULL DEFAULT '';
+    """,
 ]
 
 ТИПЫ_СУЩНОСТЕЙ = ["человек", "питомец", "место", "организация", "проект", "цель", "событие", "вещь", "другое"]
@@ -156,14 +160,14 @@ class База:
         """Последние сообщения чата, от старых к новым."""
         with self.соединение() as связь:
             строки = связь.execute(
-                "SELECT * FROM (SELECT id, роль, текст, создано FROM сообщения "
+                "SELECT * FROM (SELECT id, роль, текст, мысль, создано FROM сообщения "
                 "ORDER BY id DESC LIMIT ?) ORDER BY id", (сколько,)).fetchall()
         return [dict(с) for с in строки]
 
-    def добавить_сообщение(self, роль: str, текст: str) -> dict:
+    def добавить_сообщение(self, роль: str, текст: str, мысль: str = "") -> dict:
         with self.соединение() as связь:
-            курсор = связь.execute("INSERT INTO сообщения (роль, текст) VALUES (?, ?)", (роль, текст))
-            строка = связь.execute("SELECT id, роль, текст, создано FROM сообщения WHERE id = ?",
+            курсор = связь.execute("INSERT INTO сообщения (роль, текст, мысль) VALUES (?, ?, ?)", (роль, текст, мысль))
+            строка = связь.execute("SELECT id, роль, текст, мысль, создано FROM сообщения WHERE id = ?",
                                    (курсор.lastrowid,)).fetchone()
         return dict(строка)
 

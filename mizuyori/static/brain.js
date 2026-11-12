@@ -1408,6 +1408,31 @@
   }
 
   const вкладкаДуши = () => $("экран-мозги").dataset.вкладка === "душа";
+
+  // Переход «Граф ⇄ Душа»: граф сворачивается в ядро и разворачивается из него
+  window.мозгиПереход = {
+    схлопнуть() {
+      return new Promise((готово) => {
+        if (!загружено || холст.hidden) return готово();
+        const [x, y] = вЭкран(0, 0);
+        холст.style.transformOrigin = `${x}px ${y}px`;
+        холст.classList.remove("разворачивается");
+        void холст.offsetWidth;
+        холст.classList.add("схлопывается");
+        setTimeout(готово, 420);
+      });
+    },
+    развернуть() {
+      холст.classList.remove("схлопывается");
+      if (!загружено) return;
+      for (const у of узлы) { у.x = 0; у.y = 0; у.прозрачность = 0; }
+      узлы.forEach((у, i) => (у.задержка = (i / Math.max(узлы.length, 1)) * 0.6 + 0.05));
+      интро = время;
+      холст.classList.add("разворачивается");
+      setTimeout(() => холст.classList.remove("разворачивается"), 600);
+    },
+    ядро() { return загружено ? вЭкран(0, 0) : null; },
+  };
   document.addEventListener("mizuyori:вкладка-мозгов", (событие) => {
     if ($("экран-мозги").hidden) return;
     активен = событие.detail !== "душа";
