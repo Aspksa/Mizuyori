@@ -18,7 +18,7 @@ from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from . import (__version__, agents, ai, archive, audit, browser_fetch, documents, evolve, graph_tools, learning, memory, missions, printing, putevoy,
-               senses, smeta, soul, tools, work, work_agents)
+               search_eval, senses, smeta, soul, tools, work, work_agents)
 from .config import (ВИД_ПО_УМОЛЧАНИЮ, ВНЕШНИЙ_ВИД, ИИ_ПО_УМОЛЧАНИЮ, МОЗГИ_ПО_УМОЛЧАНИЮ,
                      НеверныйВнешнийВид, атрибуты_html, проверить_внешний_вид, проверить_ии,
                      проверить_мозги, сохранить_настройки)
@@ -906,6 +906,16 @@ def создать_приложение(настройки: dict, база: Ба
         if not итог:
             raise StarletteHTTPException(404, "Предложение уже решено или не найдено.")
         return {"предложение": итог}
+
+    @app.get("/api/search-eval")
+    def история_проверки_поиска():
+        return {"прогоны": search_eval.история(12), "запросов": len(search_eval.НАБОР)}
+
+    @app.post("/api/search-eval/run")
+    def проверить_поиск():
+        итог = search_eval.прогнать()
+        audit.записать("проверка поиска", итог["вердикт"], f"{итог['балл']:.0%}, ошибок {итог['ошибок']}")
+        return итог
 
     @app.get("/api/audit")
     def журнал_аудита(q: str = "", limit: int = Query(100, ge=1, le=500)):

@@ -318,6 +318,17 @@ from .archive import МИГРАЦИЯ as МИГРАЦИЯ_АРХИВА
     );
     CREATE INDEX агент_предложение_агент ON агент_предложение(агент, id);
     """,
+    # 26: прогоны теста качества поиска
+    """
+    CREATE TABLE поиск_прогон (
+        id         INTEGER PRIMARY KEY,
+        создано    TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+        балл       REAL NOT NULL,
+        запросов   INTEGER NOT NULL,
+        ошибок     INTEGER NOT NULL DEFAULT 0,
+        подробности TEXT NOT NULL DEFAULT '[]'
+    );
+    """,
 ]
 
 ТИПЫ_СУЩНОСТЕЙ = ["человек", "питомец", "место", "организация", "проект", "цель", "событие", "вещь", "другое"]

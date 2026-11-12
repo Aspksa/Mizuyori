@@ -3083,10 +3083,10 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .качество-шапка strong { font-size: 1.6rem; }
 .кач-плохо-текст { color: #d9534f; }
 .качество-график { width: 100%; max-height: 90px; overflow: visible; }
-.качество-порог { stroke: var(--приглушённый, #888); stroke-dasharray: 3 3; stroke-width: 1; opacity: .6; }
+.качество-порог { stroke: var(--тихий, #888); stroke-dasharray: 3 3; stroke-width: 1; opacity: .6; }
 .кач-хорошо { fill: #3fa66b; } .кач-средне { fill: #e0a43a; } .кач-плохо { fill: #d9534f; }
 .предложение.принято { border-left-color: #3fa66b; } .предложение.отклонено, .предложение.не_прошло_проверку { border-left-color: #d9534f; opacity: .75; }
-.предложение small { color: var(--приглушённый, #888); }
+.предложение small { color: var(--тихий, #888); }
 
 /* Временная шкала поручения */
 .шкала { list-style: none; margin: .4rem 0 .6rem; padding: 0; display: flex; flex-direction: column; gap: .3rem; font-size: .8rem; }
@@ -3094,5 +3094,12 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .шкала-имя { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .шкала-полоса { display: flex; height: .55rem; border-radius: 99px; background: color-mix(in srgb, var(--текст) 8%, transparent); overflow: hidden; }
 .шкала-работа { background: #3fa66b; } .шкала-ждал { background: #e0a43a; }
-.шкала-текст { color: var(--приглушённый, #888); white-space: nowrap; } .шкала-текст.повтор { color: #d9534f; }
+.шкала-текст { color: var(--тихий, #888); white-space: nowrap; } .шкала-текст.повтор { color: #d9534f; }
 @media (max-width: 560px) { .шкала li { grid-template-columns: 6rem 1fr; } .шкала-текст { grid-column: 1 / -1; } }
+
+/* Проверка поиска */
+.поиск-итог { display: flex; align-items: baseline; gap: .4rem; flex-wrap: wrap; margin: .6rem 0; }
+.поиск-балл { font-size: 1.6rem; }
+.поиск-список li { grid-template-columns: auto 1fr auto; }
+.поиск-точка { width: .7rem; height: .7rem; border-radius: 50%; display: inline-block; }
+.поиск-точка.кач-хорошо { background: #3fa66b; } .поиск-точка.кач-средне { background: #e0a43a; } .поиск-точка.кач-плохо { background: #d9534f; }
