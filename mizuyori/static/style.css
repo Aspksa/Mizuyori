@@ -2597,17 +2597,3 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .рост-событие small { opacity: .65; font-size: .7rem; }
 .рост-событие p { margin: .05rem 0 0; font-size: .86rem; line-height: 1.35; }
 .рост-ещё { margin-top: .5rem; }
-
-/* Мозги → Проверка */
-.проверка-форма { display: flex; gap: .6rem; flex-wrap: wrap; margin: .8rem 0; }
-.проверка-форма input { flex: 1 1 10rem; }
-.проверка-путь { margin-bottom: 1rem; }
-.путь-цепь { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }
-.путь-узел { padding: .25rem .6rem; border-radius: 999px; background: var(--панель, #1c2430); border: 1px solid #3ecf9a55; }
-.путь-факт { border-color: #f5a34b66; } .путь-задача { border-color: #6aa9ff66; }
-.путь-связь { opacity: .65; font-size: .85em; }
-.проверка-раздел { margin: 1.2rem 0; }
-.проверка-раздел h3 { margin: 0 0 .5rem; }
-.проверка-строка { display: flex; align-items: center; justify-content: space-between; gap: .6rem; padding: .45rem 0; border-bottom: 1px solid #ffffff14; }
-.проверка-строка span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
-.проверка-строка .кнопка { margin-left: .3rem; white-space: nowrap; }
