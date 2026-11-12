@@ -15,7 +15,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from . import __version__, agents, ai, memory, soul, work
+from . import __version__, agents, ai, memory, soul, work, work_agents
 from .config import (ВИД_ПО_УМОЛЧАНИЮ, ВНЕШНИЙ_ВИД, ИИ_ПО_УМОЛЧАНИЮ, МОЗГИ_ПО_УМОЛЧАНИЮ,
                      НеверныйВнешнийВид, атрибуты_html, проверить_внешний_вид, проверить_ии,
                      проверить_мозги, сохранить_настройки)
@@ -655,6 +655,7 @@ def создать_приложение(настройки: dict, база: Ба
 
     # ---- Агенты: кто сейчас работает, сколько раз сегодня ----------------------
     agents.подключить(база)
+    work_agents.зарегистрировать()
 
     @app.get("/api/agents")
     def агенты():
@@ -706,6 +707,44 @@ def создать_приложение(настройки: dict, база: Ба
         if not agents.удалить_заметку(note_id):
             raise StarletteHTTPException(404, "Такой заметки нет.")
         return {"удалено": note_id}
+
+    # ---- Агенты «Работы»: замечания, обход, служебные записки -----------------------------
+
+    @app.get("/api/work-agents")
+    def агенты_работы():
+        свод = {а["ключ"]: а for а in agents.сводка()["агенты"]}
+        итог = []
+        for а in work_agents.РАБОЧИЕ_АГЕНТЫ:
+            try:
+                з = work_agents.замечания(база, а["ключ"])
+            except Exception:
+                журнал.exception("Агент %s не смог посмотреть данные", а["ключ"])
+                з = []
+            итог.append({**свод[а["ключ"]], "замечания": sorted(з, key=lambda н: -н["важно"])})
+        return {"агенты": итог, "ии_подключён": ai.подключён(_ии())}
+
+    @app.post("/api/work-agents/{agent}/run")
+    def обойти_агента(agent: str):
+        if agent not in work_agents.КЛЮЧИ:
+            raise StarletteHTTPException(404, "Такого агента нет.")
+        нашёл = work_agents.обойти(база, agent)
+        try:
+            учёба = work_agents.научиться(база, agent, agents.с_правилами(dict(_ии()), agent))
+        except Exception:
+            журнал.exception("Агент %s не смог научиться (ИИ недоступен?)", agent)
+            учёба = ""
+        return {"замечаний": len([н for н in нашёл if н["важно"] >= 1]), "новый_приём": учёба}
+
+    class ЗаписокЗапрос(BaseModel):
+        тема: str = Field(max_length=200)
+        пояснение: str = Field("", max_length=1500)
+        кому: str = Field("", max_length=200)
+        от_кого: str = Field("", max_length=200)
+
+    @app.post("/api/work-agents/memo", status_code=201)
+    def записка_инженера(з: ЗаписокЗапрос):
+        return work_agents.написать_записку(база, dict(_ии()), _непустой(з.тема, "Тема записки"),
+                                            з.пояснение, з.кому, з.от_кого)
 
     # ---- Душа ------------------------------------------------------------
     # Характер и ценности ИИ; настроение считается из дел и разговоров.
@@ -855,6 +894,7 @@ def создать_приложение(настройки: dict, база: Ба
         журнал.info("Настройки мозгов сохранены.")
         return новые
 
+    work_agents.запустить_фоновое_развитие(база, _ии)
     soul.запустить_фоновое_развитие(
         база, _ии, lambda: последняя_активность[0]
     )
