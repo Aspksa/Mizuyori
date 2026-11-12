@@ -18,7 +18,7 @@ from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from . import paths
-from . import (__version__, agents, ai, archive, audit, browser_fetch, documents, evolve, housekeeping, graph_tools, learning, mcp_client, memory, memory_plus, missions, printing, putevoy,
+from . import (__version__, agent_profiles, agents, ai, archive, audit, browser_fetch, documents, evolve, housekeeping, graph_tools, learning, mcp_client, memory, memory_plus, missions, printing, putevoy,
                search_eval, senses, smeta, soul, tools, usage, work, work_agents)
 from .config import (ВИД_ПО_УМОЛЧАНИЮ, ВНЕШНИЙ_ВИД, ИИ_ПО_УМОЛЧАНИЮ, МОЗГИ_ПО_УМОЛЧАНИЮ,
                      НеверныйВнешнийВид, атрибуты_html, проверить_внешний_вид, проверить_ии,
@@ -780,6 +780,7 @@ def создать_приложение(настройки: dict, база: Ба
     senses.настроить_регион(настройки["агенты"])
     housekeeping.запустить(база, lambda: int(настройки["агенты"].get("хранить_дней", 180)), paths.ПАПКА_ЛОГОВ)
     missions.заполнить_готовые()
+    agent_profiles.заполнить()
     printing.НАСТРОЙКИ = настройки["печать"]
     learning.НАСТРОЙКИ = настройки["агенты"]
     documents.НАСТРОЙКИ = настройки["агенты"]
