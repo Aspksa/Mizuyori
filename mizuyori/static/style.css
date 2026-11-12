@@ -2049,3 +2049,11 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .работа-шапка { min-width: 0; }
 .работа-содержимое > * { max-width: 100%; }
 .виды { min-width: 0; max-width: 100%; }
+
+.закрепление-строка { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .8rem; padding: .35rem 0; border-bottom: 1px solid var(--рамка); }
+.закрепление-строка strong { min-width: 10rem; }
+.закрепление-строка label { display: inline-flex; align-items: center; gap: .3rem; font-size: .85rem; color: var(--тихий); }
+.закрепление-строка input, .закрепление-строка select { font: inherit; font-size: .85rem; color: var(--текст); background: var(--фон); border: 1px solid var(--рамка); border-radius: 8px; padding: .25rem .4rem; }
+.закрепление-сейчас { font-size: .82rem; color: var(--акцент); }
+.подсказка-закреплений { margin: .2rem 0 .4rem; font-size: .8rem; color: var(--тихий); }
+.закрепление-добавить summary { cursor: pointer; font-size: .84rem; color: var(--тихий); padding-top: .3rem; }
