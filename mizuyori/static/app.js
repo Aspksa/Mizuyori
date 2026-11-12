@@ -298,3 +298,50 @@ document.addEventListener("mizuyori:открыть-настройки-ии", asy
   await открытьНастройки();
   вкладкаНастроек("ии");
 });
+
+// ---- Защита полей от автозаполнения браузера ------------------------------------
+// Яндекс.Браузер (и другие) сами вставляют в поля «Поиск» сохранённые логины, адреса и запросы —
+// списки от этого «пропадали». Поэтому во всех полях сайта автозаполнение выключено, а вставка,
+// сделанная браузером без фокуса в поле, отменяется и не доходит до поиска и фильтров.
+{
+  const ЧТО_НЕ_ТРОГАТЬ = new Set(["checkbox", "radio", "file", "range", "color", "hidden", "submit", "button", "password"]);
+  const значения = new WeakMap();
+  const поле = (э) => (э instanceof HTMLInputElement && !ЧТО_НЕ_ТРОГАТЬ.has(э.type)) || э instanceof HTMLTextAreaElement;
+
+  function закрыть(э) {
+    if (!поле(э) || э.dataset.автозаполнение === "можно" || э.dataset.защищено) return;
+    э.dataset.защищено = "1";
+    if (э.type === "search") э.type = "text";          // type=search браузеры особенно любят
+    э.setAttribute("autocomplete", э.type === "date" ? "off" : "mizuyori-off");
+    э.setAttribute("autocorrect", "off");
+    э.setAttribute("data-lpignore", "true");
+    э.setAttribute("data-1p-ignore", "true");
+    э.setAttribute("data-form-type", "other");
+    if (!э.name) э.name = `mz-${Math.random().toString(36).slice(2, 9)}`;
+    значения.set(э, э.value);
+  }
+  function пройти(корень) {
+    if (корень.nodeType !== 1) return;
+    if (корень.matches?.("input, textarea")) закрыть(корень);
+    корень.querySelectorAll?.("input, textarea").forEach(закрыть);
+    if (корень.matches?.("form")) корень.setAttribute("autocomplete", "off");
+    корень.querySelectorAll?.("form").forEach((ф) => ф.setAttribute("autocomplete", "off"));
+  }
+  пройти(document.body);
+  new MutationObserver((изменения) => {
+    for (const и of изменения) for (const у of и.addedNodes) пройти(у);
+  }).observe(document.body, { childList: true, subtree: true });
+
+  document.addEventListener("focusin", (с) => { if (поле(с.target)) значения.set(с.target, с.target.value); }, true);
+  document.addEventListener("input", (с) => {
+    const э = с.target;
+    if (!поле(э) || э.dataset.автозаполнение === "можно") return;
+    if (document.activeElement !== э) {
+      // это вставил браузер, а не человек — возвращаем как было
+      с.stopImmediatePropagation();
+      э.value = значения.get(э) ?? "";
+      return;
+    }
+    значения.set(э, э.value);
+  }, true);
+}
