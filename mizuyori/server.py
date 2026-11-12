@@ -15,10 +15,11 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from . import __version__, agents, ai, memory, soul, work, work_agents
+from . import __version__, agents, ai, memory, printing, soul, work, work_agents
 from .config import (ВИД_ПО_УМОЛЧАНИЮ, ВНЕШНИЙ_ВИД, ИИ_ПО_УМОЛЧАНИЮ, МОЗГИ_ПО_УМОЛЧАНИЮ,
                      НеверныйВнешнийВид, атрибуты_html, проверить_внешний_вид, проверить_ии,
                      проверить_мозги, сохранить_настройки)
+
 from .database import ТИПЫ_СУЩНОСТЕЙ, База, ключ_имени
 from .paths import ПАПКА_СТАТИКИ, ФАЙЛ_НАСТРОЕК
 
@@ -670,6 +671,7 @@ def создать_приложение(настройки: dict, база: Ба
     # ---- Агенты: кто сейчас работает, сколько раз сегодня ----------------------
     agents.подключить(база)
     work_agents.зарегистрировать()
+    printing.НАСТРОЙКИ = настройки["печать"]
 
     @app.get("/api/agents")
     def агенты():
@@ -754,6 +756,20 @@ def создать_приложение(настройки: dict, база: Ба
         пояснение: str = Field("", max_length=1500)
         кому: str = Field("", max_length=200)
         от_кого: str = Field("", max_length=200)
+
+    class ПечатьЗапрос(BaseModel):
+        запрос: str = Field(max_length=200)
+
+    @app.post("/api/work-agents/print")
+    def печать_путевого(з: ПечатьЗапрос):
+        """Найти путевой лист по фамилии/машине и отправить на принтер (то же, что просьба в чате)."""
+        найдено = printing.найти(_непустой(з.запрос, "Запрос"))
+        if not найдено:
+            raise StarletteHTTPException(404, "Подходящих путевых листов не нашлось.")
+        if len(найдено) > 1:
+            raise StarletteHTTPException(409, "Подходит несколько: " + "; ".join(printing.подпись(п) for п in найдено[:12]))
+        printing.отправить_в_фоне(найдено, при_ошибке=work_agents._ошибка_печати)
+        return {"файл": printing.подпись(найдено[0])}
 
     @app.post("/api/work-agents/memo", status_code=201)
     def записка_инженера(з: ЗаписокЗапрос):
