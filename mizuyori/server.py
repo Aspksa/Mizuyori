@@ -17,7 +17,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from . import __version__, agents, ai, archive, documents, learning, memory, printing, putevoy, smeta, soul, work, work_agents
+from . import __version__, agents, ai, archive, documents, learning, memory, printing, putevoy, senses, smeta, soul, work, work_agents
 from .config import (ВИД_ПО_УМОЛЧАНИЮ, ВНЕШНИЙ_ВИД, ИИ_ПО_УМОЛЧАНИЮ, МОЗГИ_ПО_УМОЛЧАНИЮ,
                      НеверныйВнешнийВид, атрибуты_html, проверить_внешний_вид, проверить_ии,
                      проверить_мозги, сохранить_настройки)
@@ -281,6 +281,14 @@ def создать_приложение(настройки: dict, база: Ба
         мой = база.добавить_сообщение("пользователь", f"📎 {name}")
         learning.чат_идёт()
         try:
+            инфо = await run_in_threadpool(archive.опознать, база, н, name, данные)
+            if инфо["вид"] not in ("Смета", "Коммерческое предложение", "Прочее"):
+                with agents.работа("архивариус", "рассмотрел вложение", f"файл «{name}»") as з:
+                    ф = await run_in_threadpool(archive.принять_файл, база, н, name, данные)
+                    з["результат"] = f"{инфо['вид']}: {ф.get('путь') or name}"
+                    з["польза"] = 2
+                return {"вы": мой, "ответ": база.добавить_сообщение(
+                    "ии", f"👁 Это «{инфо['вид'].lower()}» — Архивариус положил в архив: {ф.get('путь') or name}")}
             if not ai.подключён(н):
                 raise smeta.СметаНеЧитается("Чтобы разобрать смету, нужен подключённый ИИ (настройки проекта → ИИ).")
             from .smeta import принять
@@ -1141,6 +1149,7 @@ def создать_приложение(настройки: dict, база: Ба
         return новые
 
     work_agents.запустить_фоновое_развитие(база, _ии)
+    senses.запустить_уши(база, _ии)
     learning.запустить(база, _ии)
     soul.запустить_фоновое_развитие(
         база, _ии, lambda: последняя_активность[0]
