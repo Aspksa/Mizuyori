@@ -302,6 +302,7 @@ def запустить(получить_ии) -> None:
 
     def цикл():
         from . import learning
+        ai.установить_приоритет("фон")
         time.sleep(180)
         while True:
             try:

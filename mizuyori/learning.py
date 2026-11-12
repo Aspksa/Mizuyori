@@ -12,7 +12,7 @@ import re
 import threading
 import time
 
-from . import agents
+from . import agents, ai
 
 журнал = logging.getLogger("mizuyori.учёба")
 
@@ -294,6 +294,7 @@ def запустить(база, получить_ии) -> None:
         return
 
     def цикл():
+        ai.установить_приоритет("фон")
         time.sleep(90)
         while True:
             try:

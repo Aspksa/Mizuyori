@@ -273,7 +273,8 @@ def создать_приложение(настройки: dict, база: Ба
                 ответ = f"{ответ}\n\n{сообщение_печати}".strip()
             yield строка({"ответ": база.добавить_сообщение("ии", ответ or "…", мысль)})
             # Память и сводка — в фоне, чтобы не задерживать ответ
-            threading.Thread(target=memory.после_ответа, args=(база, н, текст, ответ, вопрос["id"]),
+            threading.Thread(target=lambda *а: (ai.установить_приоритет("поручение"), memory.после_ответа(*а)),
+                             args=(база, н, текст, ответ, вопрос["id"]),
                              daemon=True).start()
 
         return StreamingResponse(поток(), media_type="application/x-ndjson",
