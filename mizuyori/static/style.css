@@ -179,7 +179,7 @@ main.главная {
   min-height: 0;
   display: grid;
   /* Главная: слева часы и календарь, по центру чат, справа агенты («Дела» — отдельный экран) */
-  grid-template-columns: minmax(15rem, 18rem) minmax(0, 1fr) minmax(15rem, 17.5rem);
+  grid-template-columns: minmax(15rem, 18rem) minmax(0, 1fr) minmax(28rem, 36rem);
   gap: calc(1rem * var(--п));
   padding: calc(1rem * var(--п));
 }
@@ -2254,3 +2254,51 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .ремонт-шапка { display: flex; gap: .7rem; align-items: baseline; flex-wrap: wrap; }
 .ремонт-шапка .ремонт-сумма { margin-left: auto; font-weight: 600; }
 .ремонт-материалы { color: var(--тихий); }
+
+
+/* =============================================================================
+   АГЕНТЫ: плитки по пять в ряд, ряды идут вниз; цвет группы у кружка и шапки
+   ============================================================================= */
+.агенты-ряд { gap: .35rem; }
+.агенты-группа { --гц: var(--акцент); }
+.агенты-группа-шапка { color: color-mix(in srgb, var(--гц) 75%, var(--тихий)); padding-left: 1.5rem; margin-top: .55rem; }
+.агенты-группа-шапка::before { left: .35rem; }
+.агенты-группа-шапка::after { content: ""; position: absolute; left: 1.05rem; bottom: .2rem; width: .45rem; height: .45rem; border-radius: 50%; background: var(--гц); display: none; }
+.агенты-группа-список { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .4rem; }
+.агент { flex-direction: column; justify-content: flex-start; gap: .3rem; padding: .55rem .25rem .45rem; text-align: center;
+  border: 1px solid color-mix(in srgb, var(--гц, var(--акцент)) 18%, var(--рамка)); border-radius: 12px;
+  background: color-mix(in srgb, var(--гц, var(--акцент)) 4%, transparent); min-height: 5.2rem;
+  transition: background .2s, transform .15s, border-color .2s, box-shadow .3s; }
+.агент:hover { transform: translateY(-2px); border-color: var(--гц, var(--акцент)); background: color-mix(in srgb, var(--гц, var(--акцент)) 11%, transparent); }
+.агент .агент-круг { width: 2.3rem; height: 2.3rem; }
+.агент .агент-значок { width: 1.1rem; height: 1.1rem; color: var(--гц, var(--акцент)); }
+.агент .агент-дуга { stroke: color-mix(in srgb, var(--гц, var(--акцент)) 85%, transparent); }
+.агент .агент-бег { stroke: var(--гц, var(--акцент)); }
+.агент.работает { border-color: var(--гц, var(--акцент)); background: color-mix(in srgb, var(--гц, var(--акцент)) 14%, transparent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--гц, var(--акцент)) 35%, transparent); animation: плитка-пульс 1.6s ease-in-out infinite; }
+.агент.работает .агент-круг { filter: drop-shadow(0 0 7px color-mix(in srgb, var(--гц, var(--акцент)) 60%, transparent)); }
+@keyframes плитка-пульс { 50% { box-shadow: 0 0 22px color-mix(in srgb, var(--гц, var(--акцент)) 55%, transparent); } }
+.агент.спит { opacity: .72; }
+.агент.спит:hover { opacity: 1; }
+.агент-текст { align-items: center; flex: none; width: 100%; gap: .1rem; }
+.агент-строка-имени { justify-content: center; width: 100%; }
+.агент-имя { font-size: .64rem; line-height: 1.15; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; word-break: break-word; min-height: 1.55em; }
+.агент-неделя-место, .агент-последнее { display: none; }
+.агент-счёт { font-size: .6rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.агент.работает .агент-счёт { color: var(--гц, var(--акцент)); font-weight: 600; }
+.агент-записки { position: absolute; top: .25rem; right: .3rem; font-size: .58rem; padding: 0 .3rem; }
+.агент-точка { background: var(--рамка); }
+.конвейер-лента { padding-right: .15rem; }
+@media (prefers-reduced-motion: reduce) { .агент.работает { animation: none; } }
+@media (max-width: 80rem) {
+  .агенты-ряд { display: flex; }
+  .конвейер { max-height: 24rem; }
+}
+@media (max-width: 44rem) {
+  .агенты-группа-список { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .25rem; }
+  .агент { min-height: 5rem; padding-inline: .1rem; }
+  .агент-имя { font-size: .6rem; }
+}
+
+.агент-имя.длинное { font-size: .56rem; letter-spacing: -.01em; }
