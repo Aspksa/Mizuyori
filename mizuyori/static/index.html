@@ -161,6 +161,12 @@
       </div>
 
       <div class="дела-раздел" id="дела-задачи" role="tabpanel" aria-labelledby="вкладка-задачи">
+        <div class="режимы-задач" id="режимы-задач" role="tablist" aria-label="Раздел задач">
+          <button type="button" role="tab" data-режим="активные" aria-selected="true">Активные</button>
+          <button type="button" role="tab" data-режим="входящие">📥 Входящие</button>
+          <button type="button" role="tab" data-режим="архив">Архив</button>
+          <button type="button" role="tab" data-режим="корзина">Корзина</button>
+        </div>
         <div class="фильтры">
           <div class="фишки" id="фильтры-списков" role="radiogroup" aria-label="Список задач"></div>
           <button class="кнопка-значок малая" id="открыть-списки" type="button" aria-label="Настроить списки" title="Настроить списки">
@@ -183,6 +189,20 @@
           <div class="строка-опций">
             <input id="задача-срок" type="date" aria-label="Срок">
             <select id="задача-список" aria-label="Список"></select>
+            <select id="задача-приоритет" aria-label="Приоритет">
+              <option value="обычный">Обычный</option>
+              <option value="срочный">🔴 Срочный</option>
+              <option value="высокий">🟠 Высокий</option>
+              <option value="низкий">Низкий</option>
+            </select>
+            <select id="задача-повтор" aria-label="Повторение">
+              <option value="">Не повторять</option>
+              <option value="день">Каждый день</option>
+              <option value="будни">По рабочим дням</option>
+              <option value="неделя">Каждую неделю</option>
+              <option value="месяц">Каждый месяц</option>
+            </select>
+            <label class="флажок-строка компактная"><input id="задача-входящие" type="checkbox"> Входящие</label>
           </div>
         </form>
 
@@ -191,7 +211,7 @@
         <div class="дела-низ" id="задачи-низ" hidden>
           <span id="задач-осталось"></span>
           <button class="ссылка" id="привязать-цели" type="button" title="ИИ разложит задачи по вашим целям">🎯 К целям</button>
-          <button class="ссылка" id="убрать-выполненные" type="button">Убрать выполненные</button>
+          <button class="ссылка" id="убрать-выполненные" type="button">Архивировать выполненные</button>
         </div>
       </div>
 
@@ -232,6 +252,7 @@
       <button class="кнопка-значок малая" id="неделя-вперёд" type="button" aria-label="Следующая неделя">
         <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
       </button>
+      <button class="кнопка-значок малая" id="настройки-недели" type="button" aria-label="Настроить неделю" title="Настроить неделю">⚙</button>
     </div>
     <div class="неделя" id="неделя"></div>
   </div>
@@ -312,6 +333,18 @@
       <select id="задача-список-окна"></select>
       <label class="поле-название" for="задача-цель-окна">Цель</label>
       <select id="задача-цель-окна"></select>
+      <label class="поле-название" for="задача-приоритет-окна">Приоритет</label>
+      <select id="задача-приоритет-окна">
+        <option value="обычный">Обычный</option><option value="срочный">🔴 Срочный</option>
+        <option value="высокий">🟠 Высокий</option><option value="низкий">Низкий</option>
+      </select>
+      <label class="поле-название" for="задача-повтор-окна">Повторение</label>
+      <select id="задача-повтор-окна">
+        <option value="">Не повторять</option><option value="день">Каждый день</option>
+        <option value="будни">По рабочим дням</option><option value="неделя">Каждую неделю</option>
+        <option value="месяц">Каждый месяц</option>
+      </select>
+      <label class="флажок-строка"><input type="checkbox" id="задача-входящие-окна"> Во входящих</label>
       <label class="флажок-строка"><input type="checkbox" id="задача-готово-окна"> Выполнена</label>
     </div>
     <div class="окно-низ">
@@ -320,6 +353,24 @@
       <button class="кнопка второстепенная" id="отмена-задачи" type="button">Отмена</button>
       <button class="кнопка главная" type="submit">Сохранить</button>
     </div>
+  </form>
+</div>
+
+<div class="затемнение" id="окно-настроек-недели" hidden>
+  <form class="окно узкое" id="форма-настроек-недели" role="dialog" aria-modal="true" aria-labelledby="заголовок-настроек-недели">
+    <div class="окно-шапка"><h2 id="заголовок-настроек-недели">Настройки недели</h2></div>
+    <div class="окно-тело поля-задачи">
+      <label class="поле-название" for="первый-день-недели">Первый день недели</label>
+      <select id="первый-день-недели"><option value="понедельник">Понедельник</option><option value="воскресенье">Воскресенье</option></select>
+      <span class="поле-название">Рабочие дни</span>
+      <div class="рабочие-дни" id="рабочие-дни">
+        <label><input type="checkbox" value="1"> Пн</label><label><input type="checkbox" value="2"> Вт</label>
+        <label><input type="checkbox" value="3"> Ср</label><label><input type="checkbox" value="4"> Чт</label>
+        <label><input type="checkbox" value="5"> Пт</label><label><input type="checkbox" value="6"> Сб</label>
+        <label><input type="checkbox" value="7"> Вс</label>
+      </div>
+    </div>
+    <div class="окно-низ"><span class="растяжка"></span><button class="кнопка второстепенная" id="отмена-настроек-недели" type="button">Отмена</button><button class="кнопка главная" type="submit">Сохранить</button></div>
   </form>
 </div>
 

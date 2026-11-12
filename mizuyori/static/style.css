@@ -1936,3 +1936,37 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .путевые-округление select { font: inherit; font-size: .82rem; color: var(--текст); background: var(--фон); border: 1px solid var(--рамка); border-radius: 6px; padding: .1rem .3rem; }
 .путевой-ввод:disabled { opacity: .75; border-style: dashed; }
 .путевой-ввод.посчитано::placeholder { color: color-mix(in srgb, var(--тихий) 85%, transparent); font-weight: 600; }
+/* Дополнительные режимы и свойства задач */
+.режимы-задач {
+  display: flex;
+  gap: 6px;
+  padding: 10px 12px 0;
+  overflow-x: auto;
+}
+.режимы-задач button {
+  border: 1px solid var(--рамка);
+  border-radius: 999px;
+  padding: 5px 10px;
+  color: var(--тихий);
+  background: transparent;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.режимы-задач button[aria-selected="true"] {
+  color: var(--текст);
+  border-color: var(--акцент);
+  background: color-mix(in srgb, var(--акцент) 12%, transparent);
+}
+.метка-приоритета.срочный { color: #ff6b63; }
+.метка-приоритета.высокий { color: #f0a14a; }
+.метка-приоритета.низкий { opacity: .7; }
+.флажок-строка.компактная { margin: 0; white-space: nowrap; }
+.рабочие-дни { display: flex; flex-wrap: wrap; gap: 8px; }
+.рабочие-дни label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 9px;
+  border: 1px solid var(--рамка);
+  border-radius: var(--радиус-малый, 8px);
+}

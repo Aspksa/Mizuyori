@@ -1,9 +1,11 @@
 """База данных SQLite в data/mizuyori.db."""
 
+import calendar
 import json
 import logging
 import sqlite3
 from contextlib import contextmanager
+from datetime import date, timedelta
 from pathlib import Path
 
 from .work import МИГРАЦИЯ as МИГРАЦИЯ_РАБОТЫ, МИГРАЦИЯ_ПУТЕВЫХ, МИГРАЦИЯ_ФАКТА, МИГРАЦИЯ_АВТОМАТИКИ
@@ -157,6 +159,17 @@ from .work import МИГРАЦИЯ as МИГРАЦИЯ_РАБОТЫ, МИГРА�
     МИГРАЦИЯ_ФАКТА,
     # 11: автомобили — техосмотр, ТО, шины; производственный календарь; периоды табеля (отпуска, больничные)
     МИГРАЦИЯ_АВТОМАТИКИ,
+    # 12: развитие задач — приоритеты, повторение, входящие, архив и корзина
+    """
+    ALTER TABLE задачи ADD COLUMN приоритет TEXT NOT NULL DEFAULT 'обычный';
+    ALTER TABLE задачи ADD COLUMN повтор TEXT NOT NULL DEFAULT '';
+    ALTER TABLE задачи ADD COLUMN повтор_создан INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE задачи ADD COLUMN входящие INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE задачи ADD COLUMN архив INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE задачи ADD COLUMN удалено TEXT;
+    CREATE INDEX задачи_состояние ON задачи(удалено, архив, готово);
+    CREATE INDEX задачи_входящие ON задачи(входящие, готово);
+    """,
 ]
 
 ТИПЫ_СУЩНОСТЕЙ = ["человек", "питомец", "место", "организация", "проект", "цель", "событие", "вещь", "другое"]
@@ -220,18 +233,31 @@ class База:
 
     # ---- Задачи ---------------------------------------------------------
 
-    _ПОЛЯ_ЗАДАЧИ = "id, текст, готово, срок, список_id, цель_id, создано"
+    _ПОЛЯ_ЗАДАЧИ = (
+        "id, текст, готово, срок, список_id, цель_id, приоритет, повтор, "
+        "повтор_создан, входящие, архив, удалено, создано"
+    )
 
     @staticmethod
     def _задача(строка) -> dict:
         задача = dict(строка)
-        задача["готово"] = bool(задача["готово"])
+        for ключ in ("готово", "повтор_создан", "входящие", "архив"):
+            задача[ключ] = bool(задача[ключ])
         return задача
 
-    def задачи(self) -> list[dict]:
+    def задачи(self, вид: str = "активные") -> list[dict]:
+        условия = {
+            "активные": "удалено IS NULL AND архив = 0",
+            "архив": "удалено IS NULL AND архив = 1",
+            "корзина": "удалено IS NOT NULL",
+            "все": "1 = 1",
+        }
+        условие = условия.get(вид, условия["активные"])
         with self.соединение() as связь:
             строки = связь.execute(
-                f"SELECT {self._ПОЛЯ_ЗАДАЧИ} FROM задачи ORDER BY готово, id DESC").fetchall()
+                f"SELECT {self._ПОЛЯ_ЗАДАЧИ} FROM задачи WHERE {условие} "
+                "ORDER BY готово, CASE приоритет WHEN 'срочный' THEN 0 WHEN 'высокий' THEN 1 "
+                "WHEN 'низкий' THEN 3 ELSE 2 END, срок IS NULL, срок, id DESC").fetchall()
         return [self._задача(с) for с in строки]
 
     def задача(self, номер: int) -> dict | None:
@@ -239,26 +265,94 @@ class База:
             строка = связь.execute(f"SELECT {self._ПОЛЯ_ЗАДАЧИ} FROM задачи WHERE id = ?", (номер,)).fetchone()
         return self._задача(строка) if строка else None
 
-    def добавить_задачу(self, текст: str, срок: str | None = None, список_id: int | None = None) -> dict:
+    def добавить_задачу(self, текст: str, срок: str | None = None, список_id: int | None = None,
+                        приоритет: str = "обычный", повтор: str = "", входящие: bool = False) -> dict:
         with self.соединение() as связь:
-            курсор = связь.execute("INSERT INTO задачи (текст, срок, список_id) VALUES (?, ?, ?)",
-                                   (текст, срок, список_id))
+            курсор = связь.execute(
+                "INSERT INTO задачи (текст, срок, список_id, приоритет, повтор, входящие) "
+                "VALUES (?, ?, ?, ?, ?, ?)",
+                (текст, срок, список_id, приоритет, повтор, int(входящие)))
             номер = курсор.lastrowid
         return self.задача(номер)
 
     def изменить_задачу(self, номер: int, поля: dict) -> dict | None:
-        """поля — что менять: текст, готово, срок, список_id (None у срока и списка — убрать)."""
-        разрешённые = {"текст", "готово", "срок", "список_id", "цель_id"}
-        поля = {к: (int(з) if к == "готово" else з) for к, з in поля.items() if к in разрешённые}
-        if поля:
-            набор = ", ".join(f"{к} = ?" for к in поля)
-            with self.соединение() as связь:
+        """Изменяет задачу и создаёт следующее повторение при первом завершении."""
+        разрешённые = {"текст", "готово", "срок", "список_id", "цель_id", "приоритет", "повтор",
+                       "входящие", "архив"}
+        поля = {к: (int(з) if к in ("готово", "входящие", "архив") else з)
+                for к, з in поля.items() if к in разрешённые}
+        with self.соединение() as связь:
+            старая_строка = связь.execute(
+                f"SELECT {self._ПОЛЯ_ЗАДАЧИ} FROM задачи WHERE id = ?", (номер,)).fetchone()
+            if not старая_строка:
+                return None
+            старая = self._задача(старая_строка)
+            # Разобранная задача покидает «Входящие» сама.
+            if "входящие" not in поля and any(поля.get(к) not in (None, "") for к in ("срок", "список_id", "цель_id")):
+                поля["входящие"] = 0
+            if поля:
+                набор = ", ".join(f"{к} = ?" for к in поля)
                 связь.execute(f"UPDATE задачи SET {набор} WHERE id = ?", (*поля.values(), номер))
+            стала_готова = bool(поля.get("готово")) and not старая["готово"]
+            актуальная = {**старая, **поля}
+            if стала_готова and актуальная["повтор"] and not старая["повтор_создан"]:
+                следующая = self._следующий_срок(актуальная["срок"], актуальная["повтор"])
+                связь.execute(
+                    "INSERT INTO задачи (текст, срок, список_id, цель_id, приоритет, повтор, входящие) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    (актуальная["текст"], следующая, актуальная["список_id"], актуальная["цель_id"],
+                     актуальная["приоритет"], актуальная["повтор"], int(актуальная["входящие"] and not следующая)))
+                связь.execute("UPDATE задачи SET повтор_создан = 1 WHERE id = ?", (номер,))
         return self.задача(номер)
 
-    def удалить_задачу(self, номер: int) -> bool:
+    def _следующий_срок(self, срок: str | None, повтор: str) -> str:
+        основа = date.fromisoformat(срок) if срок else date.today()
+        if повтор == "день":
+            итог = основа + timedelta(days=1)
+        elif повтор == "будни":
+            настройки = self.прочитать("настройки_дел", {}) or {}
+            рабочие = set()
+            for день in настройки.get("рабочие_дни", [1, 2, 3, 4, 5]):
+                try:
+                    номер = int(день)
+                except (TypeError, ValueError):
+                    continue
+                if 1 <= номер <= 7:
+                    рабочие.add(номер)
+            if not рабочие:
+                рабочие = {1, 2, 3, 4, 5}
+            итог = основа + timedelta(days=1)
+            while итог.isoweekday() not in рабочие:
+                итог += timedelta(days=1)
+        elif повтор == "неделя":
+            итог = основа + timedelta(days=7)
+        elif повтор == "месяц":
+            год, месяц = (основа.year + 1, 1) if основа.month == 12 else (основа.year, основа.month + 1)
+            итог = date(год, месяц, min(основа.day, calendar.monthrange(год, месяц)[1]))
+        else:
+            итог = основа
+        return итог.isoformat()
+
+    def удалить_задачу(self, номер: int, навсегда: bool = False) -> bool:
         with self.соединение() as связь:
-            return связь.execute("DELETE FROM задачи WHERE id = ?", (номер,)).rowcount > 0
+            if навсегда:
+                return связь.execute("DELETE FROM задачи WHERE id = ? AND удалено IS NOT NULL", (номер,)).rowcount > 0
+            return связь.execute(
+                "UPDATE задачи SET удалено = datetime('now', 'localtime') WHERE id = ? AND удалено IS NULL",
+                (номер,)).rowcount > 0
+
+    def восстановить_задачу(self, номер: int) -> dict | None:
+        with self.соединение() as связь:
+            восстановлено = связь.execute(
+                "UPDATE задачи SET удалено = NULL WHERE id = ? AND удалено IS NOT NULL", (номер,)).rowcount
+        if not восстановлено:
+            return None
+        return self.задача(номер)
+
+    def архивировать_выполненные(self) -> int:
+        with self.соединение() as связь:
+            return связь.execute(
+                "UPDATE задачи SET архив = 1 WHERE готово = 1 AND архив = 0 AND удалено IS NULL").rowcount
 
     # ---- Списки задач ---------------------------------------------------
 
