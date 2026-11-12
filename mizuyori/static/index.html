@@ -228,7 +228,23 @@
 <section class="мозги" id="экран-мозги" aria-label="Мозги" hidden>
   <canvas id="мозги-холст" aria-label="Граф мозгов: перетаскивайте мышью, колесо — приближение"></canvas>
 
+  <!-- Вкладка «Душа»: характер, ценности и настроение ИИ -->
+  <div class="душа" id="душа" hidden>
+    <div class="душа-сцена">
+      <canvas id="душа-холст" aria-label="Душа: светящееся ядро, вокруг — черты, ценности и границы"></canvas>
+      <div class="душа-подпись">
+        <div class="душа-имя" id="душа-имя">—</div>
+        <div class="душа-настроение" id="душа-настроение"></div>
+      </div>
+    </div>
+    <aside class="душа-панель" id="душа-панель" aria-label="Душа"></aside>
+  </div>
+
   <div class="мозги-верх">
+    <div class="виды мозги-вкладки" id="мозги-вкладки" role="tablist" aria-label="Мозги">
+      <button type="button" role="tab" data-вкладка="граф" aria-selected="true">✺ Граф</button>
+      <button type="button" role="tab" data-вкладка="душа" aria-selected="false">♡ Душа</button>
+    </div>
     <div class="мозги-счёт"><span class="огонёк"></span><span id="мозги-счёт">—</span></div>
     <button class="кнопка второстепенная малая" id="мозги-обновить" type="button">Обновить</button>
   </div>
@@ -477,6 +493,7 @@
 <script src="/static/tasks.js" charset="utf-8"></script>
 <script src="/static/deals.js" charset="utf-8"></script>
 <script src="/static/brain.js" charset="utf-8"></script>
+<script src="/static/soul.js" charset="utf-8"></script>
 <script src="/static/ai-settings.js" charset="utf-8"></script>
 </body>
 </html>

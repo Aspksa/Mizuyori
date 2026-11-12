@@ -1418,3 +1418,99 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
   .цели-сетка { grid-template-columns: 1fr; }
   #вид-список .группы { grid-template-columns: 1fr; }
 }
+
+/* =============================================================================
+   МОЗГИ → ВКЛАДКА «ДУША»
+   ============================================================================= */
+.мозги-вкладки { padding: .2rem; background: var(--панель); border: 1px solid var(--рамка); border-radius: 999px; }
+.мозги-вкладки button { padding: .3rem .8rem; font-size: .82rem; border-radius: 999px; }
+.мозги-верх { z-index: 4; }
+.мозги[data-вкладка="душа"] > :not(.мозги-верх):not(.душа) { display: none !important; }
+.мозги[data-вкладка="душа"] .мозги-верх > :not(.мозги-вкладки) { display: none; }
+
+.душа {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 23rem;
+  background: radial-gradient(ellipse at 35% 50%, color-mix(in srgb, var(--фон) 70%, transparent), var(--фон) 75%);
+  animation: душа-появление .5s ease;
+}
+.душа[hidden] { display: none; }
+@keyframes душа-появление { from { opacity: 0; } to { opacity: 1; } }
+.душа-сцена { position: relative; min-height: 0; }
+#душа-холст { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.душа-подпись {
+  position: absolute; left: 0; right: 0; bottom: calc(1.6rem * var(--п));
+  display: flex; flex-direction: column; align-items: center; gap: .35rem; pointer-events: none;
+}
+.душа-имя { font-size: 1.6rem; font-weight: 700; letter-spacing: .02em; }
+.душа-настроение {
+  --цвет-души: var(--акцент);
+  display: inline-flex; align-items: center; gap: .45rem;
+  padding: .25rem .8rem; border-radius: 999px; font-size: .9rem;
+  color: var(--цвет-души); border: 1px solid color-mix(in srgb, var(--цвет-души) 45%, transparent);
+  background: color-mix(in srgb, var(--цвет-души) 12%, transparent);
+  transition: color .8s, border-color .8s, background .8s;
+}
+.душа-значок { font-weight: 700; }
+
+.душа-панель {
+  overflow-y: auto;
+  padding: calc(3.6rem * var(--п)) calc(1rem * var(--п)) calc(1rem * var(--п));
+  border-left: 1px solid var(--рамка);
+  background: color-mix(in srgb, var(--панель) 88%, transparent);
+  backdrop-filter: blur(8px);
+  display: flex; flex-direction: column; gap: .75rem;
+}
+.душа-шапка { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+.душа-шапка h2 { margin: 0; font-size: 1.15rem; }
+.душа-кнопки { display: flex; gap: .4rem; }
+.душа-карточка {
+  padding: .8rem .9rem; border-radius: var(--скругление, 12px);
+  border: 1px solid var(--рамка); background: var(--поверхность);
+  transition: border-color .2s, transform .2s;
+}
+.душа-карточка:hover { border-color: color-mix(in srgb, var(--акцент) 45%, var(--рамка)); }
+.душа-карточка h3 { margin: 0 0 .5rem; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--тихий); font-weight: 600; }
+.душа-карточка p { margin: 0; line-height: 1.45; }
+.душа-суть { font-size: .98rem; }
+.душа-настрой { display: flex; gap: .8rem; align-items: flex-start; }
+.душа-значок.большой {
+  flex: none; display: grid; place-items: center; width: 2.6rem; height: 2.6rem; border-radius: 50%;
+  font-size: 1.2rem; color: var(--цвет-души);
+  background: color-mix(in srgb, var(--цвет-души) 16%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--цвет-души) 45%, transparent);
+}
+.душа-причины { margin: .3rem 0 0; padding-left: 1rem; color: var(--тихий); font-size: .85rem; }
+.душа-энергия-строка { display: flex; align-items: center; gap: .6rem; margin-top: .7rem; font-size: .8rem; color: var(--тихий); }
+.душа-энергия { flex: 1; height: .4rem; border-radius: 999px; background: var(--рамка); overflow: hidden; }
+.душа-энергия span { display: block; height: 100%; border-radius: inherit; background: var(--цвет-души); transition: width .8s; }
+.душа-фишки { display: flex; flex-wrap: wrap; gap: .4rem; }
+.душа-фишка {
+  display: inline-flex; align-items: center; gap: .3rem;
+  padding: .25rem .65rem; border-radius: 999px; font-size: .85rem;
+  border: 1px solid color-mix(in srgb, var(--акцент) 35%, var(--рамка));
+  background: color-mix(in srgb, var(--акцент) 9%, transparent);
+}
+.душа-убрать { border: 0; background: none; color: var(--тихий); cursor: pointer; font-size: 1rem; line-height: 1; padding: 0 0 0 .1rem; }
+.душа-убрать:hover { color: var(--текст); }
+.душа-поле {
+  width: 100%; box-sizing: border-box; font: inherit; font-size: .9rem; color: var(--текст);
+  background: var(--фон); border: 1px solid var(--рамка); border-radius: 8px; padding: .45rem .6rem; resize: vertical;
+}
+.душа-поле:focus { outline: none; border-color: var(--акцент); }
+.душа-добавить { width: auto; flex: 1 1 8rem; border-radius: 999px; padding: .25rem .7rem; }
+.душа-числа { display: grid; grid-template-columns: repeat(2, 1fr); gap: .5rem; }
+.душа-число { display: flex; flex-direction: column; padding: .45rem .55rem; border-radius: 8px; background: var(--фон); }
+.душа-число strong { font-size: 1.25rem; }
+.душа-число span { font-size: .78rem; color: var(--тихий); }
+.душа-сброс { align-self: flex-start; }
+.душа-примечание { margin: 0; font-size: .78rem; color: var(--тихий); }
+.душа-ошибка { color: var(--тихий); }
+
+@media (max-width: 44rem) {
+  .душа { grid-template-columns: 1fr; grid-template-rows: 55% 45%; }
+  .душа-панель { border-left: 0; border-top: 1px solid var(--рамка); padding-top: calc(1rem * var(--п)); }
+}

@@ -14,7 +14,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from . import __version__, ai, memory
+from . import __version__, ai, memory, soul
 from .config import (ВИД_ПО_УМОЛЧАНИЮ, ВНЕШНИЙ_ВИД, ИИ_ПО_УМОЛЧАНИЮ, МОЗГИ_ПО_УМОЛЧАНИЮ,
                      НеверныйВнешнийВид, атрибуты_html, проверить_внешний_вид, проверить_ии,
                      проверить_мозги, сохранить_настройки)
@@ -570,6 +570,40 @@ def создать_приложение(настройки: dict, база: Ба
         if not база.удалить_заметку(note_id):
             raise StarletteHTTPException(404, "Такой заметки нет.")
         return {"удалено": note_id}
+
+    # ---- Душа ------------------------------------------------------------
+    # Характер и ценности ИИ; настроение считается из дел и разговоров.
+
+    def _душа() -> dict:
+        return {
+            "имя": настройки["имя"],
+            "душа": soul.прочитать(база),
+            "настроение": soul.настроение(база),
+            "знакомство": soul.знакомство(база),
+            "по_умолчанию": soul.ДУША_ПО_УМОЛЧАНИЮ,
+        }
+
+    @app.get("/api/soul")
+    def душа():
+        return _душа()
+
+    class ИзменениеДуши(BaseModel):
+        душа: dict
+
+    @app.put("/api/soul")
+    def изменить_душу(запрос_: ИзменениеДуши):
+        try:
+            soul.сохранить(база, запрос_.душа)
+        except soul.НевернаяДуша as ошибка:
+            raise StarletteHTTPException(400, str(ошибка))
+        журнал.info("Душа ИИ изменена.")
+        return _душа()
+
+    @app.delete("/api/soul")
+    def сбросить_душу():
+        soul.сбросить(база)
+        журнал.info("Душа ИИ сброшена к исходной.")
+        return _душа()
 
     # ---- Мозги -----------------------------------------------------------
     # Всё, что знает Mizuyori, одним запросом: из этого сайт строит граф.
