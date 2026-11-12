@@ -3197,3 +3197,11 @@ main.главная > .чат { grid-column: 1; grid-row: 1; }
 .агенты-группа-шапка > span:first-of-type { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .агенты-группа-счёт { white-space: nowrap; flex: none; }
 .агенты-группа-все { right: .4rem; }
+
+/* ===== Плитки агентов: длинные имена переносятся, строка статуса у всех на одной высоте ===== */
+.агент-имя { overflow-wrap: anywhere; word-break: normal; hyphens: auto; text-overflow: clip; min-height: 2.3em; line-height: 1.15; font-size: .7rem; }
+.агент-текст { justify-content: flex-start; }
+.агент.спит { opacity: .85; }
+@media (max-width: 44rem) {
+  .агент-имя { font-size: .62rem; -webkit-line-clamp: 4; min-height: 3.45em; }
+}
