@@ -1880,3 +1880,6 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .работа-таблица.путевые th, .работа-таблица.путевые td { padding: .45rem .4rem; }
 .работа-таблица.путевые td:first-child { min-width: 9.5rem; }
 .путевой-ввод { width: 5.3rem; padding: .28rem .35rem; }
+.путевые-выписки { display: flex; flex-wrap: wrap; gap: .3rem .7rem; align-items: center; font-size: .85rem; color: var(--тихий); }
+.путевые-выписки .ссылка.выбрано { font-weight: 700; text-decoration: underline; }
+.работа-таблица.путевые td small.путевой-ошибка { max-width: 11rem; margin-left: auto; white-space: normal; }
