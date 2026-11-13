@@ -214,6 +214,7 @@
       }
       э.querySelector(".агент-уровень-значок").textContent = а.уровень;
       э.dataset.ур = а.уровень;
+      э.classList.toggle("рук", Boolean(а.руководитель));
       const записки = э.querySelector(".агент-записки");
       записки.hidden = !а.записок;
       записки.textContent = а.записок ? `✉ ${а.записок}` : "";
@@ -342,8 +343,8 @@
       let размер;
       if (matchMedia("(max-width: 62rem)").matches) размер = 92;     // на узком экране панель прокручивается
       else {
-        размер = 52;
-        for (let с = Math.min(190, Math.floor(Ш / 3)); с >= 48; с -= 3) {
+        размер = 66;
+        for (let с = Math.min(190, Math.floor(Ш / 3)); с >= 66; с -= 3) {
           лента.style.setProperty("--яч", `${с}px`);
           if (ряд.offsetHeight <= В - 2) { размер = с; break; }
         }
@@ -435,6 +436,22 @@
     if (!кадр) кадр = requestAnimationFrame(рисовать);
   }
   let кадр = 0, время = 0, прошлый = 0;
+
+  // Прогулки: свободный сотрудник иногда встаёт из-за стола, идёт к руководителю отдела и возвращается.
+  function прогулка() {
+    if (document.hidden || безАнимаций() || matchMedia("(max-width: 62rem)").matches) return;
+    const свободные = [...ряд.querySelectorAll(".зона:not([hidden]) .агент:not(.рук):not(.работает):not(.спит):not(.идёт-в)")];
+    if (!свободные.length) return;
+    const э = свободные[Math.floor(Math.random() * свободные.length)];
+    const шеф = э.closest(".агенты-группа")?.querySelector(".агент.рук");
+    if (!шеф || шеф === э) return;
+    const a = э.querySelector(".агент-круг").getBoundingClientRect(), b = шеф.querySelector(".агент-круг").getBoundingClientRect();
+    const dx = (b.left - a.left) * .8, dy = (b.top - a.top) * .8 + a.height * .22;
+    э.style.setProperty("--dx", `${dx}px`); э.style.setProperty("--dy", `${dy}px`);
+    э.classList.add("идёт-в");
+    setTimeout(() => э.classList.remove("идёт-в"), 3200);
+  }
+  setInterval(прогулка, 4500);
 
   // Ножки героев: точки на полу, между ними идут рельсы. Кэш обновляется при раскладке, прокрутке и раз в секунду.
   const ножки = new Map();
