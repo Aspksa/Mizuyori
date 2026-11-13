@@ -1432,12 +1432,24 @@ def создать_приложение(настройки: dict, база: Ба
     @app.post("/api/archive/upload", status_code=201)
     async def архив_загрузка(request: Request, name: str = Query("файл", max_length=200), kontragent: int | None = None,
                              dogovor: int | None = None, razdel: str | None = Query(None, max_length=60),
-                             rename: bool = True):
+                             rename: bool = True, folder: str = Query("", max_length=200)):
         данные = await request.body()
         н = dict(_ии())
+        if name.lower().endswith(".zip") and not kontragent and not dogovor:
+            with agents.работа("архивариус", "разбираю архив с документами", f"«{name}»") as з:
+                список = await run_in_threadpool(lambda: _архив(lambda: archive.принять_архив(база, н, name, данные)))
+                принято = sum(1 for х in список if х["ок"])
+                з["результат"] = f"принято {принято} из {len(список)}"
+                з["польза"] = 2 + min(принято, 3)
+            return {"архив": True, "файлов": len(список),
+                    "результаты": [{"имя": х["имя"], "ок": х["ок"],
+                                    **({"где": х["запись"]["где"], "новое_имя": х["запись"]["имя"], "вид": х["запись"]["вид"],
+                                        "создан_контрагент": х["запись"]["создан_контрагент"], "создан_договор": х["запись"]["создан_договор"],
+                                        "контрагент_найден": х["запись"]["контрагент_найден"]} if х["ок"] else {"ошибка": х["ошибка"]})}
+                                   for х in список]}
         with agents.работа("архивариус", "принял файл в архив", f"«{name}»") as з:
             итог = await run_in_threadpool(lambda: _архив(lambda: archive.принять_файл(
-                база, н, name, данные, kontragent, dogovor, razdel, None, rename)))
+                база, н, name, данные, kontragent, dogovor, razdel, None, rename, folder)))
             з["результат"] = f"{итог['вид']} → {итог['где']}"
             з["польза"] = 2
         return итог

@@ -93,3 +93,43 @@ class Диск(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class МассоваяЗагрузка(unittest.TestCase):
+    def setUp(self):
+        self.t = tempfile.TemporaryDirectory()
+        корень = Path(self.t.name)
+        self.база = База(корень / "t.db"); self.база.подготовить()
+        self._п = archive.ПАПКА
+        archive.ПАПКА = корень / "архив"
+
+    def tearDown(self):
+        archive.ПАПКА = self._п
+        self.t.cleanup()
+
+    def test_контрагент_и_договор_создаются_сами(self):
+        д = archive.принять_файл(self.база, None, "дог.txt", ("ДОГОВОР ПОСТАВКИ №5 от 01.03.2026\nАО «Примавтодор» и ООО «Ромашка», ИНН 2540123456, в лице директора. Сумма 100000 руб").encode())
+        self.assertTrue(д["создан_контрагент"])
+        self.assertTrue(д["создан_договор"])
+        с = archive.принять_файл(self.база, None, "счёт.txt", "Счёт на оплату №12 от 05.03.2026 по договору №5. Поставщик ООО «Ромашка» ИНН 2540123456. Итого 50000 руб".encode())
+        self.assertFalse(с["создан_контрагент"])
+        self.assertEqual(с["договор_id"], д["договор_id"])
+        self.assertEqual(len(archive.контрагенты(self.база)), 1)
+
+    def test_мы_не_становимся_контрагентом_и_папка_подсказывает(self):
+        ф = archive.принять_файл(self.база, None, "письмо.txt", "Письмо. АО «Примавтодор» просит прислать документы.".encode(), подсказка_папки="СеверШина")
+        self.assertEqual(ф["контрагент"], "СеверШина")
+        self.assertEqual([к["название"] for к in archive.контрагенты(self.база)], ["СеверШина"])
+
+    def test_zip(self):
+        import io, zipfile
+        б = io.BytesIO()
+        with zipfile.ZipFile(б, "w") as з:
+            з.writestr("Ромашка/дог.txt", "ДОГОВОР №1 ООО «Ромашка» ИНН 2540123456")
+            з.writestr("Ромашка/акт.txt", "Акт выполненных работ №2. ООО «Ромашка» ИНН 2540123456")
+            з.writestr("Ромашка/дубль.txt", "ДОГОВОР №1 ООО «Ромашка» ИНН 2540123456")
+            з.writestr("__MACOSX/x.txt", "мусор")
+        р = archive.принять_архив(self.база, None, "a.zip", б.getvalue())
+        self.assertEqual([х["ок"] for х in р], [True, True, False])
+        self.assertEqual(len(archive.контрагенты(self.база)), 1)
+        self.assertEqual(archive.дерево(self.база)["всего_файлов"], 2)
