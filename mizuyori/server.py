@@ -18,7 +18,7 @@ from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from . import paths
-from . import (__version__, agent_profiles, cabinets, chat_delegate, agents, ai, archive, audit, browser_fetch, documents, evolve, housekeeping, graph_tools, knowledge, learning, mcp_client, memory, memory_plus, missions, printing, putevoy,
+from . import (__version__, agent_profiles, cabinets, chat_delegate, decisions, agents, ai, archive, audit, browser_fetch, documents, evolve, housekeeping, graph_tools, knowledge, learning, mcp_client, memory, memory_plus, missions, printing, putevoy,
                search_eval, senses, smeta, soul, tools, usage, work, work_agents)
 from .config import (ВИД_ПО_УМОЛЧАНИЮ, ВНЕШНИЙ_ВИД, ИИ_ПО_УМОЛЧАНИЮ, МОЗГИ_ПО_УМОЛЧАНИЮ,
                      НеверныйВнешнийВид, атрибуты_html, проверить_внешний_вид, проверить_ии,
@@ -241,6 +241,7 @@ def создать_приложение(настройки: dict, база: Ба
             learning.чат_идёт()
             try:
                 learning.проверить_поправку(текст)      # «нет, не так» — агент учится на поправке
+                decisions.поправка(текст, learning._ПОПРАВКА)      # и последний ответ в журнале помечается исправленным
             except Exception:
                 журнал.exception("Поправка агенту не записалась")
             try:
@@ -253,6 +254,7 @@ def создать_приложение(настройки: dict, база: Ба
                     сообщение_печати = р.get("сообщение") or ""
             except Exception:
                 журнал.exception("Агенты Работы не смогли подключиться к чату")
+            контекст["правила"] = f"{контекст.get('правила') or ''}\n{decisions.ЗАЩИТА_ОТ_ВЫДУМОК}".strip()
             try:
                 with agents.работа("чат", "ответил в чате", f"вы написали: «{' '.join(текст.split())[:60]}»") as запись:
                     for кусок in ai.ответ_потоком(история, н, настройки["имя"], контекст):
@@ -280,6 +282,7 @@ def создать_приложение(настройки: dict, база: Ба
                 ответ = f"{ответ}\n\n{сообщение_печати}".strip()
             elif chat_delegate.ложное_обещание(ответ):
                 ответ += chat_delegate.ПРИМЕЧАНИЕ_БЕЗ_ДЕЛА      # «передала» без реального запуска — честно предупреждаем
+            decisions.записать("ответ", текст, [агент_работы or "чат"], [к for к, з in контекст.items() if з and к != "правила"], ответ)
             yield строка({"ответ": база.добавить_сообщение("ии", ответ or "…", мысль)})
             # Память и сводка — в фоне, чтобы не задерживать ответ
             threading.Thread(target=lambda *а: (ai.установить_приоритет("поручение"), memory.после_ответа(*а)),
@@ -790,6 +793,7 @@ def создать_приложение(настройки: dict, база: Ба
     missions.заполнить_готовые()
     agent_profiles.заполнить()
     chat_delegate.подключить(база)
+    decisions.подключить(база)
     chat_delegate.НАСТРОЙКИ = настройки["агенты"]
     printing.НАСТРОЙКИ = настройки["печать"]
     learning.НАСТРОЙКИ = настройки["агенты"]
@@ -847,7 +851,15 @@ def создать_приложение(настройки: dict, база: Ба
 
     @app.get("/api/agents")
     def агенты(days: int = Query(7, ge=7, le=90)):
-        return agents.сводка(days)
+        итог = agents.сводка(days)
+        качество = decisions.качество()
+        for а in итог.get("агенты", []):
+            а["качество"] = качество.get(а["ключ"])
+        return итог
+
+    @app.get("/api/decisions")
+    def журнал_решений(n: int = Query(50, ge=1, le=300)):
+        return {"решения": decisions.журнал_записей(n), "качество": decisions.качество()}
 
     def _агент(ключ: str) -> str:
         if ключ not in agents.ИМЕНА:

@@ -16,7 +16,7 @@ import threading
 import time
 from datetime import date, timedelta
 
-from . import cabinets, chat_delegate, graph_tools, overseer, senses, agents, archive, documents, new_agents, printing, putevoy, reference, smeta, work
+from . import cabinets, chat_delegate, collective, graph_tools, overseer, senses, agents, archive, documents, new_agents, printing, putevoy, reference, smeta, work
 
 журнал = logging.getLogger("mizuyori.агенты.работа")
 
@@ -600,6 +600,15 @@ def для_чата(база, настройки_ии: dict, текст: str) ->
             кому = "смотрящий"
             печать, сообщение = по_смете
             по_смете = None
+    if not по_смете and not сообщение:
+        try:
+            коллективно = collective.из_чата(база, настройки_ии, текст)
+        except Exception:
+            журнал.exception("Совещание или поручение кабинету не удалось")
+            коллективно = None
+        if коллективно:
+            печать, сообщение = коллективно
+            кому = "смотрящий"
     if not по_смете and not сообщение:
         try:
             передано = chat_delegate.из_чата(база, настройки_ии, текст, прошлые, кому)
