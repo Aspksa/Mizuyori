@@ -18,7 +18,7 @@ from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from . import paths
-from . import (__version__, agent_profiles, cabinets, chat_delegate, decisions, agents, ai, archive, audit, browser_fetch, documents, evolve, housekeeping, graph_tools, knowledge, learning, mcp_client, memory, memory_plus, missions, printing, putevoy,
+from . import (__version__, agent_profiles, cabinets, chat_delegate, curation, decisions, evals, agents, ai, archive, audit, browser_fetch, documents, evolve, housekeeping, graph_tools, knowledge, learning, mcp_client, memory, memory_plus, missions, printing, putevoy,
                search_eval, senses, smeta, soul, tools, usage, work, work_agents)
 from .config import (ВИД_ПО_УМОЛЧАНИЮ, ВНЕШНИЙ_ВИД, ИИ_ПО_УМОЛЧАНИЮ, МОЗГИ_ПО_УМОЛЧАНИЮ,
                      НеверныйВнешнийВид, атрибуты_html, проверить_внешний_вид, проверить_ии,
@@ -241,7 +241,8 @@ def создать_приложение(настройки: dict, база: Ба
             learning.чат_идёт()
             try:
                 learning.проверить_поправку(текст)      # «нет, не так» — агент учится на поправке
-                decisions.поправка(текст, learning._ПОПРАВКА)      # и последний ответ в журнале помечается исправленным
+                if decisions.поправка(текст, learning._ПОПРАВКА):      # и последний ответ в журнале помечается исправленным
+                    curation.проверить_качество()                       # слишком много исправлений — куратор снимает свежий приём
             except Exception:
                 журнал.exception("Поправка агенту не записалась")
             try:
@@ -794,6 +795,7 @@ def создать_приложение(настройки: dict, база: Ба
     agent_profiles.заполнить()
     chat_delegate.подключить(база)
     decisions.подключить(база)
+    curation.подключить(база)
     chat_delegate.НАСТРОЙКИ = настройки["агенты"]
     printing.НАСТРОЙКИ = настройки["печать"]
     learning.НАСТРОЙКИ = настройки["агенты"]
@@ -856,6 +858,44 @@ def создать_приложение(настройки: dict, база: Ба
         for а in итог.get("агенты", []):
             а["качество"] = качество.get(а["ключ"])
         return итог
+
+    class РешениеПоЗнанию(BaseModel):
+        принять: bool
+
+    @app.get("/api/knowledge-pool")
+    def пул_знаний(cabinet: str = Query("", max_length=40), status: str = Query("", max_length=20)):
+        return {"пул": curation.пул(cabinet, status)}
+
+    @app.post("/api/knowledge-pool/{item_id}/decide")
+    def решить_по_знанию(item_id: int, з: РешениеПоЗнанию):
+        if not curation.решить(item_id, з.принять):
+            raise StarletteHTTPException(404, "Такого предложения нет или по нему уже решено.")
+        return {"решено": item_id, "принято": з.принять}
+
+    @app.post("/api/curator/run")
+    def запустить_куратора():
+        н = dict(_ии())
+        return curation.недельная_чистка(н if ai.подключён(н) else None)
+
+    class СвоиВопросы(BaseModel):
+        вопросы: list[dict] = Field(default_factory=list, max_length=60)
+
+    @app.get("/api/evals")
+    def эталоны():
+        return evals.состояние()
+
+    @app.post("/api/evals/run")
+    def запустить_эталоны():
+        н = dict(_ии())
+        if not ai.подключён(н):
+            raise StarletteHTTPException(400, "ИИ не подключён: добавьте ключ в настройках ИИ.")
+        if not evals.запустить_в_фоне(н):
+            raise StarletteHTTPException(409, "Проверка уже идёт.")
+        return evals.состояние()
+
+    @app.put("/api/evals/questions")
+    def свои_эталоны(з: СвоиВопросы):
+        return {"принято": evals.задать_свои(з.вопросы)}
 
     @app.get("/api/decisions")
     def журнал_решений(n: int = Query(50, ge=1, le=300)):
@@ -1630,6 +1670,7 @@ def создать_приложение(настройки: dict, база: Ба
     work_agents.запустить_фоновое_развитие(база, _ии)
     senses.запустить_уши(база, _ии)
     learning.запустить(база, _ии)
+    curation.запустить(база, _ии)
     evolve.запустить(_ии)
     memory_plus.запустить(база, _ии)
     soul.запустить_фоновое_развитие(

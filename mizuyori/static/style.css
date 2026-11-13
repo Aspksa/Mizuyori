@@ -3840,3 +3840,6 @@ main.главная { grid-template-columns: minmax(28rem, min(56rem, 40vw)) min
 .агенты-граф-подсказка b { font-size: .86rem; }
 .агенты-граф-подсказка small { color: #8fa0c0; }
 .агенты-граф-подсказка em { color: #b7c4de; font-style: normal; font-size: .7rem; line-height: 1.3; }
+.журнал-решений .ссылка { margin: .35rem .4rem 0 0; font-size: .74rem; border: 1px solid rgba(120, 150, 200, .35); border-radius: 999px; padding: .15rem .65rem; background: transparent; color: #cfe0ff; cursor: pointer; }
+.журнал-решений .ссылка:hover:not([disabled]) { border-color: #58c4ff; }
+.журнал-решений .ссылка[disabled] { opacity: .5; cursor: default; }
