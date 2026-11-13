@@ -343,8 +343,8 @@
       let размер;
       if (matchMedia("(max-width: 62rem)").matches) размер = 92;     // на узком экране панель прокручивается
       else {
-        размер = 66;
-        for (let с = Math.min(190, Math.floor(Ш / 3)); с >= 66; с -= 3) {
+        размер = 68;
+        for (let с = Math.min(выбранный ? 150 : 104, Math.floor(Ш / 3)); с >= 68; с -= 3) {
           лента.style.setProperty("--яч", `${с}px`);
           if (ряд.offsetHeight <= В - 2) { размер = с; break; }
         }
@@ -431,25 +431,30 @@
   function письмо(от, кому, тип = "работа") {
     if (безАнимаций()) return;
     письма.push({ от, кому, тип, t: 0 });
+    const э1 = ячейки.get(от), э2 = ячейки.get(кому);
+    if (э1 && э2 && э1.closest(".зона") !== э2.closest(".зона")) сходить(э1, э2, 4600, .85);
     лучи.push({ от, кому, t: 0 });
     вспышки.push({ ключ: от, успех: true, t: 0.45 });
     if (!кадр) кадр = requestAnimationFrame(рисовать);
   }
   let кадр = 0, время = 0, прошлый = 0;
 
-  // Прогулки: свободный сотрудник иногда встаёт из-за стола, идёт к руководителю отдела и возвращается.
+  // Прогулки: сотрудник встаёт из-за стола и идёт к другому. Если задача уходит в другой кабинет, он идёт туда сам.
+  function сходить(э, цель, мс = 3200, доля = .8) {
+    if (!э || !цель || э === цель || э.classList.contains("идёт-в") || безАнимаций() || matchMedia("(max-width: 62rem)").matches) return;
+    const a = э.querySelector(".агент-круг").getBoundingClientRect(), b = цель.querySelector(".агент-круг").getBoundingClientRect();
+    if (!a.width || !b.width) return;
+    э.style.setProperty("--dx", `${(b.left - a.left) * доля}px`);
+    э.style.setProperty("--dy", `${(b.top - a.top) * доля + a.height * .22}px`);
+    э.classList.add("идёт-в");
+    setTimeout(() => э.classList.remove("идёт-в"), мс);
+  }
   function прогулка() {
-    if (document.hidden || безАнимаций() || matchMedia("(max-width: 62rem)").matches) return;
+    if (document.hidden) return;
     const свободные = [...ряд.querySelectorAll(".зона:not([hidden]) .агент:not(.рук):not(.работает):not(.спит):not(.идёт-в)")];
     if (!свободные.length) return;
     const э = свободные[Math.floor(Math.random() * свободные.length)];
-    const шеф = э.closest(".агенты-группа")?.querySelector(".агент.рук");
-    if (!шеф || шеф === э) return;
-    const a = э.querySelector(".агент-круг").getBoundingClientRect(), b = шеф.querySelector(".агент-круг").getBoundingClientRect();
-    const dx = (b.left - a.left) * .8, dy = (b.top - a.top) * .8 + a.height * .22;
-    э.style.setProperty("--dx", `${dx}px`); э.style.setProperty("--dy", `${dy}px`);
-    э.classList.add("идёт-в");
-    setTimeout(() => э.classList.remove("идёт-в"), 3200);
+    сходить(э, э.closest(".агенты-группа")?.querySelector(".агент.рук"));
   }
   setInterval(прогулка, 4500);
 

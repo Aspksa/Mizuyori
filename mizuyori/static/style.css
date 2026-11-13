@@ -3778,3 +3778,32 @@ main.главная { grid-template-columns: minmax(17rem, 21rem) minmax(0, 1fr)
 .зона .агент.рук::after { left: 8% !important; right: 8% !important; }
 .зона .агент-уровень-значок { top: auto; bottom: 2.1em; right: 6%; z-index: 5; min-width: 1rem; height: 1rem; font-size: .54rem; }
 .конвейер-лента[data-размер] { overflow-y: auto; }
+
+/* ===== правки: чат шире, герои скромнее, пять кабинетов ===== */
+main.главная { grid-template-columns: minmax(23rem, 27rem) minmax(0, 1fr) !important; }
+@media (max-width: 62rem) { main.главная { grid-template-columns: 1fr !important; } }
+.агенты-ряд[data-режим="все"] .зона { grid-area: auto !important; }
+.агенты-ряд[data-режим="все"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 1700px) { .агенты-ряд[data-режим="все"] { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.зона .агент .агент-имя { white-space: normal; max-width: calc(var(--яч) * .95); margin-inline: auto; overflow-wrap: anywhere; }
+.зона .агент { vertical-align: top; }
+.зона .агент .агент-текст { display: block !important; position: relative; z-index: 4; padding: 0; margin: 0; }
+.зона .агент .агент-имя { font-size: clamp(.58rem, calc(var(--яч) * .105), .78rem) !important; font-weight: 600; color: #e9edf7; }
+.зона .агент .агент-текст, .зона .агент .агент-имя { height: auto !important; max-height: none !important; min-height: 1.2em !important; overflow: visible !important; display: block !important; }
+.зона .агент .агент-имя { line-height: 1.15; text-align: center; -webkit-line-clamp: unset !important; opacity: 1 !important; }
+.конвейер-лента[data-размер="мелко"] .агент-уровень-значок { display: grid; }
+.зона .агент .агент-текст > .агент-строка-имени { display: flex !important; justify-content: center; align-items: center; gap: .2rem; }
+.зона .агент .агент-текст > .агент-счёт, .зона .агент .агент-текст > .агент-последнее { display: none !important; }
+.зона .агент .агент-строка-имени > :not(.агент-имя) { display: none; }
+/* имена: обычным регистром, без переносов по буквам, под столом */
+.зона .агент { width: calc(var(--яч) * .92); }
+.зона .агент .агент-круг { margin: 0 calc(var(--яч) * -.04); }
+.зона .агент .агент-имя { text-transform: none !important; letter-spacing: 0 !important; hyphens: none !important; overflow-wrap: normal !important; word-break: normal !important;
+  font-weight: 600; font-size: clamp(.56rem, calc(var(--яч) * .1), .72rem) !important; line-height: 1.12; max-width: none; margin: .3em 0 0 !important; min-height: 2.3em !important; -webkit-line-clamp: 3; display: -webkit-box !important; -webkit-box-orient: vertical; overflow: hidden !important; }
+.зона .агент .частицы { display: none !important; }
+.зона .агент::after { bottom: 2.35rem !important; }
+.зона .агент .агент-круг { margin-bottom: .1rem; }
+.зона .агент-уровень-значок { bottom: auto !important; top: 4%; right: 2%; }
+.зона .агент .агент-имя { margin-top: .5rem !important; position: relative; z-index: 5; text-shadow: 0 1px 3px #000, 0 0 8px #000; }
+.зона .агент.работает .агент-имя { color: var(--гц); }
+.зона .агент::after { bottom: 2.75rem !important; }
