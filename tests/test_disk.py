@@ -147,3 +147,15 @@ class КольцоПамяти(unittest.TestCase):
             р = memory_ring.раздел(б, "память", 10, "чай")
             self.assertEqual(len(р["записи"]), 1)
             self.assertIsNone(memory_ring.раздел(б, "нет", 10))
+            self.assertEqual(р["записи"][0]["ключ"], f'п{р["записи"][0]["id"]}')
+
+    def test_граф_знаний(self):
+        from mizuyori import memory_ring
+        with tempfile.TemporaryDirectory() as t:
+            б = База(Path(t) / "t.db"); б.подготовить()
+            with б.соединение() as с:
+                с.execute("INSERT INTO сущности(id, имя, ключ, тип) VALUES (1, 'Цель', 'цель', 'цель'), (2, 'Причина', 'причина', 'другое')")
+            б.связать(1, "потому что", 2)
+            д = memory_ring.граф(б)
+            self.assertEqual({х["ключ"] for х in д["сущности"]}, {"е1", "е2"})
+            self.assertEqual(len(д["отношения"]), 1)
