@@ -2,7 +2,7 @@
 
 РАЗДЕЛЫ = [
     {"ключ": "чат", "имя": "Чат", "значок": "✉", "цвет": "#58c4ff",
-     "счёт": "SELECT COUNT(*) FROM сообщения", "список": "SELECT id, текст, создано FROM сообщения ORDER BY id DESC LIMIT ?"},
+     "счёт": "SELECT COUNT(*) FROM сообщения", "список": "SELECT id, CASE роль WHEN 'пользователь' THEN 'Вы: ' ELSE 'ИИ: ' END || текст AS текст, создано FROM сообщения ORDER BY id DESC LIMIT ?"},
     {"ключ": "память", "имя": "Память", "значок": "✺", "цвет": "#3ecf9a",
      "счёт": "SELECT COUNT(*) FROM память WHERE состояние = 'активен'",
      "список": "SELECT id, факт AS текст, создано FROM память WHERE состояние = 'активен' ORDER BY важность DESC, id DESC LIMIT ?"},

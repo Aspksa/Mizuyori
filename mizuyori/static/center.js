@@ -31,7 +31,7 @@
     создать("div", { класс: "раздел-поиск" }, поискРаздела), телоРаздела));
   document.body.append(окноРаздела);
   let текущийРаздел = "", таймерПоиска = 0;
-  const КОГДА = (с) => с ? new Date(с * 1000).toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "";
+  const КОГДА = (с) => { if (!с) return ""; const д = typeof с === "number" ? new Date(с * 1000) : new Date(String(с).replace(" ", "T")); return isNaN(д) ? String(с) : д.toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }); };
   async function загрузитьРаздел() {
     try {
       const р = await запрос(`/api/memory-ring/${encodeURIComponent(текущийРаздел)}?n=80&q=${encodeURIComponent(поискРаздела.value.trim())}`);
