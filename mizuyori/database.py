@@ -825,9 +825,16 @@ class База:
 
     # ---- Смысловые вектора ----------------------------------------------
 
-    def вектора(self, модель: str) -> dict[str, tuple[str, bytes]]:
+    def вектора(self, модель: str, ключи: list[str] | None = None) -> dict[str, tuple[str, bytes]]:
+        if ключи == []:
+            return {}
+        sql = "SELECT ключ, отпечаток, вектор FROM вектора WHERE модель = ?"
+        параметры = [модель]
+        if ключи is not None:
+            sql += f" AND ключ IN ({','.join('?' for _ in ключи)})"
+            параметры.extend(ключи)
         with self.соединение() as связь:
-            строки = связь.execute("SELECT ключ, отпечаток, вектор FROM вектора WHERE модель = ?", (модель,)).fetchall()
+            строки = связь.execute(sql, параметры).fetchall()
         return {с["ключ"]: (с["отпечаток"], с["вектор"]) for с in строки}
 
     def сохранить_вектора(self, модель: str, записи: list[tuple[str, str, bytes]]) -> None:

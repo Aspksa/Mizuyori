@@ -174,12 +174,16 @@
     имена = Object.fromEntries(данные.агенты.map((а) => [а.ключ, а.имя]));
     значкиПо = Object.fromEntries(данные.агенты.map((а) => [а.ключ, а.значок]));
     // Плиток кабинетов на главной больше нет — только круг (его рисует agents_graph.js). Сетку, частицы и холст не строим.
-    итог.textContent = `${данные.работают} ${данные.работают === 1 ? "работает" : "работают"} · ${данные.сегодня} за сегодня`;
+    const строкаИтога = `${данные.работают} ${данные.работают === 1 ? "работает" : "работают"} · ${данные.сегодня} за сегодня`;
+    if (итог.textContent !== строкаИтога) итог.textContent = строкаИтога;
     const пульсГраф = $("агенты-пульс");
     if (пульсГраф) пульсГраф.classList.toggle("идёт", данные.работают > 0);
     итог.classList.toggle("активно", данные.работают > 0);
-    $("доска-счёт").hidden = !данные.записок;
-    $("доска-счёт").textContent = данные.записок || "";
+    const счётДоски = $("доска-счёт"), записок = данные.записок ? String(данные.записок) : "";
+    if (счётДоски.textContent !== записок) {
+      счётДоски.textContent = записок;
+      счётДоски.hidden = !записок;
+    }
     if (кабинеты.length && Object.keys(имена).length !== Number(вкладкиКабинетов.querySelector("button small")?.textContent || 0)) нарисоватьВкладки();
     if (true) return;
     const максимум = Math.max(1, ...данные.агенты.map((а) => а.сегодня));
@@ -367,10 +371,13 @@
   if (window.ResizeObserver) new ResizeObserver(подогнать).observe(лента);
   лента.addEventListener("scroll", () => обновитьНоги(), { passive: true });
 
+  let опросИдёт = false;
   async function обновить() {
+    if (опросИдёт) return;
     clearTimeout(таймер);
     if (!document.hidden && !ряд.closest("main").hidden) {
       try {
+        опросИдёт = true;
         const данные = await запрос("/api/agents");
         показать(данные);
         document.dispatchEvent(new CustomEvent("mizuyori:агенты", { detail: данные }));
@@ -380,6 +387,8 @@
         return;
       } catch {
         итог.textContent = "нет связи";
+      } finally {
+        опросИдёт = false;
       }
     }
     таймер = setTimeout(обновить, 3000);
