@@ -100,6 +100,7 @@
       <h2>Агенты</h2>
       <span class="агенты-пульс" id="агенты-пульс" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
       <span class="агенты-итог" id="агенты-итог">—</span>
+      <button class="ссылка" id="агенты-вид" type="button">Кабинеты</button>
       <button class="ссылка" id="агенты-схема" type="button">Схема</button>
       <button class="ссылка" id="агенты-обмен" type="button">Обмен</button>
       <button class="ссылка" id="агенты-поручения" type="button">Поручения <span class="счётчик" id="поручения-счёт" hidden></span></button>
@@ -107,6 +108,8 @@
     </div>
     <div class="кабинеты-вкладки" id="кабинеты-вкладки" role="tablist" aria-label="Кабинеты"></div>
     <div class="конвейер-лента">
+      <canvas id="агенты-граф" aria-label="Агенты графом"></canvas>
+      <div class="агенты-граф-подсказка" id="агенты-граф-подсказка" hidden></div>
       <canvas id="конвейер-холст" aria-hidden="true"></canvas>
       <div class="агенты-ряд" id="агенты-сетка"></div>
     </div>
@@ -740,6 +743,7 @@
 <script src="/static/characters.js" charset="utf-8"></script>
 <script src="/static/characters_top.js" charset="utf-8"></script>
 <script src="/static/agents.js" charset="utf-8"></script>
+<script src="/static/agents_graph.js" charset="utf-8"></script>
 <script src="/static/gsm-stats.js" charset="utf-8"></script>
 <script src="/static/archive.js" charset="utf-8"></script>
 <script src="/static/work.js" charset="utf-8"></script>

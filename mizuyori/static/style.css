@@ -3816,3 +3816,15 @@ main.главная { grid-template-columns: minmax(23rem, 27rem) minmax(0, 1fr)
 .зона .агент.спит { opacity: .86 !important; filter: saturate(.85) !important; }
 .персонаж .блеск { transition: opacity .2s; }
 .агент.работает .персонаж .блеск, .агент-круг.работает .персонаж .блеск { opacity: .6; }
+
+/* ===== АГЕНТЫ КАК МОЗГ: граф вместо списка кабинетов ===== */
+#агенты-граф { display: none; }
+.конвейер-лента.режим-граф { position: relative; overflow: hidden !important; min-height: 440px; padding: 0 !important; }
+.конвейер-лента.режим-граф #агенты-граф { display: block; position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; touch-action: none; border-radius: 12px; }
+.конвейер-лента.режим-граф .агенты-ряд, .конвейер-лента.режим-граф #конвейер-холст { display: none !important; }
+.агенты-граф-подсказка { position: absolute; left: 0; top: 0; z-index: 5; width: 244px; padding: .55rem .7rem; border-radius: 10px; pointer-events: none;
+  background: rgba(8, 12, 22, .94); border: 1px solid rgba(140, 170, 220, .35); box-shadow: 0 10px 28px -10px #000; display: grid; gap: .15rem; font-size: .76rem; color: #e6ecf8; }
+.агенты-граф-подсказка[hidden] { display: none; }
+.агенты-граф-подсказка b { font-size: .86rem; }
+.агенты-граф-подсказка small { color: #8fa0c0; }
+.агенты-граф-подсказка em { color: #b7c4de; font-style: normal; font-size: .7rem; line-height: 1.3; }

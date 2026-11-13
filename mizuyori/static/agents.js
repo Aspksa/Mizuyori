@@ -259,6 +259,7 @@
   function применитьКабинет() {
     for (const з of ряд.querySelectorAll(".зона")) з.hidden = Boolean(выбранный) && з.dataset.кабинет !== выбранный;
     ряд.dataset.режим = выбранный ? "один" : "все";
+    document.dispatchEvent(new CustomEvent("mizuyori:кабинет", { detail: выбранный }));
     последняяПодгонка = "";
     for (const кн of вкладкиКабинетов.querySelectorAll("button")) кн.setAttribute("aria-selected", String((кн.dataset.кабинет || "") === выбранный));
     лента.scrollTop = 0;
@@ -363,6 +364,7 @@
       try {
         const данные = await запрос("/api/agents");
         показать(данные);
+        document.dispatchEvent(new CustomEvent("mizuyori:агенты", { detail: данные }));
         проверитьПисьма(данные.письма);
         проверитьОпыт(данные.опыт);
         таймер = setTimeout(обновить, данные.работают || Date.now() < частоДо ? 450 : 3000);
