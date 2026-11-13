@@ -18,7 +18,7 @@ from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from . import paths
-from . import (__version__, agent_profiles, cabinets, chat_delegate, curation, decisions, evals, agents, ai, archive, audit, browser_fetch, documents, evolve, housekeeping, graph_tools, knowledge, learning, mcp_client, memory, memory_plus, missions, printing, putevoy,
+from . import (__version__, agent_profiles, cabinets, chat_delegate, curation, decisions, evals, agents, ai, archive, audit, disk, browser_fetch, documents, evolve, housekeeping, graph_tools, knowledge, learning, mcp_client, memory, memory_plus, missions, printing, putevoy,
                search_eval, senses, smeta, soul, tools, usage, work, work_agents)
 from .config import (ВИД_ПО_УМОЛЧАНИЮ, ВНЕШНИЙ_ВИД, ИИ_ПО_УМОЛЧАНИЮ, МОЗГИ_ПО_УМОЛЧАНИЮ,
                      НеверныйВнешнийВид, атрибуты_html, проверить_внешний_вид, проверить_ии,
@@ -1456,9 +1456,55 @@ def создать_приложение(настройки: dict, база: Ба
         return _архив(lambda: archive.переименовать_по_схеме(база, fid))
 
     @app.delete("/api/archive/file/{fid}")
-    def архив_удалить_файл(fid: int):
-        _архив(lambda: archive.удалить_файл(база, fid))
-        return {"удалено": fid}
+    def архив_удалить_файл(fid: int, forever: bool = False):
+        _архив(lambda: archive.удалить_файл(база, fid, forever))
+        return {"удалено": fid, "в_корзине": not forever}
+
+    @app.get("/api/archive/trash")
+    def архив_корзина():
+        return {"файлы": archive.корзина(база), "хранить_дней": archive.ХРАНИТЬ_В_КОРЗИНЕ_ДНЕЙ}
+
+    @app.post("/api/archive/file/{fid}/restore")
+    def архив_восстановить(fid: int):
+        return _архив(lambda: archive.восстановить_файл(база, fid))
+
+    @app.post("/api/archive/trash/empty")
+    def архив_очистить_корзину():
+        return {"убрано": archive.очистить_корзину(база, 0)}
+
+    @app.get("/api/archive/file/{fid}/versions")
+    def архив_версии(fid: int):
+        return {"версии": _архив(lambda: archive.версии(база, fid))}
+
+    @app.post("/api/archive/file/{fid}/version", status_code=201)
+    async def архив_новая_версия(fid: int, request: Request, name: str = Query("файл", max_length=200)):
+        данные = await request.body()
+        н = dict(_ии())
+        return await run_in_threadpool(lambda: _архив(lambda: archive.новая_версия(база, н, fid, name, данные)))
+
+    @app.get("/api/archive/version/{vid}")
+    def архив_скачать_версию(vid: int):
+        п = _архив(lambda: archive.путь_версии(база, vid))
+        return FileResponse(п, filename=п.name)
+
+    @app.post("/api/archive/file/{fid}/restore-version/{vid}")
+    def архив_вернуть_версию(fid: int, vid: int):
+        н = dict(_ии())
+        return _архив(lambda: archive.вернуть_версию(база, н, fid, vid))
+
+    @app.get("/api/disk/summary")
+    def диск_сводка():
+        disk.уход_в_фоне(база)
+        return {**archive.сводка(база), "копии": disk.копии()[:5], "проверка": disk.проверка(база)}
+
+    @app.post("/api/disk/backup", status_code=201)
+    async def диск_копия():
+        return await run_in_threadpool(lambda: disk.резервная_копия(база))
+
+    @app.get("/api/disk/backup/{имя}")
+    def диск_скачать_копию(имя: str):
+        п = _архив(lambda: disk.путь_копии(имя))
+        return FileResponse(п, filename=п.name)
 
     @app.post("/api/archive/sort-inbox")
     def архив_разобрать_входящие():
