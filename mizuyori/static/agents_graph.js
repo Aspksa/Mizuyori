@@ -113,7 +113,7 @@
 
     function размер() {
       const р = лента.getBoundingClientRect();
-      dpr = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
+      dpr = Math.min(1.5, Math.max(1, window.devicePixelRatio || 1));
       ш = Math.max(320, Math.round(р.width)); в = Math.max(320, Math.round(р.height));
       холст.width = Math.round(ш * dpr); холст.height = Math.round(в * dpr);
       расставить(); сбросКамеры(true);
@@ -249,9 +249,12 @@
       к.drawImage(кэшМатрицы, 0, 0, ш, в);
     }
     function рисоватьФон(dt, работают) {
-      const g = к.createRadialGradient(ш / 2, в / 2, 20, ш / 2, в / 2, Math.max(ш, в) * .65);
-      g.addColorStop(0, "#0d1524"); g.addColorStop(1, "#05070c");
-      к.fillStyle = g; к.fillRect(0, 0, ш, в);
+      // фон — градиент CSS под прозрачным холстом: заливать его заново каждый кадр незачем
+      if (!холст.dataset.фон) {
+        холст.dataset.фон = "1";
+        холст.style.background = "radial-gradient(circle at 50% 50%, #0d1524 0, #05070c 65%)";
+      }
+      к.clearRect(0, 0, ш, в);
     }
     function эллипс(a, b, θ0, θ1, ширина, стиль) {
       к.beginPath(); к.ellipse(0, 0, a, b, 0, θ0, θ1); к.lineWidth = ширина; к.strokeStyle = стиль; к.lineCap = "round"; к.stroke();
@@ -506,7 +509,7 @@
       кадр = 0;
       if (!активен) return;
       const занят = эффекты.length > 0 || следы.length > 0 || агенты.some((а) => а.работает) || чатЖдёт > 0;
-      if (t - прошлый < (занят ? 14 : 45)) { кадр = requestAnimationFrame(кадрРисовать); return; }
+      if (t - прошлый < (занят ? 33 : 80)) { кадр = requestAnimationFrame(кадрРисовать); return; }
       const dt = Math.min(.1, (t - прошлый) / 1000 || .016); прошлый = t; время += dt;
       if (чатЖдёт) {
         чатЖдёт += dt; if (чатЖдёт > 120) чатЖдёт = 0;

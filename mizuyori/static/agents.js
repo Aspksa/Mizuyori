@@ -367,7 +367,7 @@
         document.dispatchEvent(new CustomEvent("mizuyori:агенты", { detail: данные }));
         проверитьПисьма(данные.письма);
         проверитьОпыт(данные.опыт);
-        таймер = setTimeout(обновить, данные.работают || Date.now() < частоДо ? 450 : 3000);
+        таймер = setTimeout(обновить, данные.работают || Date.now() < частоДо ? 700 : 3000);
         return;
       } catch {
         итог.textContent = "нет связи";
