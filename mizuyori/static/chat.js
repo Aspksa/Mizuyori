@@ -393,6 +393,7 @@
       if (печатает.isConnected) печатает.replaceWith(ошибка); else добавить(ошибка);
       if (!текстИИ) { поле.value = текст; подогнатьВысоту(); }
     } finally {
+      document.dispatchEvent(new CustomEvent("mizuyori:чат-готов"));
       отправляется = false;
       сверитьНомер(false);
       кнопка.disabled = false;

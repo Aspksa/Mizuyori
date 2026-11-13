@@ -1607,7 +1607,9 @@ input[type=date]:invalid, input[type=date]:not(:valid) { color: var(--тихий
 .конвейер { display: flex; flex-direction: column; min-height: 0; padding: calc(.8rem * var(--п)) calc(.7rem * var(--п)); }
 .конвейер-шапка { display: flex; align-items: baseline; flex-wrap: wrap; gap: .2rem .6rem; padding: 0 .3rem .5rem; border-bottom: 1px solid var(--рамка); margin-bottom: .4rem; }
 .конвейер-шапка h2 { margin: 0; font-size: .75rem; letter-spacing: .1em; text-transform: uppercase; color: var(--тихий); font-weight: 600; }
-.конвейер-шапка .ссылка { margin-left: auto; font-size: .8rem; }
+.конвейер-шапка .ссылка { font-size: .8rem; border: 1px solid var(--линия, rgba(120,150,200,.28)); border-radius: 999px; padding: .2rem .7rem; }
+.конвейер-шапка .ссылка:first-of-type { margin-left: auto; }
+.конвейер-шапка .ссылка:hover { border-color: #58c4ff; }
 .конвейер-шапка .агенты-итог { order: 3; flex-basis: 100%; }
 .агенты-итог { font: .72rem ui-monospace, "Cascadia Mono", Consolas, monospace; color: var(--тихий); }
 .агенты-итог.активно { color: var(--акцент); }
@@ -3780,7 +3782,7 @@ main.главная { grid-template-columns: minmax(17rem, 21rem) minmax(0, 1fr)
 .конвейер-лента[data-размер] { overflow-y: auto; }
 
 /* ===== правки: чат шире, герои скромнее, пять кабинетов ===== */
-main.главная { grid-template-columns: minmax(23rem, 27rem) minmax(0, 1fr) !important; }
+main.главная { grid-template-columns: minmax(26rem, min(38rem, 34vw)) minmax(0, 1fr) !important; }
 @media (max-width: 62rem) { main.главная { grid-template-columns: 1fr !important; } }
 .агенты-ряд[data-режим="все"] .зона { grid-area: auto !important; }
 .агенты-ряд[data-режим="все"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
