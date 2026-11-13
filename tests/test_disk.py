@@ -133,3 +133,17 @@ class МассоваяЗагрузка(unittest.TestCase):
         self.assertEqual([х["ок"] for х in р], [True, True, False])
         self.assertEqual(len(archive.контрагенты(self.база)), 1)
         self.assertEqual(archive.дерево(self.база)["всего_файлов"], 2)
+
+
+class КольцоПамяти(unittest.TestCase):
+    def test_сводка_и_раздел(self):
+        from mizuyori import memory_ring
+        with tempfile.TemporaryDirectory() as t:
+            б = База(Path(t) / "t.db"); б.подготовить()
+            б.запомнить("Любит зелёный чай", None, "другое", 3)
+            с = {х["ключ"]: х for х in memory_ring.сводка(б)}
+            self.assertEqual(с["память"]["число"], 1)
+            self.assertEqual(с["чат"]["число"], 0)
+            р = memory_ring.раздел(б, "память", 10, "чай")
+            self.assertEqual(len(р["записи"]), 1)
+            self.assertIsNone(memory_ring.раздел(б, "нет", 10))

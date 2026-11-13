@@ -18,7 +18,7 @@ from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from . import paths
-from . import (__version__, agent_profiles, cabinets, chat_delegate, curation, decisions, evals, agents, ai, archive, audit, disk, browser_fetch, documents, evolve, housekeeping, graph_tools, knowledge, learning, mcp_client, memory, memory_plus, missions, printing, putevoy,
+from . import (__version__, memory_ring, agent_profiles, cabinets, chat_delegate, curation, decisions, evals, agents, ai, archive, audit, disk, browser_fetch, documents, evolve, housekeeping, graph_tools, knowledge, learning, mcp_client, memory, memory_plus, missions, printing, putevoy,
                search_eval, senses, smeta, soul, tools, usage, work, work_agents)
 from .config import (ВИД_ПО_УМОЛЧАНИЮ, ВНЕШНИЙ_ВИД, ИИ_ПО_УМОЛЧАНИЮ, МОЗГИ_ПО_УМОЛЧАНИЮ,
                      НеверныйВнешнийВид, атрибуты_html, проверить_внешний_вид, проверить_ии,
@@ -1570,6 +1570,18 @@ def создать_приложение(настройки: dict, база: Ба
     @app.get("/api/soul")
     def душа():
         return _душа()
+
+    @app.get("/api/memory-ring")
+    def кольцо_памяти():
+        """Лёгкая сводка для круга на главной: разделы памяти со счётчиками и настроение (цвет ядра)."""
+        return {"разделы": memory_ring.сводка(база), "настроение": _душа().get("настроение") or {}}
+
+    @app.get("/api/memory-ring/{key}")
+    def раздел_памяти(key: str, q: str = Query("", max_length=100), n: int = Query(60, ge=1, le=200)):
+        р = memory_ring.раздел(база, key, n, q)
+        if not р:
+            raise StarletteHTTPException(404, "Такого раздела нет.")
+        return р
 
     class ИзменениеДуши(BaseModel):
         душа: dict
