@@ -8,6 +8,7 @@
 // «Изучено» — отметка просмотра записи агентом (хранится в базе), а не разбор текста ИИ.
 // =============================================================================
 (() => {
+  const МОНО = '"JetBrains Mono", "IBM Plex Mono", "SF Mono", ui-monospace, Consolas, "Courier New", monospace';
   const экран = $("экран-мозг2");
   if (!экран) return;
   const холст = $("мозг2-холст"), к = холст.getContext("2d"), подсказка = $("мозг2-подсказка"), инфо = $("мозг2-инфо");
@@ -22,6 +23,8 @@
 
   const мягкий = (h) => (typeof h === "string" && /^#[0-9a-f]{6}$/i.test(h) ? h : "#6aa9ff");
   const а_ = (hex, а) => { const h = мягкий(hex).slice(1); return `rgba(${parseInt(h.slice(0, 2), 16)},${parseInt(h.slice(2, 4), 16)},${parseInt(h.slice(4, 6), 16)},${а})`; };
+
+  const ТОЧКИ = Array.from({ length: 190 }, (_, i) => { const y = 1 - (i + .5) / 190 * 2, r = Math.sqrt(1 - y * y), θ = i * 2.39996; return [Math.cos(θ) * r, y, Math.sin(θ) * r]; });
 
   // ---- раскладка -----------------------------------------------------------------------------
   function расставить() {
@@ -154,10 +157,13 @@
     к.strokeStyle = а_(цвет, .95); к.beginPath(); к.arc(0, 0, 46, -Math.PI / 2, -Math.PI / 2 + доля * Math.PI * 2); к.stroke();
     к.lineCap = "butt";
     к.beginPath(); к.arc(0, 0, 36, 0, Math.PI * 2); к.fillStyle = "#070b14"; к.fill(); к.lineWidth = 2; к.strokeStyle = а_(цвет, .95); к.stroke();
-    к.beginPath(); к.moveTo(0, -15); к.bezierCurveTo(11, -2, 12, 5, 0, 14); к.bezierCurveTo(-12, 5, -11, -2, 0, -15);
-    к.lineWidth = 2.4; к.strokeStyle = "#e8f2ff"; к.stroke();
+    const угол = читают ? время * .5 : .6, co = Math.cos(угол), si = Math.sin(угол);       // облако точек, как в «Командном центре»
+    for (const [x, y, z] of ТОЧКИ) {
+      const x1 = x * co + z * si, z1 = -x * si + z * co, гл = (z1 + 1) / 2;
+      к.fillStyle = а_(цвет, .2 + гл * .75); const r_ = .8 + гл * 1.3; к.fillRect(x1 * 28 - r_ / 2, y * 28 - r_ / 2, r_, r_);
+    }
     к.beginPath(); к.arc(32, -32, 10, 0, Math.PI * 2); к.fillStyle = цвет; к.fill();
-    к.fillStyle = "#08150f"; к.font = "700 11px system-ui, sans-serif"; к.textAlign = "center"; к.textBaseline = "middle"; к.fillText(String(р.уровень), 32, -31.5);
+    к.fillStyle = "#08150f"; к.font = "700 11px " + МОНО; к.textAlign = "center"; к.textBaseline = "middle"; к.fillText(String(р.уровень), 32, -31.5);
     к.fillStyle = "rgba(210,225,250,.9)"; к.font = "700 10px ui-monospace, Consolas, monospace";
     к.fillText(`${н.значок || ""} ${н.имя || "душа"}`.trim().toUpperCase(), 0, 68);
     к.fillStyle = "rgba(170,195,235,.7)"; к.font = "10px ui-monospace, Consolas, monospace";
@@ -182,7 +188,7 @@
       к.textAlign = "center"; к.textBaseline = "middle";
       const вынос = раскладка === "соты" ? c.сота * .86 : c.r + 18, dx = раскладка === "соты" ? 0 : Math.cos(c.θ) * 0, ly = раскладка === "соты" ? c.y + вынос : c.y + Math.sin(c.θ) * вынос;
       const lx = раскладка === "соты" ? c.x : c.x + Math.cos(c.θ) * вынос + dx;
-      к.font = "700 10px system-ui, sans-serif"; к.fillStyle = а_(c.цвет, гор ? 1 : .9); к.fillText(`${c.значок} ${c.имя}`.toUpperCase(), lx, ly);
+      к.font = "700 10px " + МОНО; к.letterSpacing = "1.4px"; к.fillStyle = а_(c.цвет, гор ? 1 : .9); к.fillText(`${c.значок} ${c.имя}`.toUpperCase(), lx, ly); к.letterSpacing = "0px";
       к.font = "9px ui-monospace, Consolas, monospace"; к.fillStyle = "rgba(180,200,235,.6)"; к.fillText(`${прочит}/${всего}${c.число > всего ? ` · всего ${c.число}` : ""}`, lx, ly + 12);
     }
   }
@@ -200,7 +206,7 @@
       к.lineWidth = 1.5; к.strokeStyle = а_(цвет, .9); к.beginPath(); к.arc(у.x, у.y, r + 2.8, -Math.PI / 2, -Math.PI / 2 + доля * Math.PI * 2); к.stroke();
       if (камера.z > .55 || наведён === у) {
         к.save(); к.translate(у.x, у.y); к.rotate(у.θ + (Math.cos(у.θ) < 0 ? Math.PI : 0));
-        к.textBaseline = "middle"; к.font = "600 8px system-ui, sans-serif"; к.fillStyle = "rgba(205,220,248,.82)";
+        к.textBaseline = "middle"; к.font = "600 8px " + МОНО; к.fillStyle = "rgba(205,220,248,.82)";
         к.textAlign = Math.cos(у.θ) < 0 ? "right" : "left"; к.fillText((а.имя || а.ключ).slice(0, 22), Math.cos(у.θ) < 0 ? -(r + 8) : r + 8, 0); к.restore();
       }
     }
@@ -247,8 +253,8 @@
       к.beginPath(); к.arc(у.x, у.y, у.r, 0, Math.PI * 2); к.fillStyle = "#0b1222"; к.fill();
       к.lineWidth = гор ? 2.2 : 1.5; к.strokeStyle = а_(цвет, гор ? 1 : .85); к.stroke();
       к.beginPath(); к.arc(у.x, у.y, у.r + 3, 0, Math.PI * 2); к.lineWidth = 1; к.strokeStyle = а_(цвет, .25); к.stroke();
-      к.font = "11px system-ui, sans-serif"; к.fillStyle = цвет; к.fillText(у.р.значок, у.x, у.y + .5);
-      if (камера.z > 1.1 || гор) { к.font = "600 8px system-ui, sans-serif"; к.fillStyle = "rgba(215,228,250,.85)"; к.fillText(у.р.имя.slice(0, 26), у.x, у.y + у.r + 11); }
+      к.font = "11px " + МОНО; к.fillStyle = цвет; к.fillText(у.р.значок, у.x, у.y + .5);
+      if (камера.z > 1.1 || гор) { к.font = "600 8px " + МОНО; к.fillStyle = "rgba(215,228,250,.85)"; к.fillText(у.р.имя.slice(0, 26), у.x, у.y + у.r + 11); }
     }
     к.restore();
   }
@@ -268,10 +274,10 @@
           к.lineWidth = 1.4; к.strokeStyle = а_(c.цвет, 1); к.stroke();
           к.beginPath(); к.arc(т.x, т.y, 8, 0, Math.PI * 2); к.lineWidth = .8; к.strokeStyle = а_(c.цвет, .35); к.stroke();
         }
-        const шир = т.имя.length * (z > 3 ? 2.6 : 3.4), вы = z > 3 ? 6 : 8;
+        const шир = т.имя.length * (z > 3 ? 2.9 : 3.7), вы = z > 3 ? 6 : 8;
         const свободно = гор || !занятоПод.some((r) => Math.abs(r[0] - т.x) < (r[2] + шир) / 2 + 3 && Math.abs(r[1] - т.y) < вы);
         if ((т.важная || гор || z > 3) && подписано < 420 && свободно) {
-          подписано++; занятоПод.push([т.x + (т.важная ? 10 : 4) + шир / 2, т.y, шир]); к.font = `${т.важная || гор ? "600 " : ""}${z > 3 ? 4.6 : 6}px system-ui, sans-serif`;
+          подписано++; занятоПод.push([т.x + (т.важная ? 10 : 4) + шир / 2, т.y, шир]); к.font = `${т.важная || гор ? "600 " : ""}${z > 3 ? 4.6 : 6}px ${МОНО}`;
           к.fillStyle = гор ? "#fff" : т.важная ? а_(c.цвет, 1) : "rgba(200,215,240,.7)"; к.fillText(т.имя, т.x + (т.важная ? 10 : 4), т.y);
         }
       }
@@ -280,7 +286,7 @@
       мои.slice(0, 8).forEach((у, i) => {
         const θ = -Math.PI / 2 + (i + .5) * Math.PI * 2 / Math.min(8, мои.length), x = c.x + Math.cos(θ) * (c.r + 16), y = c.y + Math.sin(θ) * (c.r + 16), цвет = цветРутины(у.р);
         к.beginPath(); к.arc(x, y, 6.5, 0, Math.PI * 2); к.fillStyle = "#0b1222"; к.fill(); к.lineWidth = 1.2; к.strokeStyle = а_(цвет, .9); к.stroke();
-        к.font = "8px system-ui, sans-serif"; к.textAlign = "center"; к.fillStyle = цвет; к.fillText(у.р.значок, x, y + .5); к.textAlign = "left";
+        к.font = "8px " + МОНО; к.textAlign = "center"; к.fillStyle = цвет; к.fillText(у.р.значок, x, y + .5); к.textAlign = "left";
       });
     }
     к.restore();

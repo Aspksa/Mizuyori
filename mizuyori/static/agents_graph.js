@@ -20,7 +20,9 @@
     const безАнимаций = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
     const ИКОНКИ = () => window.ЗНАЧКИ_АГЕНТОВ || {};
     const ЦВЕТ_ЗНАНИЯ = "#6aa9ff", ЦВЕТ_ОПЫТА = "#f5c451", ЦВЕТ_ЧАТА = "#58c4ff";
-    const ШРИФТ = '"Bahnschrift", "DIN Alternate", "Roboto Condensed", "Arial Narrow", "Segoe UI", system-ui, sans-serif';
+    const МОНО = '"JetBrains Mono", "IBM Plex Mono", "SF Mono", ui-monospace, Consolas, "Courier New", monospace';
+    const ШРИФТ = МОНО;                     // весь текст круга — моноширинный, как в «Командном центре»
+    const БИРЮЗА = "#3ee0b8";
     const СДВИГ = 21;
     const ГЛИФЫ = "01アイウエオカキクケコサシスセソ水依";
 
@@ -252,7 +254,7 @@
       // фон — градиент CSS под прозрачным холстом: заливать его заново каждый кадр незачем
       if (!холст.dataset.фон) {
         холст.dataset.фон = "1";
-        холст.style.background = "radial-gradient(circle at 50% 50%, #0d1524 0, #05070c 65%)";
+        холст.style.background = "radial-gradient(circle at 50% 50%, #0c1d27 0, #06111a 55%, #04090e 100%)";
       }
       к.clearRect(0, 0, ш, в);
     }
@@ -276,10 +278,11 @@
         const p = точкаЭ(каб.θм + поворот, Math.max(A * .5, 150), Math.max(B * .5, 150));
         const члены = каб.члены; let работают = 0; for (const n of члены) if (n.а.работает) работают++;
         к.save(); к.translate(p.x, p.y); к.textAlign = "center"; к.textBaseline = "middle"; к.globalAlpha = тих ? .4 : 1;
-        к.font = "700 14px " + ШРИФТ; к.fillStyle = прозрачный(каб.цвет, .98);
+        к.font = "700 12.5px " + МОНО; к.letterSpacing = "1.6px"; к.fillStyle = прозрачный(каб.цвет, .98);
         к.fillText(каб.название.toUpperCase().slice(0, 26), 0, -8);
-        к.font = "11px ui-monospace, Consolas, monospace"; к.fillStyle = работают ? "#fff" : "rgba(200,210,230,.55)";
+        к.font = "10px " + МОНО; к.letterSpacing = ".6px"; к.fillStyle = работают ? "#fff" : "rgba(170,205,205,.55)";
         к.fillText(работают ? `${работают} из ${члены.length} работают` : `${члены.length} агентов`, 0, 9);
+        к.letterSpacing = "0px";
         к.restore();
       }
     }
@@ -411,7 +414,7 @@
       к.textBaseline = "middle";
       for (const у of узлы) {
         const фокус = наведён === у, раб = Boolean(у.а.работает), вКабинете = Boolean(выбранКабинет) && у.кабинет === выбранКабинет;
-        if (!(фокус || раб)) continue;
+        if (!(фокус || раб || (кабинетУзла(у)?.лидер === у && !выбранКабинет))) continue;
         const имя = у.а.имя || у.ключ, текст = имя.length > 24 ? `${имя.slice(0, 23)}…` : имя;
         const c = Math.cos(у.нормаль), sn = Math.sin(у.нормаль);
         к.globalAlpha = приглушён(у) ? .25 : 1;
@@ -423,14 +426,14 @@
           continue;
         }
         const d = у.r + 11 + у.ст, x = у.x + c * d, y = у.y + sn * d;
-        к.font = `${у.лидер ? "700 13px" : "600 12px"} ${ШРИФТ}`;
-        const w = к.measureText(текст).width, h = 20, пад = 8;
+        к.font = `${у.лидер ? "700 10.5px" : "600 10px"} ${МОНО}`; к.letterSpacing = ".3px";
+        const w = к.measureText(текст).width, h = 18, пад = 7;
         const выр = c > .3 ? 1 : c < -.3 ? -1 : 0;
         const x0 = выр > 0 ? x : выр < 0 ? x - w - пад * 2 : x - w / 2 - пад, y0 = Math.abs(c) <= .3 ? (sn < 0 ? y - h : y) : y - h / 2;
-        к.fillStyle = "rgba(8,12,22,.82)"; к.strokeStyle = прозрачный(у.цвет, раб || фокус ? .95 : .5); к.lineWidth = 1;
-        к.beginPath(); к.roundRect(x0, y0, w + пад * 2, h, 10); к.fill(); к.stroke();
-        к.textAlign = "left"; к.fillStyle = раб || фокус ? "#fff" : "rgba(235,240,252,.95)";
-        к.fillText(текст, x0 + пад, y0 + h / 2 + .5);
+        к.fillStyle = "rgba(6,17,26,.9)"; к.strokeStyle = прозрачный(у.цвет, раб || фокус ? .95 : .45); к.lineWidth = 1;
+        к.beginPath(); к.roundRect(x0, y0, w + пад * 2, h, 5); к.fill(); к.stroke();
+        к.textAlign = "left"; к.fillStyle = раб || фокус ? "#fff" : "rgba(215,235,235,.92)";
+        к.fillText(текст, x0 + пад, y0 + h / 2 + .5); к.letterSpacing = "0px";
       }
       к.globalAlpha = 1;
     }
@@ -619,6 +622,18 @@
       return null;
     };
 
+    // плотное облако точек в ядре, как «файловое облако» на видео: вращается, только пока кто-то работает
+    const ТОЧКИ_ЯДРА = Array.from({ length: 170 }, (_, i) => { const y = 1 - (i + .5) / 170 * 2, r = Math.sqrt(1 - y * y), θ = i * 2.39996; return [Math.cos(θ) * r, y, Math.sin(θ) * r]; });
+    let вращениеЯдра = 0.6;
+    function рисоватьОблако(работают) {
+      if (работают) вращениеЯдра = время * .55;
+      const c = Math.cos(вращениеЯдра), sn = Math.sin(вращениеЯдра);
+      for (const [x, y, z] of ТОЧКИ_ЯДРА) {
+        const x1 = x * c + z * sn, z1 = -x * sn + z * c, гл = (z1 + 1) / 2;
+        к.fillStyle = прозрачный(душа.цвет, .2 + гл * .75);
+        const р = .8 + гл * 1.25; к.fillRect(x1 * 25 - р / 2, y * 25 - р / 2, р, р);
+      }
+    }
     function рисоватьЯдро(работают) {
       const п = .5 + .5 * Math.sin(время * (работают ? 4 : .9 + душа.энергия * 1.2));
       const g = к.createRadialGradient(0, 0, 8, 0, 0, 80 + п * 8);
@@ -638,9 +653,9 @@
       }
       к.restore();
       к.beginPath(); к.arc(0, 0, 33, 0, Math.PI * 2); к.fillStyle = "#070b14"; к.fill(); к.lineWidth = 2.2; к.strokeStyle = прозрачный(душа.цвет, .95); к.stroke();
-      к.beginPath(); к.moveTo(0, -14); к.bezierCurveTo(10, -2, 11, 4, 0, 13); к.bezierCurveTo(-11, 4, -10, -2, 0, -14);
-      к.lineWidth = 2.4; к.strokeStyle = "#e8f2ff"; к.stroke();
-      к.textAlign = "center"; к.textBaseline = "middle"; к.font = "700 9px ui-monospace, Consolas, monospace"; к.fillStyle = "rgba(190,210,240,.78)"; к.fillText(душа.имя ? `${душа.значок} ${душа.имя}`.trim() : "MIZUYORI", 0, 46);
+      рисоватьОблако(работают);
+      к.textAlign = "center"; к.textBaseline = "middle"; к.font = "700 9px " + МОНО; к.letterSpacing = "1.4px"; к.fillStyle = "rgba(170,225,215,.82)"; к.fillText(душа.имя ? `${душа.значок} ${душа.имя}`.trim() : "MIZUYORI", 0, 46);
+      к.letterSpacing = "0px";
       if (работают) { к.font = "10px ui-monospace, Consolas, monospace"; к.fillStyle = "#fff"; к.fillText(`${работают} в работе`, 0, 59); }
     }
 
