@@ -3782,7 +3782,7 @@ main.главная { grid-template-columns: minmax(17rem, 21rem) minmax(0, 1fr)
 .конвейер-лента[data-размер] { overflow-y: auto; }
 
 /* ===== правки: чат шире, герои скромнее, пять кабинетов ===== */
-main.главная { grid-template-columns: minmax(28rem, min(56rem, 44vw)) minmax(0, 1fr) !important; }
+main.главная { grid-template-columns: minmax(28rem, min(56rem, 40vw)) minmax(0, 1fr) !important; }
 @media (max-width: 62rem) { main.главная { grid-template-columns: 1fr !important; } }
 .агенты-ряд[data-режим="все"] .зона { grid-area: auto !important; }
 .агенты-ряд[data-режим="все"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }

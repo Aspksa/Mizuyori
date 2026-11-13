@@ -61,8 +61,8 @@
 
     function расставить() {
       if (!агенты.length || !ш) return;
-      A = B = Math.max(230, Math.min(ш / 2 - 175, в / 2 - 160));
-      const сПодписями = Math.min(1, (ш / 2 - 20) / (A + 175), (в / 2 - 12) / (B + 200));
+      A = B = Math.max(230, Math.min(ш / 2 - 150, в / 2 - 110));
+      const сПодписями = Math.min(1, (ш / 2 - 14) / (A + 195), (в / 2 - 12) / (B + 120));
       подписиВсе = сПодписями >= .8;
       фит = подписиВсе ? сПодписями : Math.min(1, (ш / 2 - 20) / (A + 70), (в / 2 - 12) / (B + 90));
       const таб = таблицаЭллипса(A, B);
@@ -101,7 +101,7 @@
         const члены = узлы.filter((у) => у.кабинет === г.кабинет);
         кабинеты.push({ ключ: г.кабинет, название: члены[0]?.а.кабинет_название || г.кабинет, цвет: члены[0]?.цвет || "#6aa9ff",
           θ0: вθ(нач - .2), θ1: вθ(слот + .2), θм: вθ((нач + слот) / 2), лидер: члены[0],
-          отделы: г.отделы.map((о) => ({ название: о.название, θ0: о.θ0, θ1: о.θ1, ключ: о.ключ })) });
+          члены, отделы: г.отделы.map((о) => ({ название: о.название, θ0: о.θ0, θ1: о.θ1, ключ: о.ключ, члены: члены.filter((n) => n.отдел === о.ключ) })) });
         слот += ЗК;
       }
       по = new Map(узлы.map((у) => [у.ключ, у]));
@@ -113,10 +113,9 @@
 
     function размер() {
       const р = лента.getBoundingClientRect();
-      dpr = Math.min(2, window.devicePixelRatio || 1);
+      dpr = Math.min(1.5, window.devicePixelRatio || 1);
       ш = Math.max(320, Math.round(р.width)); в = Math.max(320, Math.round(р.height));
       холст.width = Math.round(ш * dpr); холст.height = Math.round(в * dpr);
-      капли.length = 0;
       расставить(); сбросКамеры(true);
     }
     function сбросКамеры(сразу = false) {
@@ -221,19 +220,27 @@
     // ---- рисование ----------------------------------------------------------------------------------
     const приглушён = (у) => Boolean(выбранКабинет) && у.кабинет !== выбранКабинет;
 
-    function матрица(dt, работают) {
-      const шаг = 20;
-      if (!капли.length) for (let i = 0; i < Math.ceil(ш / шаг); i++) капли.push({ x: i * шаг + 6, y: Math.random() * в, v: 18 + Math.random() * 40, дл: 6 + Math.random() * 9 });
-      к.font = "11px ui-monospace, Consolas, monospace"; к.textAlign = "center"; к.textBaseline = "middle";
-      for (const л of капли) {
-        л.y += л.v * dt * (работают ? 2.2 : 1);
-        if (л.y - л.дл * 13 > в) { л.y = -20; л.v = 18 + Math.random() * 40; }
-        for (let i = 0; i < л.дл; i++) {
-          const y = л.y - i * 13; if (y < -6 || y > в + 6) continue;
-          к.fillStyle = i === 0 ? `rgba(190,235,255,${работают ? .3 : .15})` : `rgba(80,170,230,${(1 - i / л.дл) * (работают ? .13 : .06)})`;
-          к.fillText(ГЛИФЫ[Math.floor(время * 3 + л.x * 7 + i * 5) % ГЛИФЫ.length], л.x, y);
+    let кэшМатрицы = null, кэшГ = null, кэшВремя = 0;
+    function матрица(dt, работают) {          // рисуется в отдельный холст ~12 раз в секунду
+      if (!кэшМатрицы || кэшМатрицы.width !== холст.width || кэшМатрицы.height !== холст.height) {
+        кэшМатрицы = document.createElement("canvas"); кэшМатрицы.width = холст.width; кэшМатрицы.height = холст.height; кэшГ = кэшМатрицы.getContext("2d"); капли.length = 0;
+      }
+      if (время - кэшВремя >= .08) {
+        const шаг = 34, д_ = (время - кэшВремя) || .08; кэшВремя = время;
+        if (!капли.length) for (let i = 0; i < Math.ceil(ш / шаг); i++) капли.push({ x: i * шаг + 8, y: Math.random() * в, v: 18 + Math.random() * 40, дл: 5 + Math.random() * 6 });
+        кэшГ.setTransform(dpr, 0, 0, dpr, 0, 0); кэшГ.clearRect(0, 0, ш, в);
+        кэшГ.font = "11px ui-monospace, Consolas, monospace"; кэшГ.textAlign = "center"; кэшГ.textBaseline = "middle";
+        for (const л of капли) {
+          л.y += л.v * д_ * (работают ? 2.2 : 1);
+          if (л.y - л.дл * 13 > в) { л.y = -20; л.v = 18 + Math.random() * 40; }
+          for (let i = 0; i < л.дл; i++) {
+            const y = л.y - i * 13; if (y < -6 || y > в + 6) continue;
+            кэшГ.fillStyle = i === 0 ? `rgba(190,235,255,${работают ? .3 : .15})` : `rgba(80,170,230,${(1 - i / л.дл) * (работают ? .13 : .06)})`;
+            кэшГ.fillText(ГЛИФЫ[Math.floor(время * 3 + л.x * 7 + i * 5) % ГЛИФЫ.length], л.x, y);
+          }
         }
       }
+      к.drawImage(кэшМатрицы, 0, 0, ш, в);
     }
     function рисоватьФон(dt, работают) {
       const g = к.createRadialGradient(ш / 2, в / 2, 20, ш / 2, в / 2, Math.max(ш, в) * .65);
@@ -258,8 +265,8 @@
         эллипс(A - 44, B - 44, каб.θ0, каб.θ1, 2, прозрачный(каб.цвет, .55 * а));
         for (const о of каб.отделы) эллипс(A - 38, B - 38, о.θ0, о.θ1, 1.2, прозрачный(каб.цвет, .3 * а));
         к.restore();
-        const p = точкаЭ(каб.θм + поворот, Math.max(A * .56, 150), Math.max(B * .56, 150));
-        const члены = узлы.filter((n) => n.кабинет === каб.ключ), работают = члены.filter((n) => n.а.работает).length;
+        const p = точкаЭ(каб.θм + поворот, Math.max(A * .5, 150), Math.max(B * .5, 150));
+        const члены = каб.члены; let работают = 0; for (const n of члены) if (n.а.работает) работают++;
         к.save(); к.translate(p.x, p.y); к.textAlign = "center"; к.textBaseline = "middle"; к.globalAlpha = тих ? .4 : 1;
         к.font = "700 14px " + ШРИФТ; к.fillStyle = прозрачный(каб.цвет, .98);
         к.fillText(каб.название.toUpperCase().slice(0, 26), 0, -8);
@@ -284,9 +291,9 @@
       к.lineCap = "round";
       for (const каб of кабинеты) {
         const а = Boolean(выбранКабинет) && каб.ключ !== выбранКабинет ? .25 : 1;
-        const члены = узлы.filter((n) => n.кабинет === каб.ключ);
+        const члены = каб.члены;
         for (const о of каб.отделы) {
-          const ч = члены.filter((n) => n.отдел === о.ключ);
+          const ч = о.члены;
           for (let i = 1; i < ч.length; i++) {
             const раб = ч[i].а.работает || ч[i - 1].а.работает;
             к.beginPath(); к.moveTo(ч[i - 1].x, ч[i - 1].y); к.lineTo(ч[i].x, ч[i].y);
@@ -351,8 +358,7 @@
           к.fillStyle = g; к.beginPath(); к.arc(у.x, у.y, у.r + 30, 0, Math.PI * 2); к.fill();
         }
         к.beginPath(); к.arc(у.x, у.y, у.r, 0, Math.PI * 2);
-        const gд = к.createRadialGradient(у.x - у.r * .3, у.y - у.r * .35, 1, у.x, у.y, у.r);
-        gд.addColorStop(0, "#1c2740"); gд.addColorStop(1, "#0a0f1b"); к.fillStyle = gд; к.fill();
+        к.fillStyle = "#111a2e"; к.fill();
         к.lineWidth = у.лидер ? 2.6 : 2; к.strokeStyle = прозрачный(цв, фокус || раб ? 1 : .85); к.stroke();
         if (а.сегодня > 0) {
           к.beginPath(); к.arc(у.x, у.y, у.r + 3.4, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.min(1, а.сегодня / максимум));
@@ -381,22 +387,29 @@
     function рисоватьПодписи() {
       к.textBaseline = "middle";
       for (const у of узлы) {
-        const фокус = наведён === у, раб = Boolean(у.а.работает);
-        if (!подписиВсе && камера.z < 1.15 && !у.лидер && !фокус && !раб) continue;
-        const имя = у.а.имя || у.ключ, макс = подписиВсе ? 22 : 17;
-        const текст = имя.length > макс ? `${имя.slice(0, макс - 1)}…` : имя;
-        к.save(); к.translate(у.x, у.y);
-        const слева = Math.cos(у.нормаль) < 0;
-        к.rotate(слева ? у.нормаль + Math.PI : у.нормаль);
-        к.textAlign = слева ? "right" : "left";
-        к.font = `${у.лидер ? "700 13px" : "12px"} ${ШРИФТ}`;
-        к.fillStyle = раб || фокус ? "#ffffff" : у.лидер ? "rgba(235,240,252,.94)" : "rgba(190,202,226,.74)";
-        к.globalAlpha = приглушён(у) ? .22 : 1;
-        const сдв = (у.r + 10 + у.ст) * (слева ? -1 : 1);
-        if (у.ст) { к.beginPath(); к.moveTo((у.r + 2) * (слева ? -1 : 1), 0); к.lineTo(сдв - 3 * (слева ? -1 : 1), 0); к.lineWidth = 1; к.strokeStyle = прозрачный(у.цвет, .3); к.stroke(); }
-        к.fillText(текст, сдв, 0);
-        к.restore();
+        const фокус = наведён === у, раб = Boolean(у.а.работает), вКабинете = Boolean(выбранКабинет) && у.кабинет === выбранКабинет;
+        if (!(у.лидер || фокус || раб || вКабинете)) continue;
+        const имя = у.а.имя || у.ключ, текст = имя.length > 24 ? `${имя.slice(0, 23)}…` : имя;
+        const c = Math.cos(у.нормаль), sn = Math.sin(у.нормаль);
+        к.globalAlpha = приглушён(у) ? .25 : 1;
+        if (вКабинете && !фокус && !раб) {          // члены выбранного кабинета: тонкая надпись вдоль луча
+          к.save(); к.translate(у.x, у.y);
+          const слева = c < 0; к.rotate(слева ? у.нормаль + Math.PI : у.нормаль);
+          к.textAlign = слева ? "right" : "left"; к.font = `12px ${ШРИФТ}`; к.fillStyle = "rgba(205,215,235,.85)";
+          к.fillText(текст, (у.r + 10 + у.ст) * (слева ? -1 : 1), 0); к.restore();
+          continue;
+        }
+        const d = у.r + 11 + у.ст, x = у.x + c * d, y = у.y + sn * d;
+        к.font = `${у.лидер ? "700 13px" : "600 12px"} ${ШРИФТ}`;
+        const w = к.measureText(текст).width, h = 20, пад = 8;
+        const выр = c > .3 ? 1 : c < -.3 ? -1 : 0;
+        const x0 = выр > 0 ? x : выр < 0 ? x - w - пад * 2 : x - w / 2 - пад, y0 = Math.abs(c) <= .3 ? (sn < 0 ? y - h : y) : y - h / 2;
+        к.fillStyle = "rgba(8,12,22,.82)"; к.strokeStyle = прозрачный(у.цвет, раб || фокус ? .95 : .5); к.lineWidth = 1;
+        к.beginPath(); к.roundRect(x0, y0, w + пад * 2, h, 10); к.fill(); к.stroke();
+        к.textAlign = "left"; к.fillStyle = раб || фокус ? "#fff" : "rgba(235,240,252,.95)";
+        к.fillText(текст, x0 + пад, y0 + h / 2 + .5);
       }
+      к.globalAlpha = 1;
     }
 
     function рисоватьЯдро(работают) {
@@ -491,12 +504,14 @@
     function кадрРисовать(t) {
       кадр = 0;
       if (!активен) return;
-      const dt = Math.min(.05, (t - прошлый) / 1000 || .016); прошлый = t; время += dt;
+      const занят = эффекты.length > 0 || агенты.some((а) => а.работает) || чатЖдёт > 0;
+      if (t - прошлый < (занят ? 14 : 45)) { кадр = requestAnimationFrame(кадрРисовать); return; }
+      const dt = Math.min(.1, (t - прошлый) / 1000 || .016); прошлый = t; время += dt;
       if (чатЖдёт) { чатЖдёт += dt; if (чатЖдёт > 120) чатЖдёт = 0; }
       if (!безАнимаций()) { поворот += dt * .03; обновитьПоложения(); }
       const k_ = Math.min(1, dt * 5);
       камера.x += (цель.x - камера.x) * k_; камера.y += (цель.y - камера.y) * k_; камера.z += (цель.z - камера.z) * k_;
-      const работают = агенты.filter((а) => а.работает).length;
+      let работают = 0; for (const а of агенты) if (а.работает) работают++;
       к.setTransform(dpr, 0, 0, dpr, 0, 0);
       рисоватьФон(dt, работают > 0 || чатЖдёт > 0);
       к.save(); к.translate(ш / 2 + камера.x, в / 2 + камера.y); к.scale(камера.z, камера.z);
