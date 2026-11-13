@@ -3671,3 +3671,69 @@ main.главная > .чат { grid-column: 1; grid-row: 1; }
 .схема-узел.работает small { color: #7dffb2; }
 .схема-узел.ошибка { border-color: #ff5a4a; }
 @media (max-width: 40rem) { .схема-тело { padding: .8rem; } .схема-отделы { grid-template-columns: 1fr; } .схема-отделы::before, .схема-отдел::before, .схема-ветки { display: none; } }
+
+/* ===== ОДНА СТРАНИЦА: герои свободно стоят на подставках кабинетов, без плиток ===== */
+main.главная { grid-template-columns: minmax(0, 1fr) minmax(16rem, 21rem); }
+.конвейер-лента { --яч: 110px; overflow-x: hidden; }
+.конвейер-лента[style*="--кол"] .агенты-группа-список { display: flex; }
+.агенты-ряд { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem .9rem; align-items: stretch; padding: .3rem .2rem .5rem; }
+.агенты-ряд[data-режим="один"] { grid-template-columns: 1fr; }
+.агенты-ряд[data-режим="все"] .зона[data-кабинет="бухгалтерия"] { grid-row: span 3; }
+@media (min-width: 1700px) { .агенты-ряд[data-режим="все"] { grid-template-columns: 1.3fr 1fr 1fr; } .агенты-ряд[data-режим="все"] .зона[data-кабинет="бухгалтерия"] { grid-row: span 2; } }
+.зона { --гц: #6aa9ff; position: relative; border-radius: 22px; padding: .35rem .6rem .6rem;
+  background: radial-gradient(120% 90% at 50% 100%, color-mix(in srgb, var(--гц) 16%, transparent), transparent 70%);
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--гц) 45%, transparent), 0 14px 30px -22px var(--гц); }
+.зона[hidden] { display: none; }
+.зона.идёт { box-shadow: inset 0 -1px 0 var(--гц), 0 14px 34px -18px var(--гц); }
+.зона-шапка { display: flex; align-items: center; gap: .45rem; margin-bottom: .1rem; }
+.зона-шапка h3 { margin: 0; font-size: .74rem; letter-spacing: .14em; text-transform: uppercase; color: var(--гц); font-weight: 700; }
+.зона-значок { width: .55rem; height: .55rem; border-radius: 50%; background: var(--гц); box-shadow: 0 0 10px var(--гц); }
+.зона-счёт { margin-left: auto; font: .66rem ui-monospace, Consolas, monospace; color: var(--тихий); }
+.зона-тело { display: flex; flex-wrap: wrap; gap: .1rem .9rem; align-items: flex-end; }
+.зона .агенты-группа { display: flex; flex-direction: column; flex: 0 1 auto; min-width: 0; }
+.зона .агенты-группа-шапка { margin: 0; padding: .1rem .2rem; cursor: default; font-size: .58rem; letter-spacing: .12em; color: var(--тихий); opacity: .85; pointer-events: none; }
+.зона .агенты-группа-шапка::before, .зона .агенты-группа-шапка button, .зона .агенты-группа-шапка .активные { display: none; }
+.зона .агенты-группа-список { display: flex !important; flex-wrap: nowrap; gap: .1rem; padding: 0 !important; }
+.зона .агент { flex: none; width: var(--яч); min-height: 0; height: auto; padding: 0 0 .1rem; border: 0; background: none; box-shadow: none; border-radius: 0; position: relative; overflow: visible; }
+.зона .агент::before, .зона .агент::after { display: none; }
+.зона .агент .агент-круг { width: var(--яч); height: calc(var(--яч) * 1.02); margin: 0; }
+.зона .агент .агент-имя { display: block; min-height: 0; margin-top: -.1rem; text-align: center; font-size: clamp(.5rem, calc(var(--яч) * .09), .72rem); letter-spacing: .03em; line-height: 1.1; text-shadow: 0 0 10px color-mix(in srgb, var(--гц) 70%, transparent); }
+.зона .агент .агент-текст > :not(.агент-имя) { display: none; }
+.конвейер-лента[data-размер="крупно"] .зона .агент .агент-текст .агент-последнее { display: block; text-align: center; font-size: .56rem; opacity: .7; }
+.зона .агент .пол { position: absolute; left: 12%; right: 12%; bottom: 1.35em; height: 14%; top: auto; border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--гц) 55%, transparent), transparent); filter: blur(1px); opacity: .8; }
+.зона .агент.работает .пол { opacity: 1; animation: пол-пульс 1.6s ease-in-out infinite; }
+.зона .агент.спит { opacity: .62; filter: saturate(.6); }
+.зона .агент:hover, .зона .агент:focus-visible { z-index: 5; outline: none; transform: translateY(-3px) scale(1.06); transition: transform .18s; }
+.зона .агент-уровень-значок { position: absolute; right: 14%; top: 8%; min-width: 1.15rem; height: 1.15rem; padding: 0 .25rem; display: grid; place-items: center;
+  border-radius: 999px; font: 700 .6rem ui-monospace, Consolas, monospace; color: #0a0f1a; background: var(--гц); box-shadow: 0 0 8px var(--гц); }
+.конвейер-лента[data-размер="мелко"] .агент-уровень-значок { display: none; }
+@keyframes пол-пульс { 50% { transform: scaleX(1.12); opacity: .7; } }
+@media (max-width: 62rem) {
+  main.главная { grid-template-columns: 1fr; }
+  .агенты-ряд, .агенты-ряд[data-режим="все"] { grid-template-columns: 1fr; }
+  .агенты-ряд[data-режим="все"] .зона[data-кабинет="бухгалтерия"] { grid-row: auto; }
+  .зона-тело { flex-wrap: wrap; }
+}
+@media (prefers-reduced-motion: reduce) { .зона .агент.работает .пол { animation: none; } }
+/* корректировка: чат узкий слева, агенты занимают остальное */
+main.главная { grid-template-columns: minmax(17rem, 21rem) minmax(0, 1fr) !important; }
+.зона .агенты-группа-список { flex-direction: row !important; grid-template-columns: none !important; }
+.зона .агенты-группа-все { display: none !important; }
+.зона .агенты-группа-счёт { display: none; }
+.зона .агенты-группа-шапка { justify-content: flex-start; }
+.зона .агент .агент-круг { aspect-ratio: auto; }
+.конвейер-лента[data-размер] { overflow-y: hidden; }
+@media (max-width: 62rem) { main.главная { grid-template-columns: 1fr !important; } .конвейер-лента[data-размер] { overflow-y: auto; } }
+/* герои теснее: ячейка уже спрайта, спрайт переливается за края, фон убран */
+.зона .агент { width: calc(var(--яч) * .72); }
+.зона .агент .агент-круг { width: var(--яч); margin: 0 calc(var(--яч) * -.14); background: none !important; border: 0; box-shadow: none; overflow: visible; }
+.зона .агент .агент-имя { white-space: nowrap; margin-inline: calc(var(--яч) * -.1); }
+.зона .агент .пол { left: -2%; right: -2%; }
+.зона .агенты-группа-шапка { white-space: nowrap; }
+.зона .агенты-группа-список { gap: 0 !important; }
+.агенты-ряд[data-режим="все"] .зона[data-кабинет="бухгалтерия"] { grid-row: auto !important; }
+.агенты-ряд[data-режим="все"] { align-content: start; }
+.зона { align-self: stretch; }
+.зона .агент, .зона .агент:hover, .зона .агент.работает, .зона .агент.спит { background: none !important; box-shadow: none !important; border: 0 !important; }
+.зона .агент > span:first-child, .зона .агент .агент-круг { background: none !important; box-shadow: none !important; }

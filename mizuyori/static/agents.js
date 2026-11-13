@@ -132,9 +132,24 @@
         if (localStorage.getItem(`mizuyori.агенты.свёрнуто.${группа}`)) блок.classList.add("свёрнута");
         if (localStorage.getItem(`mizuyori.агенты.компакт.${группа}`)) блок.classList.add("компакт");
       } catch {}
-      ряд.append(блок);
       группы.set(группа, блок);
-      [...ряд.children].sort((x, у) => Number(x.dataset.порядок) - Number(у.dataset.порядок)).forEach((э) => ряд.append(э));
+      const ключКаб = а.кабинет || "прочее";
+      let зона = ряд.querySelector(`.зона[data-кабинет="${ключКаб}"]`);
+      if (!зона) {
+        зона = создать("section", { класс: "зона", данные: { кабинет: ключКаб } },
+          создать("header", { класс: "зона-шапка" },
+            создать("i", { класс: "зона-значок", "aria-hidden": "true" }),
+            создать("h3", { текст: а.кабинет_название || "Другие" }),
+            создать("small", { класс: "зона-счёт" })),
+          создать("div", { класс: "зона-тело" }));
+        зона.style.setProperty("--гц", а.цвет_кабинета || ЦВЕТА_ГРУПП[ряд.children.length % ЦВЕТА_ГРУПП.length]);
+        ряд.append(зона);
+      }
+      зона.dataset.порядок = а.порядок_кабинета ?? 9;
+      [...ряд.querySelectorAll(":scope > .зона")].sort((x, у) => Number(x.dataset.порядок) - Number(у.dataset.порядок)).forEach((э) => ряд.append(э));
+      зона.querySelector(".зона-тело").append(блок);
+      [...зона.querySelectorAll(".зона-тело > .агенты-группа")].sort((x, у) => Number(x.dataset.порядок) - Number(у.dataset.порядок))
+        .forEach((э) => зона.querySelector(".зона-тело").append(э));
     }
     const элемент = создать("button", { type: "button", класс: "агент", данные: { агент: а.ключ },
       onclick: () => открыть(а.ключ) },
@@ -146,6 +161,7 @@
         создать("span", { класс: "агент-счёт" }),
         создать("span", { класс: "агент-последнее" })),
       создать("span", { класс: "агент-записки", hidden: "" }),
+      создать("span", { класс: "агент-уровень-значок", "aria-hidden": "true" }),
       создать("span", { класс: "пол", "aria-hidden": "true" }),
       создать("span", { класс: "частицы", "aria-hidden": "true" }, ...Array.from({ length: 9 }, (_, i) => создать("i", { style: `--x:${8 + ((i * 37) % 84)}%;--d:${(i * .37).toFixed(2)}s;--s:${(2.2 + (i % 4) * .5).toFixed(1)}s;--r:${3 + (i % 3) * 2}px` }))));
     группы.get(группа).querySelector(".агенты-группа-список").append(элемент);
@@ -196,6 +212,8 @@
         место.dataset.неделя = ключНедели;
         место.replaceChildren(неделя(а.неделя || [0, 0, 0, 0, 0, 0, 0], `Уровень ${а.уровень} · опыт ${а.опыт}${а.до ? ` из ${а.до}` : ""}\nДействий по дням за неделю`));
       }
+      э.querySelector(".агент-уровень-значок").textContent = а.уровень;
+      э.dataset.ур = а.уровень;
       const записки = э.querySelector(".агент-записки");
       записки.hidden = !а.записок;
       записки.textContent = а.записок ? `✉ ${а.записок}` : "";
@@ -213,6 +231,12 @@
       блок.dataset.видно = видно;
       блок.querySelector(".агенты-группа-счёт").textContent = идёт ? `${идёт} работает` : блок.classList.contains("все") ? свои.length : `${видно} из ${свои.length}`;
       блок.classList.toggle("идёт", идёт > 0);
+    }
+    for (const з of ряд.querySelectorAll(".зона")) {
+      const все = [...з.querySelectorAll(".агент")];
+      const идут = все.filter((э) => э.classList.contains("работает")).length;
+      з.querySelector(".зона-счёт").textContent = идут ? `${идут} из ${все.length} работают` : `${все.length} агентов`;
+      з.classList.toggle("идёт", идут > 0);
     }
     итог.textContent = `${данные.работают} ${данные.работают === 1 ? "работает" : "работают"} · ${данные.сегодня} за сегодня`;
     const пульс = $("агенты-пульс");
@@ -232,7 +256,9 @@
   const вкладкиКабинетов = $("кабинеты-вкладки");
 
   function применитьКабинет() {
-    for (const г of ряд.querySelectorAll(".агенты-группа")) г.hidden = Boolean(выбранный) && г.dataset.кабинет !== выбранный;
+    for (const з of ряд.querySelectorAll(".зона")) з.hidden = Boolean(выбранный) && з.dataset.кабинет !== выбранный;
+    ряд.dataset.режим = выбранный ? "один" : "все";
+    последняяПодгонка = "";
     for (const кн of вкладкиКабинетов.querySelectorAll("button")) кн.setAttribute("aria-selected", String((кн.dataset.кабинет || "") === выбранный));
     лента.scrollTop = 0;
     подогнать();
@@ -302,44 +328,33 @@
   окноСхемы.addEventListener("click", (с) => { if (с.target === окноСхемы) окноСхемы.hidden = true; });
   document.addEventListener("keydown", (с) => { if (с.key === "Escape" && !окноСхемы.hidden) окноСхемы.hidden = true; });
 
-  // Подгонка плиток под размер панели: без полосы прокрутки подбираем число колонок и высоту плитки так, чтобы поместились все
+  // Подгонка: все агенты на одной странице без прокрутки. Подбираем самый крупный размер ячейки, при котором всё влезает.
   const лента = ряд.closest(".конвейер-лента");
-  let подгонка = 0;
+  let подгонка = 0, последняяПодгонка = "";
   function подогнать() {
     cancelAnimationFrame(подгонка);
     подгонка = requestAnimationFrame(() => {
       const В = лента.clientHeight, Ш = лента.clientWidth;
       if (!В || !Ш) return;
-      if (В < 360) { for (const в of ["--кол", "--вп"]) лента.style.removeProperty(в); лента.dataset.тесно = ""; return; }
-      const зазор = 8, шапки = [];
-      let занято = 0, ряды = 0;
-      const счётчики = [];
-      for (const г of ряд.querySelectorAll(".агенты-группа")) {
-        if (г.hidden) continue;
-        const спис = г.querySelector(".агенты-группа-список");
-        const видно = г.classList.contains("свёрнута") ? 0 : [...спис.children].filter((э) => getComputedStyle(э).display !== "none").length;
-        const шапка = г.getBoundingClientRect().height - (видно ? спис.getBoundingClientRect().height : 0);
-        занято += шапка + 4;
-        счётчики.push(видно);
+      const ключ = `${В}x${Ш}|${выбранный}|${ячейки.size}`;
+      if (ключ === последняяПодгонка) return;
+      последняяПодгонка = ключ;
+      let размер;
+      if (matchMedia("(max-width: 62rem)").matches) размер = 92;     // на узком экране панель прокручивается
+      else {
+        размер = 52;
+        for (let с = Math.min(190, Math.floor(Ш / 3)); с >= 48; с -= 3) {
+          лента.style.setProperty("--яч", `${с}px`);
+          if (ряд.offsetHeight <= В - 2) { размер = с; break; }
+        }
       }
-      if (!счётчики.some(Boolean)) return;
-      let лучший = null;
-      for (let н = 3; н <= 9; н++) {
-        const рядов = счётчики.reduce((а, к) => а + Math.ceil(к / н), 0);
-        const ширина = (Ш - зазор * (н - 1) - 4) / н;
-        const высота = (В - занято - зазор * рядов - 6) / Math.max(1, рядов);
-        const оценка = Math.min(ширина, высота * 0.92);
-        if (ширина < 70) continue;
-        if (!лучший || оценка > лучший.оценка + 0.5) лучший = { н, ширина, высота, оценка };
-      }
-      if (!лучший) return;
-      const в = Math.max(96, Math.min(лучший.высота, лучший.ширина * 1.5, 230));
-      лента.style.setProperty("--кол", лучший.н);
-      лента.style.setProperty("--вп", `${Math.floor(в)}px`);
-      лента.dataset.тесно = в < 128 ? "да" : в < 160 ? "средне" : "";
+      лента.style.setProperty("--яч", `${размер}px`);
+      лента.dataset.размер = размер >= 120 ? "крупно" : размер >= 86 ? "средне" : "мелко";
+      обновитьНоги();
     });
   }
   if (window.ResizeObserver) new ResizeObserver(подогнать).observe(лента);
+  лента.addEventListener("scroll", () => обновитьНоги(), { passive: true });
 
   async function обновить() {
     clearTimeout(таймер);
@@ -421,6 +436,82 @@
   }
   let кадр = 0, время = 0, прошлый = 0;
 
+  // Ножки героев: точки на полу, между ними идут рельсы. Кэш обновляется при раскладке, прокрутке и раз в секунду.
+  const ножки = new Map();
+  function обновитьНоги() {
+    const л = холст.getBoundingClientRect();
+    ножки.clear();
+    for (const [ключ, э] of ячейки) {
+      if (э.closest(".зона")?.hidden) continue;
+      const р = э.querySelector(".агент-круг").getBoundingClientRect();
+      if (!р.width) continue;
+      ножки.set(ключ, [р.left + р.width / 2 - л.left, р.top + р.height * .9 - л.top]);
+    }
+  }
+  setInterval(() => { if (!document.hidden) обновитьНоги(); }, 1000);
+
+  // Рельсы: начальник кабинета — руководитель отдела — сотрудники. Вагончики ходят по рельсам.
+  const вагоны = new Map();
+  function дорожка(a, b) {
+    const dx = b[0] - a[0], dy = b[1] - a[1];
+    if (Math.abs(dy) < Math.abs(dx) * .35) {       // почти на одном уровне: пологая волна
+      const mx = (a[0] + b[0]) / 2;
+      return [a, [mx, a[1] + 12], [mx, b[1] + 12], b];
+    }
+    const my = (a[1] + b[1]) / 2;
+    return [a, [a[0], my], [b[0], my], b];
+  }
+  const точкаДорожки = (p, t) => {
+    const u = 1 - t;
+    const x = u * u * u * p[0][0] + 3 * u * u * t * p[1][0] + 3 * u * t * t * p[2][0] + t * t * t * p[3][0];
+    const y = u * u * u * p[0][1] + 3 * u * u * t * p[1][1] + 3 * u * t * t * p[2][1] + t * t * t * p[3][1];
+    const dx = 3 * u * u * (p[1][0] - p[0][0]) + 6 * u * t * (p[2][0] - p[1][0]) + 3 * t * t * (p[3][0] - p[2][0]);
+    const dy = 3 * u * u * (p[1][1] - p[0][1]) + 6 * u * t * (p[2][1] - p[1][1]) + 3 * t * t * (p[3][1] - p[2][1]);
+    return [x, y, Math.atan2(dy, dx)];
+  };
+  function рёбра() {
+    const итог = [];
+    for (const каб of кабинеты) {
+      if (выбранный && каб.ключ !== выбранный) continue;
+      const цв = каб.цвет;
+      for (const о of каб.отделы) {
+        const рук = о.руководитель;
+        if (рук && рук !== каб.верх) итог.push([каб.верх, рук, цв]);
+        for (const к_ of о.агенты) {
+          if (к_ === каб.верх || к_ === рук) continue;
+          итог.push([рук && рук !== каб.верх ? рук : каб.верх, к_, цв]);
+        }
+      }
+    }
+    return итог;
+  }
+  // Нити поручений: никаких путей в покое. Когда агент работает, от руководителя к нему бежит светящаяся искра по тонкой дуге.
+  function рисоватьРельсы(dt) {
+    if (!кабинеты.length || !ножки.size || безАнимаций()) return;
+    for (const [от, до, цв] of рёбра()) {
+      const работает = ячейки.get(до)?.classList.contains("работает");
+      const ключ = `${от}>${до}`;
+      let в = вагоны.get(ключ);
+      if (!в) { в = { t: 0 }; вагоны.set(ключ, в); }
+      if (!работает) { в.t = 0; continue; }
+      const a = ножки.get(от), b = ножки.get(до);
+      if (!a || !b) continue;
+      const p = дорожка(a, b);
+      в.t = (в.t + dt * .45) % 1;
+      к.save();
+      к.beginPath(); к.moveTo(...p[0]); к.bezierCurveTo(...p[1], ...p[2], ...p[3]);
+      к.strokeStyle = прозрачный(цв, .22); к.lineWidth = 1; к.setLineDash([2, 5]); к.stroke(); к.setLineDash([]);
+      for (let k = 0; k < 4; k++) {
+        const t = в.t - k * .035; if (t < 0) continue;
+        const [x, y] = точкаДорожки(p, t);
+        к.globalAlpha = (1 - k / 4) * Math.min(1, t * 6, (1 - t) * 6);
+        к.shadowColor = цв; к.shadowBlur = 10; к.fillStyle = k ? цв : "#fff";
+        к.beginPath(); к.arc(x, y, 2.6 - k * .45, 0, Math.PI * 2); к.fill();
+      }
+      к.restore();
+    }
+  }
+
   function центр(ключ) {
     const яч = ячейки.get(ключ);
     if (!яч) return null;
@@ -475,6 +566,7 @@
       }
       к.stroke(); к.setLineDash([]); к.globalAlpha = 1;
     }
+    рисоватьРельсы(dt);
     if (!безАнимаций()) {
       // фоновая пыль: медленные светлячки поднимаются вверх
       if (!пыль || пыль.ш !== ш) пыль = { ш, список: Array.from({ length: 22 }, () => ({ x: Math.random() * ш, y: Math.random() * в, v: 4 + Math.random() * 8,
