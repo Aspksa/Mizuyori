@@ -3962,3 +3962,7 @@ main.главная { grid-template-columns: minmax(28rem, min(56rem, 40vw)) min
 }
 .раздел-запись small { color: var(--тихий); }
 .центр-окно.центр-раздел > .окно { max-width: min(32rem, 100vw); }
+
+/* душа в боковой панели Центра */
+.центр-окно.центр-душа > .окно { max-width: min(30rem, 100vw); }
+.душа-окно .душа-панель { flex: 1 1 auto; min-height: 0; border-left: 0; background: transparent; backdrop-filter: none; padding-top: .25rem; animation: none; opacity: 1; transform: none; }
