@@ -47,13 +47,20 @@
       клас.forEach((c, i) => {
         const внеш = i >= внутр, idx = внеш ? i - внутр : i, всего = внеш ? n - внутр : внутр, R = внеш ? R2 : R1;
         const θ = -Math.PI / 2 + (idx + (внеш ? .5 : 0)) * Math.PI * 2 / всего;
-        c.x = Math.cos(θ) * R; c.y = Math.sin(θ) * R; c.θ = θ;
-        const m = c.точки.length, колонок = Math.max(3, Math.ceil(Math.sqrt(m * 1.5))), шаг = 7.5;
-        c.r = Math.max(34, Math.min(70, колонок * шаг * .62));
-        c.точки.forEach((т, j) => {                    // сетка точек, повёрнутая вдоль кольца
-          const col = j % колонок, row = Math.floor(j / колонок), lx = (col - (колонок - 1) / 2) * шаг, ly = (row - (Math.ceil(m / колонок) - 1) / 2) * шаг;
-          const co = Math.cos(θ + Math.PI / 2), si = Math.sin(θ + Math.PI / 2);
-          т.x = c.x + lx * co - ly * si; т.y = c.y + lx * si + ly * co;
+        // кластер — дуга-полоса из точек вдоль кольца: ряды идут по радиусу, точки в ряду — по дуге
+        const m = c.точки.length, макс = (Math.PI * 2 / всего) * .78;
+        let d = 7.5, ряды = 2;
+        for (; ряды <= 9; ряды++) if (Math.ceil(m / ряды) * d / (R - ряды * d / 2) <= макс) break;
+        if (ряды > 9) { ряды = 9; d = Math.max(4.5, макс * (R - 34) / Math.ceil(m / 9)); }
+        const вРяду = Math.ceil(m / ряды), h = ряды * d, внутреннийR = R - h / 2;
+        c.R = R; c.θ = θ; c.h = h; c.x = Math.cos(θ) * R; c.y = Math.sin(θ) * R;
+        c.Δ = Math.max(.16, вРяду * d / внутреннийR);
+        c.r = Math.max(30, Math.min(80, Math.hypot(вРяду * d / 2, h / 2) + 4));
+        c.вынос = h / 2 + 16;
+        c.точки.forEach((т, j) => {
+          const ряд = Math.floor(j / вРяду), колонок = Math.min(вРяду, m - ряд * вРяду), col = j % вРяду;
+          const rr = внутреннийR + (ряд + .5) * d, угол = θ + (col - (колонок - 1) / 2) * d / rr;
+          т.x = Math.cos(угол) * rr; т.y = Math.sin(угол) * rr;
         });
       });
     }
@@ -177,8 +184,9 @@
         for (let i = 0; i < 6; i++) { const θ = Math.PI / 6 + i * Math.PI / 3; к.lineTo(c.x + Math.cos(θ) * c.сота * .98, c.y + Math.sin(θ) * c.сота * .98); }
         к.closePath(); к.fillStyle = а_(c.цвет, гор ? .1 : .045); к.fill(); к.lineWidth = гор ? 1.6 : 1; к.strokeStyle = а_(c.цвет, гор ? .8 : .28); к.stroke();
       } else {
-        к.beginPath(); к.arc(c.x, c.y, c.r + 6, 0, Math.PI * 2); к.fillStyle = а_(c.цвет, гор ? .1 : .04); к.fill();
-        к.lineWidth = 1; к.strokeStyle = а_(c.цвет, гор ? .7 : .18); к.stroke();
+        const r0 = c.R - c.h / 2 - 4, r1 = c.R + c.h / 2 + 4, a0 = c.θ - c.Δ / 2 - .02, a1 = c.θ + c.Δ / 2 + .02;
+        к.beginPath(); к.arc(0, 0, r1, a0, a1); к.arc(0, 0, r0, a1, a0, true); к.closePath();
+        к.fillStyle = а_(c.цвет, гор ? .1 : .04); к.fill(); к.lineWidth = 1; к.strokeStyle = а_(c.цвет, гор ? .7 : .2); к.stroke();
       }
       const размер = камера.z > 1.6 ? 4 : 3;
       к.fillStyle = а_(c.цвет, .2);
@@ -186,7 +194,7 @@
       к.fillStyle = а_(c.цвет, .98);
       for (const т of c.точки) if (т.изучено) к.fillRect(т.x - размер / 2, т.y - размер / 2, размер, размер);
       к.textAlign = "center"; к.textBaseline = "middle";
-      const вынос = раскладка === "соты" ? c.сота * .86 : c.r + 18, dx = раскладка === "соты" ? 0 : Math.cos(c.θ) * 0, ly = раскладка === "соты" ? c.y + вынос : c.y + Math.sin(c.θ) * вынос;
+      const вынос = раскладка === "соты" ? c.сота * .86 : c.вынос, dx = раскладка === "соты" ? 0 : Math.cos(c.θ) * 0, ly = раскладка === "соты" ? c.y + вынос : c.y + Math.sin(c.θ) * вынос;
       const lx = раскладка === "соты" ? c.x : c.x + Math.cos(c.θ) * вынос + dx;
       к.font = "700 10px " + МОНО; к.letterSpacing = "1.4px"; к.fillStyle = а_(c.цвет, гор ? 1 : .9); к.fillText(`${c.значок} ${c.имя}`.toUpperCase(), lx, ly); к.letterSpacing = "0px";
       к.font = "9px ui-monospace, Consolas, monospace"; к.fillStyle = "rgba(180,200,235,.6)"; к.fillText(`${прочит}/${всего}${c.число > всего ? ` · всего ${c.число}` : ""}`, lx, ly + 12);
