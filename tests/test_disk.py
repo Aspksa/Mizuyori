@@ -159,3 +159,19 @@ class КольцоПамяти(unittest.TestCase):
             д = memory_ring.граф(б)
             self.assertEqual({х["ключ"] for х in д["сущности"]}, {"е1", "е2"})
             self.assertEqual(len(д["отношения"]), 1)
+
+
+class ВторойМозг(unittest.TestCase):
+    def test_карта_и_рост(self):
+        from mizuyori import mind
+        with tempfile.TemporaryDirectory() as t:
+            б = База(Path(t) / "t.db"); б.подготовить()
+            б.запомнить("Любит зелёный чай", None, "другое", 3)
+            к = {х["ключ"]: х for х in mind.карта(б)["кластеры"]}
+            ключ = к["память"]["точки"][0][0]
+            self.assertEqual(k_ := к["память"]["точки"][0][1], 0)
+            р = mind.отметить(б, [ключ, ключ, "плохой ключ", "п1; DROP"], "память")
+            self.assertEqual(р["изучено"], 1)
+            self.assertEqual(mind.карта(б)["кластеры"][0]["точки"][0][1] if mind.карта(б)["кластеры"][0]["ключ"] == "память" else 1, 1)
+            self.assertEqual(mind.рост(8)["уровень"], 2)
+            self.assertEqual(mind.рост(0)["уровень"], 1)
