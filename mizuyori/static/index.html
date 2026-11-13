@@ -100,10 +100,12 @@
       <h2>Агенты</h2>
       <span class="агенты-пульс" id="агенты-пульс" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
       <span class="агенты-итог" id="агенты-итог">—</span>
+      <button class="ссылка" id="агенты-схема" type="button">Схема</button>
       <button class="ссылка" id="агенты-обмен" type="button">Обмен</button>
       <button class="ссылка" id="агенты-поручения" type="button">Поручения <span class="счётчик" id="поручения-счёт" hidden></span></button>
       <button class="ссылка" id="агенты-доска" type="button">Доска <span class="счётчик" id="доска-счёт" hidden></span></button>
     </div>
+    <div class="кабинеты-вкладки" id="кабинеты-вкладки" role="tablist" aria-label="Кабинеты"></div>
     <div class="конвейер-лента">
       <canvas id="конвейер-холст" aria-hidden="true"></canvas>
       <div class="агенты-ряд" id="агенты-сетка"></div>
@@ -280,6 +282,20 @@
 </section>
 
 <!-- Окно правки задачи (доска, неделя, цели) -->
+<!-- Схема кабинетов: кто кому подчиняется -->
+<div class="затемнение" id="окно-схемы" hidden>
+  <div class="окно схема-окно" role="dialog" aria-modal="true" aria-label="Схема кабинетов">
+    <div class="схема-шапка">
+      <h2>Кабинеты и подчинение</h2>
+      <div class="схема-вкладки" id="схема-вкладки" role="tablist"></div>
+      <button class="кнопка-значок" id="закрыть-схему" type="button" aria-label="Закрыть">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="схема-тело" id="схема-тело"></div>
+  </div>
+</div>
+
 <!-- Агент: уровень, история решений, своя память, записки -->
 <div class="затемнение" id="окно-агента" hidden>
   <div class="окно агент-окно" id="агент-окно-карточка" role="dialog" aria-modal="true" aria-labelledby="агент-имя-окна">

@@ -16,7 +16,7 @@ import threading
 import time
 from datetime import date, timedelta
 
-from . import chat_delegate, graph_tools, overseer, senses, agents, archive, documents, new_agents, printing, putevoy, reference, smeta, work
+from . import cabinets, chat_delegate, graph_tools, overseer, senses, agents, archive, documents, new_agents, printing, putevoy, reference, smeta, work
 
 журнал = logging.getLogger("mizuyori.агенты.работа")
 
@@ -42,6 +42,7 @@ from . import chat_delegate, graph_tools, overseer, senses, agents, archive, doc
 ]
 РАБОЧИЕ_АГЕНТЫ += new_agents.ДОПОЛНИТЕЛЬНЫЕ_АГЕНТЫ
 РАБОЧИЕ_АГЕНТЫ.append(overseer.АГЕНТ)
+РАБОЧИЕ_АГЕНТЫ += cabinets.НОВЫЕ_АГЕНТЫ
 КЛЮЧИ = [а["ключ"] for а in РАБОЧИЕ_АГЕНТЫ]
 СРОЧНО = ("просрочено", "срочно")
 
@@ -67,6 +68,7 @@ def зарегистрировать() -> None:
         if а["ключ"] not in agents.ИМЕНА:
             agents.АГЕНТЫ.append(а)
             agents.ИМЕНА[а["ключ"]] = а["имя"]
+    cabinets.разметить(agents.АГЕНТЫ)
 
 
 def _зам(текст: str, важно: int = 1, кому: str | None = None) -> dict:
@@ -300,6 +302,7 @@ def наблюдать_инженера(база) -> list[dict]:
     "водитель": наблюдать_водителя, "экономист": наблюдать_экономиста,
     "делопроизводитель": наблюдать_делопроизводителя,
     **new_agents.НАБЛЮДАТЕЛИ_ДОПОЛНИТЕЛЬНЫЕ,
+    **cabinets.НАБЛЮДАТЕЛИ,
     "смотрящий": overseer.наблюдать,
 }
 

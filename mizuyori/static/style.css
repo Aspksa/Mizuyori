@@ -3623,3 +3623,51 @@ main.главная > .чат { grid-column: 1; grid-row: 1; }
 .работа-таблица.табель td, .работа-таблица.табель th { padding-left: 0; padding-right: 0; }
 .работа-таблица.табель td:first-child, .работа-таблица.табель th:first-child { padding-left: .7rem; padding-right: .5rem; }
 .работа-меню { padding: .9rem .55rem; }
+
+/* ---- кабинеты: вкладки над плитками ---- */
+.агенты-группа[hidden] { display: none; }
+.кабинеты-вкладки { display: flex; gap: .35rem; padding: .15rem .1rem .55rem; overflow-x: auto; scrollbar-width: none; flex: none; }
+.кабинеты-вкладки::-webkit-scrollbar { display: none; }
+.кабинеты-вкладки button { --кц: var(--акцент); flex: none; display: inline-flex; align-items: center; gap: .4rem; font: inherit; font-size: .78rem; font-weight: 600; letter-spacing: .02em;
+  padding: .38rem .8rem; border-radius: 999px; cursor: pointer; color: color-mix(in srgb, var(--текст) 75%, transparent);
+  background: color-mix(in srgb, var(--кц) 7%, #0b0d14); border: 1px solid color-mix(in srgb, var(--кц) 26%, #1d2232); transition: transform .15s, box-shadow .25s, background .2s, color .2s; }
+.кабинеты-вкладки button:hover { transform: translateY(-1px); border-color: var(--кц); }
+.кабинеты-вкладки .кб-точка { width: .5rem; height: .5rem; border-radius: 50%; background: var(--кц); box-shadow: 0 0 8px var(--кц); }
+.кабинеты-вкладки small { font: 700 .66rem ui-monospace, Consolas, monospace; opacity: .7; }
+.кабинеты-вкладки button[aria-selected="true"] { color: #fff; background: linear-gradient(135deg, color-mix(in srgb, var(--кц) 80%, #000), color-mix(in srgb, var(--кц) 40%, #000));
+  border-color: var(--кц); box-shadow: 0 8px 20px -10px var(--кц), inset 0 1px 0 #ffffff30; }
+
+/* ---- схема подчинения ---- */
+.окно.схема-окно { max-width: 76rem; width: 96vw; max-height: 92vh; border-radius: 26px; overflow: hidden; display: flex; flex-direction: column; border-color: #2a3150; box-shadow: 0 2rem 5rem rgba(0, 0, 0, .6); }
+.схема-шапка { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; padding: 1rem 1.3rem; background: linear-gradient(180deg, #121624, #0a0c13); border-bottom: 1px solid #1c2236; flex: none; }
+.схема-шапка h2 { margin: 0; font-size: 1.3rem; font-weight: 800; }
+.схема-вкладки { display: flex; gap: .3rem; flex: 1; flex-wrap: wrap; }
+.схема-вкладки button { --кц: var(--акцент); font: inherit; font-size: .84rem; font-weight: 600; padding: .4rem .95rem; border-radius: 999px; cursor: pointer; color: var(--текст);
+  background: color-mix(in srgb, var(--кц) 8%, #0b0d14); border: 1px solid color-mix(in srgb, var(--кц) 30%, #1d2232); transition: box-shadow .25s, background .2s; }
+.схема-вкладки button[aria-selected="true"] { color: #fff; background: linear-gradient(135deg, var(--кц), color-mix(in srgb, var(--кц) 50%, #000)); border-color: transparent; box-shadow: 0 8px 20px -8px var(--кц); }
+.схема-тело { --кц: var(--акцент); overflow: auto; padding: 1.3rem 1.3rem 1.8rem; background: radial-gradient(60% 40% at 50% 0%, color-mix(in srgb, var(--кц) 20%, transparent), transparent 70%), #07080d; position: relative; }
+.схема-верх { display: flex; flex-direction: column; align-items: center; gap: .5rem; text-align: center; }
+.схема-верх p { margin: 0; max-width: 40rem; color: #9aa3bd; font-size: .86rem; }
+.схема-ветки { height: 1.8rem; margin: 0 auto; width: 2px; background: linear-gradient(180deg, var(--кц), transparent); box-shadow: 0 0 10px var(--кц); }
+.схема-отделы { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: .9rem; position: relative; padding-top: .9rem; }
+.схема-отделы::before { content: ""; position: absolute; top: 0; left: 8%; right: 8%; height: 2px; background: linear-gradient(90deg, transparent, var(--кц), transparent); box-shadow: 0 0 10px var(--кц); }
+.схема-отдел { position: relative; padding: .8rem .7rem .9rem; border-radius: 22px; border: 1px solid color-mix(in srgb, var(--кц) 30%, #1d2232);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--кц) 9%, #0e1119), #080a10); box-shadow: 0 18px 36px -28px var(--кц); }
+.схема-отдел::before { content: ""; position: absolute; top: -.9rem; left: 50%; width: 2px; height: .9rem; background: var(--кц); box-shadow: 0 0 8px var(--кц); }
+.схема-отдел h3 { margin: 0 0 .6rem; text-align: center; font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: color-mix(in srgb, var(--кц) 70%, #fff); }
+.схема-люди { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; }
+.схема-узел { position: relative; display: flex; flex-direction: column; align-items: center; gap: .1rem; width: 6.4rem; padding: .3rem .25rem .5rem; border-radius: 18px; cursor: pointer; font: inherit; color: var(--текст);
+  background: #ffffff05; border: 1px solid #ffffff10; transition: transform .2s, box-shadow .25s, background .2s, border-color .2s; }
+.схема-узел:hover { transform: translateY(-3px); background: color-mix(in srgb, var(--кц) 14%, transparent); border-color: var(--кц); box-shadow: 0 14px 26px -14px var(--кц); }
+.схема-узел .схема-герой { display: block; width: 4.6rem; height: 4.9rem; }
+.схема-узел .схема-герой svg { width: 100%; height: 100%; overflow: visible; }
+.схема-узел b { font-size: .72rem; line-height: 1.15; text-align: center; font-weight: 700; }
+.схема-узел small { font: .62rem ui-monospace, Consolas, monospace; color: #8b93ad; }
+.схема-узел.главный { width: 7.4rem; border-color: color-mix(in srgb, var(--кц) 55%, transparent); background: color-mix(in srgb, var(--кц) 13%, transparent); box-shadow: 0 0 22px -8px var(--кц); }
+.схема-верх .схема-узел.главный { width: 10rem; padding-top: .5rem; }
+.схема-верх .схема-узел .схема-герой { width: 7rem; height: 7.5rem; }
+.схема-верх .схема-узел b { font-size: .95rem; }
+.схема-узел.работает { border-color: #3ee08a; box-shadow: 0 0 18px -4px #3ee08a; }
+.схема-узел.работает small { color: #7dffb2; }
+.схема-узел.ошибка { border-color: #ff5a4a; }
+@media (max-width: 40rem) { .схема-тело { padding: .8rem; } .схема-отделы { grid-template-columns: 1fr; } .схема-отделы::before, .схема-отдел::before, .схема-ветки { display: none; } }
