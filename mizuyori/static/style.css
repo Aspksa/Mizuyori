@@ -3843,3 +3843,50 @@ main.главная { grid-template-columns: minmax(28rem, min(56rem, 40vw)) min
 .журнал-решений .ссылка { margin: .35rem .4rem 0 0; font-size: .74rem; border: 1px solid rgba(120, 150, 200, .35); border-radius: 999px; padding: .15rem .65rem; background: transparent; color: #cfe0ff; cursor: pointer; }
 .журнал-решений .ссылка:hover:not([disabled]) { border-color: #58c4ff; }
 .журнал-решений .ссылка[disabled] { opacity: .5; cursor: default; }
+
+/* =============================================================================
+   ДИСК: плитки файлов, версии, корзина, копии
+   ============================================================================= */
+.экран-диска { --рц: hsl(120 45% 56%); }
+.архив-список-обёртка { display: flex; flex-direction: column; gap: .5rem; }
+.архив-вид-переключатель { display: flex; gap: .2rem; align-self: flex-end; }
+.архив-вид-переключатель .кнопка-значок { width: 1.9rem; height: 1.9rem; opacity: .6; }
+.архив-вид-переключатель .кнопка-значок.активен { opacity: 1; background: color-mix(in srgb, var(--акцент) 20%, transparent); }
+.архив-плитки { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(11.5rem, 1fr)); gap: .7rem; }
+.архив-плитка { position: relative; display: flex; flex-direction: column; gap: .3rem; padding: .8rem .8rem .6rem; border: 1px solid var(--рамка); border-radius: 16px;
+  background: color-mix(in srgb, var(--акцент) 4%, transparent); transition: transform .15s, border-color .2s, background .2s; min-width: 0; }
+.архив-плитка:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--акцент) 55%, var(--рамка)); background: color-mix(in srgb, var(--акцент) 8%, transparent); }
+.архив-плитка.пропал { border-color: #e5534b; }
+.архив-плитка-значок { display: grid; place-items: center; height: 4.2rem; border-radius: 12px; font-size: 2.2rem;
+  background: color-mix(in srgb, var(--акцент) 9%, transparent); }
+.архив-плитка .архив-файл-имя { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: .84rem; }
+.архив-плитка .архив-файл-описание { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.архив-плитка .архив-файл-действия { justify-content: flex-end; opacity: 0; transition: opacity .15s; }
+.архив-плитка:hover .архив-файл-действия, .архив-плитка:focus-within .архив-файл-действия { opacity: 1; }
+@media (hover: none) { .архив-плитка .архив-файл-действия { opacity: 1; } }
+.архив-версии { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .3rem; }
+.архив-версии li { display: flex; align-items: center; gap: .8rem; padding: .4rem .6rem; border: 1px solid var(--рамка); border-radius: 10px; font-size: .86rem; }
+.архив-версии li.текущая { border-color: var(--акцент); }
+.архив-версии li > :nth-child(2) { flex: 1; color: var(--тихий); }
+.архив-версия-кнопки { display: flex; gap: .6rem; }
+.диск-карточки { display: grid; grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr)); gap: .7rem; }
+.диск-карточка { display: flex; flex-direction: column; gap: .15rem; padding: .8rem 1rem; border: 1px solid var(--рамка); border-radius: 16px;
+  background: color-mix(in srgb, var(--рц) 7%, transparent); }
+.диск-карточка-название { font-size: .76rem; color: var(--тихий); text-transform: uppercase; letter-spacing: .06em; }
+.диск-карточка-число { font-size: 1.7rem; }
+.диск-карточка-мелко { font-size: .78rem; color: var(--тихий); overflow-wrap: anywhere; }
+.диск-виды { display: flex; flex-wrap: wrap; gap: .4rem; }
+.диск-вид { padding: .2rem .7rem; border-radius: 999px; background: color-mix(in srgb, var(--акцент) 12%, transparent); font-size: .82rem; }
+
+/* Телефон: «Работа» и «Диск» — меню сверху, содержимое под ним (поздние правила выше перебивали узкую раскладку) */
+@media (max-width: 52rem) {
+  .экран-работы { grid-template-columns: minmax(0, 1fr); }
+  .экран-работы .работа-меню { flex-direction: row; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; max-height: none; }
+  .экран-работы .работа-меню h1 { display: none; }
+  .экран-работы .работа-меню button { flex: none; }
+  .архив-плитки { grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr)); }
+}
+@media (max-width: 30rem) {
+  .логотип { display: none; }
+  #меню { flex: 1; justify-content: space-around; }
+}

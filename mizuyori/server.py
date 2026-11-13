@@ -1443,9 +1443,9 @@ def создать_приложение(настройки: dict, база: Ба
         return итог
 
     @app.get("/api/archive/file/{fid}")
-    def архив_скачать(fid: int):
+    def архив_скачать(fid: int, inline: bool = False):
         п = _архив(lambda: archive.путь_на_диске(база, fid))
-        return FileResponse(п, filename=п.name)
+        return FileResponse(п, filename=п.name, content_disposition_type="inline" if inline else "attachment")
 
     @app.patch("/api/archive/file/{fid}")
     def архив_править(fid: int, з: ФайлПравка):
