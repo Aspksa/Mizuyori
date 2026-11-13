@@ -25,18 +25,11 @@
     };
 
     function показать(новый) {
-      if (!["круг", "мозг", "память", "душа", "список"].includes(новый)) новый = "круг";
+      if (!["круг", "память", "душа", "список"].includes(новый)) новый = "круг";
       слой = новый;
       очередь++;
       for (const к of переключатель.querySelectorAll("button[data-слой]")) к.setAttribute("aria-selected", String(к.dataset.слой === слой));
       document.body.dataset.слой = слой;
-      const мозг2 = $("экран-мозг2");
-      if (мозг2) { мозг2.hidden = слой !== "мозг"; document.dispatchEvent(new CustomEvent("mizuyori:мозг2", { detail: слой === "мозг" })); }
-      if (слой === "мозг") {
-        мозги.hidden = true;
-        послать("главная");
-        return;
-      }
       if (слой === "круг") {
         мозги.hidden = true;
         послать("главная");
@@ -69,7 +62,7 @@
     // Ушли на другой экран и вернулись — слой нужно разбудить заново
     document.addEventListener("mizuyori:экран", (с) => {
       if (своё) return;
-      if (с.detail === "главная" && слой !== "круг" && слой !== "мозг") setTimeout(() => послать("мозги"), 0);
+      if (с.detail === "главная" && слой !== "круг") setTimeout(() => послать("мозги"), 0);
     });
     document.body.dataset.слой = "круг";
   }

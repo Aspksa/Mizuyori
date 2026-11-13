@@ -103,7 +103,6 @@
       <button class="ссылка" id="агенты-вид" type="button" hidden>Кабинеты</button>
       <span class="слои-главной" id="слои-главной" role="tablist" aria-label="Слой визуализации">
         <button type="button" role="tab" data-слой="круг" aria-selected="true" title="Агенты кругом: кто работает и что передаёт">◎ Агенты</button>
-        <button type="button" role="tab" data-слой="мозг" aria-selected="false" title="Второй мозг: душа в центре, агенты читают записи и растят её">◉ Мозг</button>
         <button type="button" role="tab" data-слой="список" aria-selected="false" title="Список агентов: уровни, рост, умения">☰ Список</button>
       </span>
       <button class="ссылка" id="агенты-журнал-кнопка" type="button" title="Журнал решений: кто отвечал, на чём основан ответ, чем кончилось">Журнал</button>
@@ -120,19 +119,6 @@
       <canvas id="конвейер-холст" aria-hidden="true"></canvas>
       <div class="агенты-ряд" id="агенты-сетка"></div>
       <!-- Слои главной: «Память», «Душа» и «Список» — бывшие «Мозги», теперь живут поверх круга агентов -->
-      <section class="мозг2" id="экран-мозг2" aria-label="Второй мозг" hidden>
-        <canvas id="мозг2-холст" aria-label="Второй мозг: душа в центре, вокруг кластеры знаний, агенты читают точки"></canvas>
-        <div class="мозг2-панель">
-          <span class="мозг2-раскладка" role="group" aria-label="Раскладка">
-            <button type="button" data-раскладка="кольца" aria-pressed="true">Кольца</button>
-            <button type="button" data-раскладка="соты" aria-pressed="false">Соты</button>
-          </span>
-          <button type="button" id="мозг2-читают" aria-pressed="true">⏸ Агенты читают</button>
-          <button type="button" id="мозг2-сброс">Сбросить вид</button>
-        </div>
-        <div class="мозг2-инфо" id="мозг2-инфо">—</div>
-        <div class="агенты-граф-подсказка" id="мозг2-подсказка" hidden></div>
-      </section>
       <section class="мозги" id="экран-мозги" aria-label="Мозги" hidden>
         <canvas id="мозги-холст" aria-label="Граф мозгов: перетаскивайте мышью, колесо — приближение"></canvas>
       
@@ -780,7 +766,6 @@
 <script src="/static/archive.js" charset="utf-8"></script>
 <script src="/static/work.js" charset="utf-8"></script>
 <script src="/static/disk.js" charset="utf-8"></script>
-<script src="/static/mind.js" charset="utf-8"></script>
 <script src="/static/layers.js" charset="utf-8"></script>
 <script src="/static/center.js" charset="utf-8"></script>
 <script src="/static/ai-settings.js" charset="utf-8"></script>
