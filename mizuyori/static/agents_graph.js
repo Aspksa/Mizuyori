@@ -267,6 +267,20 @@
       к.setLineDash([]);
     }
 
+    // Текст на холсте — самая дорогая часть кадра, поэтому плашки и подписи рисуются один раз в маленький холст-«спрайт»,
+    // а в кадре только копируются (drawImage). Ключ включает всё, что меняет вид (текст, цвет, плотность пикселей).
+    const спрайты = new Map();
+    function спрайт(ключ, ш_, в_, рисовать) {
+      const полный = `${ключ}|${dpr}`;
+      let с = спрайты.get(полный);
+      if (!с) {
+        if (спрайты.size > 400) спрайты.clear();
+        const c = document.createElement("canvas"); c.width = Math.ceil(ш_ * dpr); c.height = Math.ceil(в_ * dpr);
+        const g = c.getContext("2d"); g.scale(dpr, dpr);
+        const было = к; рисовать(g); с = { c, ш: ш_, в: в_ }; спрайты.set(полный, с); void было;
+      }
+      return с;
+    }
     function рисоватьКабинеты() {
       for (const каб of кабинеты) {
         const тих = Boolean(выбранКабинет) && каб.ключ !== выбранКабинет, а = тих ? .35 : 1;
@@ -277,13 +291,13 @@
         к.restore();
         const p = точкаЭ(каб.θм + поворот, Math.max(A * .5, 150), Math.max(B * .5, 150));
         const члены = каб.члены; let работают = 0; for (const n of члены) if (n.а.работает) работают++;
-        к.save(); к.translate(p.x, p.y); к.textAlign = "center"; к.textBaseline = "middle"; к.globalAlpha = тих ? .4 : 1;
-        к.font = "700 12.5px " + МОНО; к.letterSpacing = "1.6px"; к.fillStyle = прозрачный(каб.цвет, .98);
-        к.fillText(каб.название.toUpperCase().slice(0, 26), 0, -8);
-        к.font = "10px " + МОНО; к.letterSpacing = ".6px"; к.fillStyle = работают ? "#fff" : "rgba(170,205,205,.55)";
-        к.fillText(работают ? `${работают} из ${члены.length} работают` : `${члены.length} агентов`, 0, 9);
-        к.letterSpacing = "0px";
-        к.restore();
+        const текстКаб = каб.название.toUpperCase().slice(0, 26), подпись = работают ? `${работают} из ${члены.length} работают` : `${члены.length} агентов`;
+        const сп = спрайт(`каб|${текстКаб}|${подпись}|${каб.цвет}|${работают > 0}`, 260, 34, (g) => {
+          g.translate(130, 17); g.textAlign = "center"; g.textBaseline = "middle";
+          g.font = "700 12.5px " + МОНО; g.letterSpacing = "1.6px"; g.fillStyle = прозрачный(каб.цвет, .98); g.fillText(текстКаб, 0, -8);
+          g.font = "10px " + МОНО; g.letterSpacing = ".6px"; g.fillStyle = работают ? "#fff" : "rgba(170,205,205,.55)"; g.fillText(подпись, 0, 9);
+        });
+        к.save(); к.globalAlpha = тих ? .4 : 1; к.drawImage(сп.c, p.x - 130, p.y - 17, сп.ш, сп.в); к.restore();
       }
     }
 
@@ -417,12 +431,16 @@
         if (подписиВсе && !фокус && !раб) {          // плашка с названием у каждого агента, повёрнута вдоль луча (как на «Командном центре»)
           const имя_ = у.а.имя || у.ключ, т_ = имя_.length > 20 ? `${имя_.slice(0, 19)}…` : имя_, сл = Math.cos(у.нормаль) < 0, лид = Boolean(кабинетУзла(у)?.лидер === у);
           к.save(); к.globalAlpha = приглушён(у) ? .22 : 1; к.translate(у.x, у.y); к.rotate(сл ? у.нормаль + Math.PI : у.нормаль);
-          к.font = `${лид ? "700" : "500"} 9.5px ${МОНО}`; к.letterSpacing = ".2px";
-          const w_ = к.measureText(т_).width + 12, h_ = 15, x0_ = (у.r + 7 + у.ст) * (сл ? -1 : 1) - (сл ? w_ : 0);
-          к.fillStyle = "rgba(6,17,26,.92)"; к.strokeStyle = прозрачный(у.цвет, лид ? .8 : .38); к.lineWidth = 1;
-          к.beginPath(); к.roundRect(x0_, -h_ / 2, w_, h_, 4); к.fill(); к.stroke();
-          к.textAlign = "left"; к.fillStyle = лид ? "#fff" : "rgba(205,228,228,.9)"; if (сл) к.rotate(0);
-          к.fillText(т_, x0_ + 6, .5); к.letterSpacing = "0px"; к.restore();
+          const сп = спрайт(`чип|${т_}|${лид}|${у.цвет}`, 200, 15, (g) => {
+            g.font = `${лид ? "700" : "500"} 9.5px ${МОНО}`; g.letterSpacing = ".2px"; g.textBaseline = "middle";
+            const w = g.measureText(т_).width + 12;
+            g.fillStyle = "rgba(6,17,26,.92)"; g.strokeStyle = прозрачный(у.цвет, лид ? .8 : .38); g.lineWidth = 1;
+            g.beginPath(); g.roundRect(.5, .5, w - 1, 14, 4); g.fill(); g.stroke();
+            g.textAlign = "left"; g.fillStyle = лид ? "#fff" : "rgba(205,228,228,.9)"; g.fillText(т_, 6, 8);
+            g.canvas.дл = w;
+          });
+          const w_ = сп.c.дл || 100, x0_ = (у.r + 7 + у.ст) * (сл ? -1 : 1) - (сл ? w_ : 0);
+          к.drawImage(сп.c, x0_, -7.5, 200, 15); к.restore();
           continue;
         }
         if (!(фокус || раб || (кабинетУзла(у)?.лидер === у && !выбранКабинет))) continue;
@@ -542,9 +560,13 @@
       к.save();
       к.save(); к.lineWidth = 1; к.setLineDash([1, 7]); к.strokeStyle = "rgba(160,200,255,.16)";
       к.beginPath(); к.arc(0, 0, РАДИУС_ПАМЯТИ, 0, Math.PI * 2); к.stroke(); к.setLineDash([]);
-      for (let i = 0; i < 60; i++) {                     // шкала HUD по кольцу
-        const θ = i * Math.PI / 30, крупно = i % 5 === 0, a0 = РАДИУС_ПАМЯТИ + 3, a1 = a0 + (крупно ? 6 : 3);
-        к.beginPath(); к.moveTo(Math.cos(θ) * a0, Math.sin(θ) * a0); к.lineTo(Math.cos(θ) * a1, Math.sin(θ) * a1);
+      for (const крупно of [false, true]) {              // шкала HUD по кольцу: два пути вместо шестидесяти
+        к.beginPath();
+        for (let i = 0; i < 60; i++) {
+          if ((i % 5 === 0) !== крупно) continue;
+          const θ = i * Math.PI / 30, a0 = РАДИУС_ПАМЯТИ + 3, a1 = a0 + (крупно ? 6 : 3);
+          к.moveTo(Math.cos(θ) * a0, Math.sin(θ) * a0); к.lineTo(Math.cos(θ) * a1, Math.sin(θ) * a1);
+        }
         к.lineWidth = крупно ? 1.2 : .7; к.strokeStyle = `rgba(160,200,255,${крупно ? .3 : .14})`; к.stroke();
       }
       к.restore();
@@ -638,12 +660,17 @@
     let вращениеЯдра = 0.6;
     function рисоватьОблако(работают) {
       if (работают) вращениеЯдра = время * .55;
-      const c = Math.cos(вращениеЯдра), sn = Math.sin(вращениеЯдра);
-      for (const [x, y, z] of ТОЧКИ_ЯДРА) {
-        const x1 = x * c + z * sn, z1 = -x * sn + z * c, гл = (z1 + 1) / 2;
-        к.fillStyle = прозрачный(душа.цвет, .2 + гл * .75);
-        const р = .8 + гл * 1.25; к.fillRect(x1 * 25 - р / 2, y * 25 - р / 2, р, р);
-      }
+      const угол = Math.round(вращениеЯдра * 40) / 40;      // облако перерисовывается в спрайт только при заметном повороте
+      const сп = спрайт(`облако|${душа.цвет}|${угол}`, 56, 56, (g) => {
+        g.translate(28, 28);
+        const c = Math.cos(угол), sn = Math.sin(угол);
+        for (const [x, y, z] of ТОЧКИ_ЯДРА) {
+          const x1 = x * c + z * sn, z1 = -x * sn + z * c, гл = (z1 + 1) / 2;
+          g.fillStyle = прозрачный(душа.цвет, .2 + гл * .75);
+          const р = .8 + гл * 1.25; g.fillRect(x1 * 25 - р / 2, y * 25 - р / 2, р, р);
+        }
+      });
+      к.drawImage(сп.c, -28, -28, 56, 56);
     }
     function рисоватьЯдро(работают) {
       const п = .5 + .5 * Math.sin(время * (работают ? 4 : .9 + душа.энергия * 1.2));
