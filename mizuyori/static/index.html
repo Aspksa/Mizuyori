@@ -33,10 +33,6 @@
       <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 7.5a2 2 0 012-2h4l2 2.2h7a2 2 0 012 2V17.5a2 2 0 01-2 2h-13a2 2 0 01-2-2z"/></svg>
       <span>Диск</span>
     </a>
-    <a href="#мозги" data-экран="мозги">
-      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.5"/><circle cx="5" cy="6" r="1.6"/><circle cx="19" cy="6" r="1.6"/><circle cx="5" cy="18" r="1.6"/><circle cx="19" cy="18" r="1.6"/><path d="M6.3 7l3.7 3.4M17.7 7L14 10.4M6.3 17l3.7-3.4M17.7 17L14 13.6"/></svg>
-      <span>Мозги</span>
-    </a>
   </nav>
 </header>
 
@@ -104,7 +100,13 @@
       <h2>Агенты</h2>
       <span class="агенты-пульс" id="агенты-пульс" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
       <span class="агенты-итог" id="агенты-итог">—</span>
-      <button class="ссылка" id="агенты-вид" type="button">Кабинеты</button>
+      <button class="ссылка" id="агенты-вид" type="button" hidden>Кабинеты</button>
+      <span class="слои-главной" id="слои-главной" role="tablist" aria-label="Слой визуализации">
+        <button type="button" role="tab" data-слой="круг" aria-selected="true" title="Агенты кругом: кто работает и что передаёт">◎ Агенты</button>
+        <button type="button" role="tab" data-слой="память" aria-selected="false" title="Память ИИ: факты, чаты, задачи и агенты одним графом">✺ Память</button>
+        <button type="button" role="tab" data-слой="душа" aria-selected="false" title="Душа: характер, ценности и настроение">♡ Душа</button>
+        <button type="button" role="tab" data-слой="список" aria-selected="false" title="Список агентов: уровни, рост, умения">☰ Список</button>
+      </span>
       <button class="ссылка" id="агенты-журнал-кнопка" type="button" title="Журнал решений: кто отвечал, на чём основан ответ, чем кончилось">Журнал</button>
       <button class="ссылка" id="агенты-схема" type="button">Схема</button>
       <button class="ссылка" id="агенты-обмен" type="button">Обмен</button>
@@ -118,6 +120,118 @@
       <div class="журнал-решений" id="журнал-решений" hidden></div>
       <canvas id="конвейер-холст" aria-hidden="true"></canvas>
       <div class="агенты-ряд" id="агенты-сетка"></div>
+      <!-- Слои главной: «Память», «Душа» и «Список» — бывшие «Мозги», теперь живут поверх круга агентов -->
+      <section class="мозги" id="экран-мозги" aria-label="Мозги" hidden>
+        <canvas id="мозги-холст" aria-label="Граф мозгов: перетаскивайте мышью, колесо — приближение"></canvas>
+      
+        <!-- Вкладка «Душа»: характер, ценности и настроение ИИ -->
+        <div class="душа" id="душа" hidden>
+          <div class="душа-сцена">
+            <canvas id="душа-холст" aria-label="Душа: светящееся ядро, вокруг — черты, ценности и границы"></canvas>
+            <div class="душа-подпись">
+              <div class="душа-имя" id="душа-имя">—</div>
+              <div class="душа-настроение" id="душа-настроение"></div>
+            </div>
+          </div>
+          <aside class="душа-панель" id="душа-панель" aria-label="Душа"></aside>
+        </div>
+      
+        <div class="мозги-верх">
+          <div class="виды мозги-вкладки" id="мозги-вкладки" role="tablist" aria-label="Мозги">
+            <button type="button" role="tab" data-вкладка="граф" aria-selected="true">✺ Граф</button>
+            <button type="button" role="tab" data-вкладка="душа" aria-selected="false">♡ Душа</button>
+          </div>
+          <div class="мозги-счёт"><span class="огонёк"></span><span id="мозги-счёт">—</span></div>
+          <button class="кнопка второстепенная малая" id="мозги-обновить" type="button">Обновить</button>
+        </div>
+      
+        <button class="кнопка-значок мозги-панель-кнопка" id="мозги-панель-кнопка" type="button" aria-label="Панель мозгов" aria-expanded="true">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      
+        <aside class="мозги-панель" id="мозги-панель">
+          <div class="поиск">
+            <input id="мозги-поиск" type="text" placeholder="Искать в мозгах" autocomplete="off" aria-label="Поиск">
+            <kbd>/</kbd>
+          </div>
+      
+          <div class="группа-панели">
+            <span class="поле-название">Раскладка</span>
+            <div class="кнопки-выбора плитки" id="мозги-раскладка" role="radiogroup" aria-label="Раскладка">
+              <button type="button" role="radio" data-значение="кольца"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/></svg><span>Кольца</span></button>
+              <button type="button" role="radio" data-значение="круг"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="3" r=".8"/><circle cx="19.8" cy="16.5" r=".8"/><circle cx="4.2" cy="16.5" r=".8"/></svg><span>Круг</span></button>
+              <button type="button" role="radio" data-значение="соты"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 4v8l-7 4-7-4V7z"/><path d="M12 3v16M5 7l14 8M19 7L5 15" opacity=".35"/></svg><span>Соты</span></button>
+              <button type="button" role="radio" data-значение="сила"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="7" r="2"/><circle cx="18" cy="9" r="2"/><circle cx="10" cy="18" r="2"/><path d="M7.7 8l8.6 1M7 9l2.2 7M16.8 10.6L11.4 16.6"/></svg><span>Сила</span></button>
+              <button type="button" role="radio" data-значение="плата"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 4v5h6M9 20v-5M15 15h5M4 12h5"/></svg><span>Плата</span></button>
+              <button type="button" role="radio" data-значение="hud"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3"/><circle cx="12" cy="12" r="3"/><path d="M12 6v2M12 16v2M6 12h2M16 12h2" opacity=".6"/></svg><span>HUD</span></button>
+              <button type="button" role="radio" data-значение="понимание"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg><span>Понимание</span></button>
+            </div>
+          </div>
+      
+          <div class="группа-панели">
+            <span class="поле-название">Вид</span>
+            <div class="кнопки-выбора сегменты" id="мозги-вид" role="radiogroup" aria-label="Вид">
+              <button type="button" role="radio" data-значение="разделы"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></svg><span>Разделы</span></button>
+              <button type="button" role="radio" data-значение="списки"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r=".9"/><circle cx="3.5" cy="12" r=".9"/><circle cx="3.5" cy="18" r=".9"/></svg><span>Списки</span></button>
+            </div>
+          </div>
+      
+          <div class="группа-панели карточка-группы">
+            <label class="ползунок"><span class="ползунок-имя"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>Вращение колец</span><output id="мозги-вращение-знач"></output>
+              <input type="range" id="мозги-вращение" min="0" max="1" step="0.05"></label>
+            <label class="флажок-строка переключатель"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V5h16v2M12 5v14M9 19h6"/></svg><span class="переключатель-текст">Названия точек при приближении</span><input type="checkbox" id="мозги-названия"><span class="бегунок" aria-hidden="true"></span></label>
+            <label class="флажок-строка переключатель"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="11" rx="3"/><path d="M12 4v4M9 13h.01M15 13h.01M9.5 16.5h5"/></svg><span class="переключатель-текст">Агенты на графе</span><input type="checkbox" id="мозги-агенты"><span class="бегунок" aria-hidden="true"></span></label>
+            <label class="ползунок"><span class="ползунок-имя"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h3l2-5 3 10 3-10 2 5h5"/></svg>Пружины (сила)</span><output id="мозги-пружины-знач"></output>
+              <input type="range" id="мозги-пружины" min="0.005" max="0.1" step="0.005"></label>
+            <label class="ползунок"><span class="ползунок-имя"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l16-16M4 20v-6M4 20h6M20 4v6M20 4h-6"/></svg>Размер (круг и соты)</span><output id="мозги-размер-знач"></output>
+              <input type="range" id="мозги-размер" min="0.3" max="1.5" step="0.05"></label>
+          </div>
+      
+          <div class="группа-панели карточка-группы">
+            <label class="флажок-строка переключатель"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8 8l8 8" stroke-dasharray="2 2.5"/><circle cx="18" cy="6" r="1.5" opacity=".5"/></svg><span class="переключатель-текст">Смысловые связи</span><input type="checkbox" id="мозги-связи"><span class="бегунок" aria-hidden="true"></span></label>
+            <label class="ползунок"><span class="ползунок-имя"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-6 4 12 2-6h6"/><path d="M3 20h18" opacity=".4"/></svg>Порог похожести</span><output id="мозги-порог-знач"></output>
+              <input type="range" id="мозги-порог" min="0.3" max="0.98" step="0.01"></label>
+            <div class="связи-статус">
+              <span id="мозги-связи-статус"></span>
+              <button class="ссылка" id="мозги-связи-обновить" type="button">Пересчитать</button>
+            </div>
+          </div>
+      
+          <div class="три-кнопки">
+            <button class="кнопка второстепенная" id="мозги-развернуть" type="button"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span>Развернуть всё</span></button>
+            <button class="кнопка второстепенная" id="мозги-свернуть" type="button"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg><span>Свернуть всё</span></button>
+            <button class="кнопка второстепенная" id="мозги-центр" type="button"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg><span>В центр</span></button>
+          </div>
+          <div class="две-кнопки">
+            <button class="кнопка главная" id="мозги-сохранить" type="button"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h11l4 4v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M8 3v5h7M8 21v-7h8v7"/></svg><span>Сохранить настройки</span></button>
+            <button class="кнопка второстепенная" id="мозги-png" type="button"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg><span>Скачать PNG</span></button>
+          </div>
+          <p class="статус" id="мозги-статус" aria-live="polite"></p>
+      
+          <div class="карточка-узла" id="мозги-карточка" hidden>
+            <div class="карточка-тип" id="мозги-карточка-тип"></div>
+            <div class="карточка-текст" id="мозги-карточка-текст"></div>
+            <div class="карточка-мета" id="мозги-карточка-мета"></div>
+            <div class="зачем" id="мозги-зачем" hidden></div>
+            <div class="подробно" id="мозги-подробно"></div>
+            <div class="похожее" id="мозги-похожее" hidden>
+              <div class="поле-название">Похожее по смыслу</div>
+              <ul id="мозги-похожее-список"></ul>
+            </div>
+            <div class="кнопки-карточки">
+              <button class="кнопка второстепенная" id="мозги-доп" type="button" hidden></button>
+              <button class="кнопка главная" id="мозги-открыть" type="button">Открыть</button>
+            </div>
+          </div>
+        </aside>
+      
+        <div class="мозги-подсказка" id="мозги-подсказка" hidden></div>
+      
+        <div class="мозги-загрузка" id="мозги-загрузка">
+          <div class="загрузка-текст">Собираю мозги</div>
+          <div class="загрузка-полоса"><span id="мозги-полоса"></span></div>
+        </div>
+      </section>
     </div>
   </aside>
 
@@ -470,117 +584,7 @@
 </div>
 
 <!-- Экран «Мозги»: всё, что знает Mizuyori, в виде живого графа -->
-<section class="мозги" id="экран-мозги" aria-label="Мозги" hidden>
-  <canvas id="мозги-холст" aria-label="Граф мозгов: перетаскивайте мышью, колесо — приближение"></canvas>
 
-  <!-- Вкладка «Душа»: характер, ценности и настроение ИИ -->
-  <div class="душа" id="душа" hidden>
-    <div class="душа-сцена">
-      <canvas id="душа-холст" aria-label="Душа: светящееся ядро, вокруг — черты, ценности и границы"></canvas>
-      <div class="душа-подпись">
-        <div class="душа-имя" id="душа-имя">—</div>
-        <div class="душа-настроение" id="душа-настроение"></div>
-      </div>
-    </div>
-    <aside class="душа-панель" id="душа-панель" aria-label="Душа"></aside>
-  </div>
-
-  <div class="мозги-верх">
-    <div class="виды мозги-вкладки" id="мозги-вкладки" role="tablist" aria-label="Мозги">
-      <button type="button" role="tab" data-вкладка="граф" aria-selected="true">✺ Граф</button>
-      <button type="button" role="tab" data-вкладка="душа" aria-selected="false">♡ Душа</button>
-    </div>
-    <div class="мозги-счёт"><span class="огонёк"></span><span id="мозги-счёт">—</span></div>
-    <button class="кнопка второстепенная малая" id="мозги-обновить" type="button">Обновить</button>
-  </div>
-
-  <button class="кнопка-значок мозги-панель-кнопка" id="мозги-панель-кнопка" type="button" aria-label="Панель мозгов" aria-expanded="true">
-    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-  </button>
-
-  <aside class="мозги-панель" id="мозги-панель">
-    <div class="поиск">
-      <input id="мозги-поиск" type="text" placeholder="Искать в мозгах" autocomplete="off" aria-label="Поиск">
-      <kbd>/</kbd>
-    </div>
-
-    <div class="группа-панели">
-      <span class="поле-название">Раскладка</span>
-      <div class="кнопки-выбора плитки" id="мозги-раскладка" role="radiogroup" aria-label="Раскладка">
-        <button type="button" role="radio" data-значение="кольца"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/></svg><span>Кольца</span></button>
-        <button type="button" role="radio" data-значение="круг"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="3" r=".8"/><circle cx="19.8" cy="16.5" r=".8"/><circle cx="4.2" cy="16.5" r=".8"/></svg><span>Круг</span></button>
-        <button type="button" role="radio" data-значение="соты"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 4v8l-7 4-7-4V7z"/><path d="M12 3v16M5 7l14 8M19 7L5 15" opacity=".35"/></svg><span>Соты</span></button>
-        <button type="button" role="radio" data-значение="сила"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="7" r="2"/><circle cx="18" cy="9" r="2"/><circle cx="10" cy="18" r="2"/><path d="M7.7 8l8.6 1M7 9l2.2 7M16.8 10.6L11.4 16.6"/></svg><span>Сила</span></button>
-        <button type="button" role="radio" data-значение="плата"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 4v5h6M9 20v-5M15 15h5M4 12h5"/></svg><span>Плата</span></button>
-        <button type="button" role="radio" data-значение="hud"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3"/><circle cx="12" cy="12" r="3"/><path d="M12 6v2M12 16v2M6 12h2M16 12h2" opacity=".6"/></svg><span>HUD</span></button>
-        <button type="button" role="radio" data-значение="понимание"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg><span>Понимание</span></button>
-      </div>
-    </div>
-
-    <div class="группа-панели">
-      <span class="поле-название">Вид</span>
-      <div class="кнопки-выбора сегменты" id="мозги-вид" role="radiogroup" aria-label="Вид">
-        <button type="button" role="radio" data-значение="разделы"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></svg><span>Разделы</span></button>
-        <button type="button" role="radio" data-значение="списки"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r=".9"/><circle cx="3.5" cy="12" r=".9"/><circle cx="3.5" cy="18" r=".9"/></svg><span>Списки</span></button>
-      </div>
-    </div>
-
-    <div class="группа-панели карточка-группы">
-      <label class="ползунок"><span class="ползунок-имя"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>Вращение колец</span><output id="мозги-вращение-знач"></output>
-        <input type="range" id="мозги-вращение" min="0" max="1" step="0.05"></label>
-      <label class="флажок-строка переключатель"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V5h16v2M12 5v14M9 19h6"/></svg><span class="переключатель-текст">Названия точек при приближении</span><input type="checkbox" id="мозги-названия"><span class="бегунок" aria-hidden="true"></span></label>
-      <label class="флажок-строка переключатель"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="11" rx="3"/><path d="M12 4v4M9 13h.01M15 13h.01M9.5 16.5h5"/></svg><span class="переключатель-текст">Агенты на графе</span><input type="checkbox" id="мозги-агенты"><span class="бегунок" aria-hidden="true"></span></label>
-      <label class="ползунок"><span class="ползунок-имя"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h3l2-5 3 10 3-10 2 5h5"/></svg>Пружины (сила)</span><output id="мозги-пружины-знач"></output>
-        <input type="range" id="мозги-пружины" min="0.005" max="0.1" step="0.005"></label>
-      <label class="ползунок"><span class="ползунок-имя"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l16-16M4 20v-6M4 20h6M20 4v6M20 4h-6"/></svg>Размер (круг и соты)</span><output id="мозги-размер-знач"></output>
-        <input type="range" id="мозги-размер" min="0.3" max="1.5" step="0.05"></label>
-    </div>
-
-    <div class="группа-панели карточка-группы">
-      <label class="флажок-строка переключатель"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8 8l8 8" stroke-dasharray="2 2.5"/><circle cx="18" cy="6" r="1.5" opacity=".5"/></svg><span class="переключатель-текст">Смысловые связи</span><input type="checkbox" id="мозги-связи"><span class="бегунок" aria-hidden="true"></span></label>
-      <label class="ползунок"><span class="ползунок-имя"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-6 4 12 2-6h6"/><path d="M3 20h18" opacity=".4"/></svg>Порог похожести</span><output id="мозги-порог-знач"></output>
-        <input type="range" id="мозги-порог" min="0.3" max="0.98" step="0.01"></label>
-      <div class="связи-статус">
-        <span id="мозги-связи-статус"></span>
-        <button class="ссылка" id="мозги-связи-обновить" type="button">Пересчитать</button>
-      </div>
-    </div>
-
-    <div class="три-кнопки">
-      <button class="кнопка второстепенная" id="мозги-развернуть" type="button"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span>Развернуть всё</span></button>
-      <button class="кнопка второстепенная" id="мозги-свернуть" type="button"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg><span>Свернуть всё</span></button>
-      <button class="кнопка второстепенная" id="мозги-центр" type="button"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg><span>В центр</span></button>
-    </div>
-    <div class="две-кнопки">
-      <button class="кнопка главная" id="мозги-сохранить" type="button"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h11l4 4v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M8 3v5h7M8 21v-7h8v7"/></svg><span>Сохранить настройки</span></button>
-      <button class="кнопка второстепенная" id="мозги-png" type="button"><svg class="зн" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg><span>Скачать PNG</span></button>
-    </div>
-    <p class="статус" id="мозги-статус" aria-live="polite"></p>
-
-    <div class="карточка-узла" id="мозги-карточка" hidden>
-      <div class="карточка-тип" id="мозги-карточка-тип"></div>
-      <div class="карточка-текст" id="мозги-карточка-текст"></div>
-      <div class="карточка-мета" id="мозги-карточка-мета"></div>
-      <div class="зачем" id="мозги-зачем" hidden></div>
-      <div class="подробно" id="мозги-подробно"></div>
-      <div class="похожее" id="мозги-похожее" hidden>
-        <div class="поле-название">Похожее по смыслу</div>
-        <ul id="мозги-похожее-список"></ul>
-      </div>
-      <div class="кнопки-карточки">
-        <button class="кнопка второстепенная" id="мозги-доп" type="button" hidden></button>
-        <button class="кнопка главная" id="мозги-открыть" type="button">Открыть</button>
-      </div>
-    </div>
-  </aside>
-
-  <div class="мозги-подсказка" id="мозги-подсказка" hidden></div>
-
-  <div class="мозги-загрузка" id="мозги-загрузка">
-    <div class="загрузка-текст">Собираю мозги</div>
-    <div class="загрузка-полоса"><span id="мозги-полоса"></span></div>
-  </div>
-</section>
 
 <!-- Окно настроек проекта -->
 <div class="затемнение" id="окно-настроек" hidden>
@@ -764,6 +768,7 @@
 <script src="/static/archive.js" charset="utf-8"></script>
 <script src="/static/work.js" charset="utf-8"></script>
 <script src="/static/disk.js" charset="utf-8"></script>
+<script src="/static/layers.js" charset="utf-8"></script>
 <script src="/static/ai-settings.js" charset="utf-8"></script>
 <script src="/static/memory_plus.js" charset="utf-8"></script>
 </body>

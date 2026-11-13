@@ -271,11 +271,15 @@ const ЭКРАНЫ = {
   дела: () => $("экран-дела"),
   работа: () => $("экран-работа"),
   диск: () => $("экран-диск"),
-  мозги: () => $("экран-мозги"),
 };
 
 function текущийЭкран() {
-  const имя = decodeURIComponent(location.hash.slice(1));
+  let имя = decodeURIComponent(location.hash.slice(1));
+  if (имя === "мозги") {            // «Мозги» переехали на главную слоем поверх круга агентов
+    имя = "главная";
+    history.replaceState(null, "", "#главная");
+    setTimeout(() => document.dispatchEvent(new CustomEvent("mizuyori:слой", { detail: "память" })), 0);
+  }
   return имя in ЭКРАНЫ ? имя : "главная";
 }
 

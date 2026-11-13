@@ -3890,3 +3890,25 @@ main.главная { grid-template-columns: minmax(28rem, min(56rem, 40vw)) min
   .логотип { display: none; }
   #меню { flex: 1; justify-content: space-around; }
 }
+
+/* =============================================================================
+   СЛОИ ГЛАВНОЙ: «Мозги» живут поверх круга агентов
+   ============================================================================= */
+.слои-главной { display: inline-flex; gap: .15rem; padding: .15rem; border-radius: 999px; border: 1px solid var(--рамка);
+  background: color-mix(in srgb, var(--панель) 70%, transparent); }
+.слои-главной button { border: 0; background: none; color: var(--тихий); font: inherit; font-size: .8rem; padding: .25rem .65rem; border-radius: 999px; cursor: pointer;
+  transition: background .2s, color .2s; white-space: nowrap; }
+.слои-главной button:hover { color: var(--текст); }
+.слои-главной button[aria-selected="true"] { background: color-mix(in srgb, var(--акцент) 22%, transparent); color: var(--текст); font-weight: 600; }
+.конвейер-лента > .мозги { position: absolute; inset: 0; z-index: 6; flex: none; height: auto; border-radius: 12px; background-color: #060910; }
+.конвейер-лента > .мозги[hidden] { display: none; }
+.конвейер-лента > .мозги .мозги-верх { top: .5rem; left: .6rem; }
+.конвейер-лента > .мозги .мозги-вкладки { display: none; }          /* вкладки заменил переключатель слоёв в шапке */
+.конвейер-лента > .мозги .мозги-панель { top: 2.6rem; bottom: .5rem; right: .5rem; width: min(19rem, calc(100% - 1rem)); }
+@media (max-width: 44rem) { .слои-главной { order: 5; width: 100%; justify-content: space-between; } .слои-главной button { flex: 1; padding: .3rem .2rem; } }
+.конвейер-лента > .мозги .мозги-список { padding: 3rem .9rem 1.5rem; }
+.конвейер-лента > .мозги .мозги-список::before { display: none; }
+.конвейер-лента > .мозги .список-сводка { grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); align-items: start; }
+.конвейер-лента > .мозги .список-шапка { gap: .5rem; }
+.конвейер-лента > .мозги .список-поиск { min-width: 0; flex: 1 1 10rem; }
+.конвейер-лента > .мозги .список-сводка .список-карта:last-child { max-height: 10.5rem; overflow-y: auto; }
