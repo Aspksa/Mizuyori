@@ -343,8 +343,8 @@
       let размер;
       if (matchMedia("(max-width: 62rem)").matches) размер = 92;     // на узком экране панель прокручивается
       else {
-        размер = 68;
-        for (let с = Math.min(выбранный ? 150 : 104, Math.floor(Ш / 3)); с >= 68; с -= 3) {
+        размер = 92;
+        for (let с = Math.min(выбранный ? 150 : 104, Math.floor(Ш / 3)); с >= 92; с -= 3) {
           лента.style.setProperty("--яч", `${с}px`);
           if (ряд.offsetHeight <= В - 2) { размер = с; break; }
         }

@@ -3807,3 +3807,12 @@ main.главная { grid-template-columns: minmax(23rem, 27rem) minmax(0, 1fr)
 .зона .агент .агент-имя { margin-top: .5rem !important; position: relative; z-index: 5; text-shadow: 0 1px 3px #000, 0 0 8px #000; }
 .зона .агент.работает .агент-имя { color: var(--гц); }
 .зона .агент::after { bottom: 2.75rem !important; }
+
+/* ===== герои сверху ===== */
+.персонаж .кольцо { transform-box: fill-box; transform-origin: center; animation: крутить 9s linear infinite; }
+.персонаж .голова-героя { transform-origin: 60px 80px; }
+.персонаж .рукав { transition: stroke .2s; }
+.зона .агент .агент-круг { height: calc(var(--яч) * 1.08); }
+.зона .агент.спит { opacity: .86 !important; filter: saturate(.85) !important; }
+.персонаж .блеск { transition: opacity .2s; }
+.агент.работает .персонаж .блеск, .агент-круг.работает .персонаж .блеск { opacity: .6; }
