@@ -61,8 +61,8 @@
 
     function расставить() {
       if (!агенты.length || !ш) return;
-      A = B = Math.max(230, Math.min(ш / 2 - 150, в / 2 - 110));
-      const сПодписями = Math.min(1, (ш / 2 - 14) / (A + 195), (в / 2 - 12) / (B + 120));
+      A = B = Math.max(230, Math.min(ш / 2 - 135, в / 2 - 55));
+      const сПодписями = Math.min(1, (ш / 2 - 14) / (A + 150), (в / 2 - 12) / (B + 55));
       подписиВсе = сПодписями >= .8;
       фит = подписиВсе ? сПодписями : Math.min(1, (ш / 2 - 20) / (A + 70), (в / 2 - 12) / (B + 90));
       const таб = таблицаЭллипса(A, B);
@@ -113,7 +113,7 @@
 
     function размер() {
       const р = лента.getBoundingClientRect();
-      dpr = Math.min(1.5, window.devicePixelRatio || 1);
+      dpr = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
       ш = Math.max(320, Math.round(р.width)); в = Math.max(320, Math.round(р.height));
       холст.width = Math.round(ш * dpr); холст.height = Math.round(в * dpr);
       расставить(); сбросКамеры(true);
@@ -246,7 +246,6 @@
       const g = к.createRadialGradient(ш / 2, в / 2, 20, ш / 2, в / 2, Math.max(ш, в) * .65);
       g.addColorStop(0, "#0d1524"); g.addColorStop(1, "#05070c");
       к.fillStyle = g; к.fillRect(0, 0, ш, в);
-      if (!безАнимаций()) матрица(dt, работают);
     }
     function эллипс(a, b, θ0, θ1, ширина, стиль) {
       к.beginPath(); к.ellipse(0, 0, a, b, 0, θ0, θ1); к.lineWidth = ширина; к.strokeStyle = стиль; к.lineCap = "round"; к.stroke();
@@ -261,7 +260,7 @@
       for (const каб of кабинеты) {
         const тих = Boolean(выбранКабинет) && каб.ключ !== выбранКабинет, а = тих ? .35 : 1;
         к.save(); к.rotate(поворот);
-        эллипс(A - 10, B - 10, каб.θ0, каб.θ1, 60, прозрачный(каб.цвет, .09 * а + .02));
+        эллипс(A - 10, B - 10, каб.θ0, каб.θ1, 60, прозрачный(каб.цвет, .06 * а + .01));
         эллипс(A - 44, B - 44, каб.θ0, каб.θ1, 2, прозрачный(каб.цвет, .55 * а));
         for (const о of каб.отделы) эллипс(A - 38, B - 38, о.θ0, о.θ1, 1.2, прозрачный(каб.цвет, .3 * а));
         к.restore();
@@ -297,15 +296,8 @@
           for (let i = 1; i < ч.length; i++) {
             const раб = ч[i].а.работает || ч[i - 1].а.работает;
             к.beginPath(); к.moveTo(ч[i - 1].x, ч[i - 1].y); к.lineTo(ч[i].x, ч[i].y);
-            к.lineWidth = раб ? 3 : 2; к.strokeStyle = прозрачный(каб.цвет, (раб ? .9 : .36) * а); к.stroke();
+            к.lineWidth = раб ? 2.4 : 1.4; к.strokeStyle = прозрачный(каб.цвет, (раб ? .9 : .28) * а); к.stroke();
           }
-        }
-        if (каб.лидер) for (const у of члены) {
-          if (!у.лидер || у === каб.лидер) continue;
-          const f = путь(каб.лидер, у);
-          к.beginPath();
-          for (let i = 0; i <= 16; i++) { const p = f(i / 16); i ? к.lineTo(p.x, p.y) : к.moveTo(p.x, p.y); }
-          к.lineWidth = 1; к.strokeStyle = прозрачный(каб.цвет, .22 * а); к.stroke();
         }
         if (каб.лидер) {
           const g = к.createLinearGradient(0, 0, каб.лидер.x, каб.лидер.y);
@@ -342,7 +334,7 @@
       if (!п) { к.fillStyle = цвет; к.beginPath(); к.arc(x, y, 2.4, 0, Math.PI * 2); к.fill(); return; }
       if (!у.путь) у.путь = new Path2D(п);
       к.save(); к.translate(x - размер / 2, y - размер / 2); к.scale(размер / 24, размер / 24);
-      к.lineWidth = 2.1; к.lineCap = "round"; к.lineJoin = "round"; к.strokeStyle = цвет; к.stroke(у.путь); к.restore();
+      к.lineWidth = 1.7; к.lineCap = "round"; к.lineJoin = "round"; к.strokeStyle = цвет; к.stroke(у.путь); к.restore();
     }
 
     function рисоватьУзлы() {
@@ -374,7 +366,7 @@
           }
           к.restore();
         }
-        значокУзла(у, у.x, у.y, ошибка ? "#ffb4b4" : раб ? "#ffffff" : прозрачный(цв, 1), у.r * 1.15);
+        значокУзла(у, у.x, у.y, ошибка ? "#ffb4b4" : раб ? "#ffffff" : прозрачный(цв, 1), у.r * 1.2);
         if (кабинетУзла(у)?.лидер === у) {
           к.fillStyle = "#f5c451"; к.beginPath();
           к.moveTo(у.x - 5, у.y - у.r - 2); к.lineTo(у.x - 5, у.y - у.r - 7); к.lineTo(у.x - 2.5, у.y - у.r - 4.5); к.lineTo(у.x, у.y - у.r - 8);
@@ -388,7 +380,7 @@
       к.textBaseline = "middle";
       for (const у of узлы) {
         const фокус = наведён === у, раб = Boolean(у.а.работает), вКабинете = Boolean(выбранКабинет) && у.кабинет === выбранКабинет;
-        if (!(у.лидер || фокус || раб || вКабинете)) continue;
+        if (!(фокус || раб)) continue;
         const имя = у.а.имя || у.ключ, текст = имя.length > 24 ? `${имя.slice(0, 23)}…` : имя;
         const c = Math.cos(у.нормаль), sn = Math.sin(у.нормаль);
         к.globalAlpha = приглушён(у) ? .25 : 1;
@@ -418,12 +410,6 @@
       g.addColorStop(0, `rgba(88,196,255,${.28 + (работают ? .22 : 0)})`); g.addColorStop(1, "rgba(88,196,255,0)");
       к.fillStyle = g; к.beginPath(); к.arc(0, 0, 92, 0, Math.PI * 2); к.fill();
       if (работают && !безАнимаций()) {   // радар и расходящиеся кольца, пока кто-то работает
-        if (к.createConicGradient) {
-          к.save(); к.rotate(время * 1.1);
-          const gg = к.createConicGradient(0, 0, 0);
-          gg.addColorStop(0, "rgba(88,196,255,0)"); gg.addColorStop(.9, "rgba(88,196,255,0)"); gg.addColorStop(.985, "rgba(88,196,255,.14)"); gg.addColorStop(1, "rgba(160,225,255,.3)");
-          к.fillStyle = gg; к.beginPath(); к.arc(0, 0, Math.min(A, B) * .92, 0, Math.PI * 2); к.fill(); к.restore();
-        }
         for (let i = 0; i < 2; i++) {
           const т = (время * .6 + i * .5) % 1;
           к.beginPath(); к.arc(0, 0, 36 + т * 70, 0, Math.PI * 2); к.lineWidth = 1.6 * (1 - т); к.strokeStyle = `rgba(120,210,255,${(1 - т) * .55})`; к.stroke();
@@ -515,7 +501,7 @@
       к.setTransform(dpr, 0, 0, dpr, 0, 0);
       рисоватьФон(dt, работают > 0 || чатЖдёт > 0);
       к.save(); к.translate(ш / 2 + камера.x, в / 2 + камера.y); к.scale(камера.z, камера.z);
-      рисоватьКольцаФона(); рисоватьКабинеты(); рисоватьНити(); рисоватьУзлы(); рисоватьЯдро(работают); рисоватьЧат(); рисоватьПодписи(); рисоватьЭффекты(dt);
+      рисоватьКабинеты(); рисоватьНити(); рисоватьУзлы(); рисоватьЯдро(работают); рисоватьЧат(); рисоватьПодписи(); рисоватьЭффекты(dt);
       к.restore();
       if (безАнимаций() && !эффекты.length) return;
       кадр = requestAnimationFrame(кадрРисовать);
