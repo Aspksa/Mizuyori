@@ -317,16 +317,24 @@
           }
         }
       }
-      // следы передач гаснут за ~30 секунд
+      // живые связи: светящаяся дуга между участниками обмена, гаснет за 30 секунд
+      к.globalCompositeOperation = "lighter";
       for (let i = следы.length - 1; i >= 0; i--) {
         const с = следы[i]; с.t += 1 / 60;
         const А = по.get(с.от), Б = по.get(с.кому);
         if (!А || !Б || с.t > 30) { следы.splice(i, 1); continue; }
-        const f = путь(А, Б), ал = Math.max(0, 1 - с.t / 30);
+        const f = путь(А, Б), ал = Math.min(1, с.t / .4) * Math.max(0, 1 - с.t / 30);
         к.beginPath();
-        for (let j = 0; j <= 24; j++) { const p = f(j / 24); j ? к.lineTo(p.x, p.y) : к.moveTo(p.x, p.y); }
-        к.lineWidth = 1.2 + 2.4 * ал; к.strokeStyle = прозрачный(с.цвет, .15 + .55 * ал); к.stroke();
+        for (let j = 0; j <= 28; j++) { const p = f(j / 28); j ? к.lineTo(p.x, p.y) : к.moveTo(p.x, p.y); }
+        к.lineWidth = 7 * ал + 1; к.strokeStyle = прозрачный(с.цвет, .10 * ал); к.stroke();
+        к.lineWidth = 1.2 + 1.6 * ал; к.strokeStyle = прозрачный(с.цвет, .25 + .6 * ал); к.stroke();
+        for (let j = 0; j < 2; j++) {                       // бегущие бусины от отправителя к получателю
+          const t = ((с.t * .45 + j * .5) % 1), p = f(t);
+          к.beginPath(); к.arc(p.x, p.y, 2.4, 0, Math.PI * 2); к.fillStyle = `rgba(255,255,255,${.85 * ал})`; к.fill();
+        }
+        const п = f(.97); к.beginPath(); к.arc(п.x, п.y, 3 + 3 * ал, 0, Math.PI * 2); к.fillStyle = прозрачный(с.цвет, .5 * ал); к.fill();
       }
+      к.globalCompositeOperation = "source-over";
     }
 
     function значокУзла(у, x, y, цвет, размер) {
@@ -490,7 +498,7 @@
     function кадрРисовать(t) {
       кадр = 0;
       if (!активен) return;
-      const занят = эффекты.length > 0 || агенты.some((а) => а.работает) || чатЖдёт > 0;
+      const занят = эффекты.length > 0 || следы.length > 0 || агенты.some((а) => а.работает) || чатЖдёт > 0;
       if (t - прошлый < (занят ? 14 : 45)) { кадр = requestAnimationFrame(кадрРисовать); return; }
       const dt = Math.min(.1, (t - прошлый) / 1000 || .016); прошлый = t; время += dt;
       if (чатЖдёт) { чатЖдёт += dt; if (чатЖдёт > 120) чатЖдёт = 0; }
